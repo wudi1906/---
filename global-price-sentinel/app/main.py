@@ -315,7 +315,7 @@ async def root():
                         <div class="project-icon">📄</div>
                         <div class="project-info">
                             <h2>Doc Knowledge Forge</h2>
-                            <span class="status pending">In Progress</span>
+                            <span class="status">Ready</span>
                         </div>
                     </div>
                     <p class="project-description">
@@ -328,8 +328,8 @@ async def root():
                         <span class="tech-tag">SQLite FTS</span>
                     </div>
                     <div class="project-links">
-                        <a href="#" class="btn btn-disabled">Coming Soon</a>
-                        <a href="#" class="btn btn-secondary">View Docs</a>
+                        <a href="http://localhost:8404" class="btn btn-primary" target="_blank">Open Project</a>
+                        <a href="http://localhost:8404/api/docs" class="btn btn-secondary" target="_blank">API Docs</a>
                     </div>
                 </div>
 
@@ -339,7 +339,7 @@ async def root():
                         <div class="project-icon">♿</div>
                         <div class="project-info">
                             <h2>A11y Component Atlas</h2>
-                            <span class="status pending">In Progress</span>
+                            <span class="status">Ready</span>
                         </div>
                     </div>
                     <p class="project-description">
@@ -352,8 +352,8 @@ async def root():
                         <span class="tech-tag">Vitest</span>
                     </div>
                     <div class="project-links">
-                        <a href="#" class="btn btn-disabled">Coming Soon</a>
-                        <a href="#" class="btn btn-secondary">View Docs</a>
+                        <a href="http://localhost:8505" class="btn btn-primary" target="_blank">Open Storybook</a>
+                        <a href="http://localhost:8505" class="btn btn-secondary" target="_blank">View Components</a>
                     </div>
                 </div>
 
@@ -363,7 +363,7 @@ async def root():
                         <div class="project-icon">📈</div>
                         <div class="project-info">
                             <h2>Insight Viz Studio</h2>
-                            <span class="status pending">In Progress</span>
+                            <span class="status">Ready</span>
                         </div>
                     </div>
                     <p class="project-description">
@@ -376,8 +376,8 @@ async def root():
                         <span class="tech-tag">Pandas</span>
                     </div>
                     <div class="project-links">
-                        <a href="#" class="btn btn-disabled">Coming Soon</a>
-                        <a href="#" class="btn btn-secondary">View Docs</a>
+                        <a href="http://localhost:8606" class="btn btn-primary" target="_blank">Open Project</a>
+                        <a href="http://localhost:8606/api/docs" class="btn btn-secondary" target="_blank">API Docs</a>
                     </div>
                 </div>
             </div>
