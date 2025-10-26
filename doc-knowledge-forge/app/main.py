@@ -6,16 +6,17 @@ import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
-from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Query, Request
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
 from app.settings import settings
 from app.models import (
-    init_db, get_db, Document, DocumentResponse, 
+    init_db, get_db, Document, DocumentResponse,
     DocumentCreate, SearchResult, DocumentStats
 )
 from app.parser import parse_document, DocumentParser
@@ -42,6 +43,16 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=str(settings.UPLOAD_DIR)), name="uploads")
 app.mount("/outputs", StaticFiles(directory=str(settings.OUTPUT_DIR)), name="outputs")
 
+templates_dir = Path(__file__).resolve().parent / "templates"
+templates_dir.mkdir(exist_ok=True)
+templates = Jinja2Templates(directory=str(templates_dir))
+
+# 模板目录
+# 模板目录
+templates_dir = Path(__file__).resolve().parent / "templates"
+templates_dir.mkdir(exist_ok=True)
+templates = Jinja2Templates(directory=str(templates_dir))
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -52,159 +63,9 @@ async def startup_event():
 
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
+async def root(request: Request):
     """主页"""
-    return """
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Doc Knowledge Forge</title>
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 40px 20px;
-            }
-            .container { max-width: 1200px; margin: 0 auto; }
-            .header {
-                text-align: center;
-                color: white;
-                margin-bottom: 60px;
-            }
-            .header h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            }
-            .card {
-                background: white;
-                border-radius: 16px;
-                padding: 40px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                margin-bottom: 30px;
-            }
-            .upload-area {
-                border: 2px dashed #cbd5e1;
-                border-radius: 12px;
-                padding: 60px 20px;
-                text-align: center;
-                transition: all 0.3s;
-            }
-            .upload-area:hover {
-                border-color: #2563eb;
-                background: #f8fafc;
-            }
-            .btn {
-                display: inline-block;
-                padding: 12px 32px;
-                background: #2563eb;
-                color: white;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                margin: 10px;
-                transition: all 0.2s;
-            }
-            .btn:hover {
-                background: #1d4ed8;
-                transform: translateY(-2px);
-            }
-            .features {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-                margin-top: 30px;
-            }
-            .feature {
-                padding: 20px;
-                background: #f8fafc;
-                border-radius: 8px;
-            }
-            .feature h3 {
-                color: #2563eb;
-                margin-bottom: 10px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>📄 Doc Knowledge Forge</h1>
-                <p style="font-size: 1.25rem; opacity: 0.95;">文档转知识库 - 智能检索系统</p>
-            </div>
-
-            <div class="card">
-                <h2 style="margin-bottom: 20px;">上传文档</h2>
-                <div class="upload-area">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">📎</div>
-                    <p style="color: #64748b; margin-bottom: 20px;">
-                        拖拽文件到此处或点击上传<br/>
-                        支持格式: PDF, DOCX, DOC, TXT, MD
-                    </p>
-                    <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.txt,.md" style="display:none">
-                    <button onclick="document.getElementById('fileInput').click()" 
-                            style="padding: 12px 32px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                        选择文件
-                    </button>
-                </div>
-                
-                <div class="features">
-                    <div class="feature">
-                        <h3>📄 多格式支持</h3>
-                        <p>PDF、Word、TXT、Markdown</p>
-                    </div>
-                    <div class="feature">
-                        <h3>🔍 全文检索</h3>
-                        <p>支持中英文搜索与高亮</p>
-                    </div>
-                    <div class="feature">
-                        <h3>🏷️ 自动标签</h3>
-                        <p>智能提取关键词</p>
-                    </div>
-                    <div class="feature">
-                        <h3>📦 批量导出</h3>
-                        <p>打包下载Markdown文档</p>
-                    </div>
-                </div>
-            </div>
-
-            <div style="text-align: center;">
-                <a href="/api/docs" class="btn">📘 API 文档</a>
-                <a href="/api/documents" class="btn">📝 文档列表</a>
-                <a href="/api/stats" class="btn">📊 统计信息</a>
-            </div>
-        </div>
-
-        <script>
-            document.getElementById('fileInput').addEventListener('change', async (e) => {
-                const files = e.target.files;
-                if (!files.length) return;
-                
-                const formData = new FormData();
-                for (let file of files) {
-                    formData.append('files', file);
-                }
-                
-                try {
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    alert(`成功上传 ${result.uploaded} 个文件！`);
-                    window.location.href = '/api/documents';
-                } catch (error) {
-                    alert('上传失败: ' + error.message);
-                }
-            });
-        </script>
-    </body>
-    </html>
-    """
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/api/health")

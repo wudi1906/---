@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doc Knowledge Forge</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --card-bg-dark: rgba(15, 23, 42, 0.7);
+            --text-primary: #0f172a;
+            --text-primary-dark: #f8fafc;
+            --accent: #2563eb;
+            --accent-sea: #F97316;
+            --accent-success: #10b981;
+            --border-color: rgba(148, 163, 184, 0.3);
+            --shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45);
+            --shadow-dark: 0 25px 50px -12px rgba(15, 23, 42, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", "Source Han Sans", "思源黑体", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: clamp(24px, 5vw, 48px) clamp(16px, 6vw, 72px);
+            display: flex;
+            flex-direction: column;
+            color: var(--text-primary);
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            backdrop-filter: blur(18px);
+        }
+
+        header {
+            margin-bottom: clamp(32px, 6vw, 64px);
+            color: white;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
+        }
+
+        header p {
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            opacity: 0.95;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: clamp(36px, 7vw, 72px);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: clamp(24px, 3vw, 40px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: var(--text-primary-dark);
+            }
+            .card {
+                background: var(--card-bg-dark);
+                border-color: rgba(148, 163, 184, 0.15);
+                box-shadow: var(--shadow-dark);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 30px 60px -20px rgba(30, 64, 175, 0.55);
+        }
+
+        .section-title {
+            font-size: clamp(1.6rem, 3vw, 2rem);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+        }
+
+        .section-title span.icon {
+            font-size: 2rem;
+        }
+
+        .section-subtitle {
+            color: #475569;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .upload-dropzone {
+            border: 2px dashed rgba(37, 99, 235, 0.35);
+            border-radius: 16px;
+            padding: clamp(32px, 4vw, 56px);
+            text-align: center;
+            transition: all 0.3s ease;
+            background: rgba(15, 23, 42, 0.02);
+        }
+
+        .upload-dropzone:hover,
+        .upload-dropzone.dragover {
+            border-color: var(--accent);
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .dropzone-icon {
+            font-size: clamp(3.5rem, 7vw, 4.5rem);
+            margin-bottom: 16px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        button,
+        a.action-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        button.primary,
+        a.action-btn.primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            box-shadow: 0 18px 36px -18px rgba(37, 99, 235, 0.65);
+        }
+
+        button.secondary,
+        a.action-btn.secondary {
+            background: rgba(15, 23, 42, 0.05);
+            color: inherit;
+        }
+
+        button.success,
+        a.action-btn.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 18px 36px -18px rgba(16, 185, 129, 0.65);
+        }
+
+        button:focus-visible,
+        a.action-btn:focus-visible {
+            outline: 3px solid rgba(37, 99, 235, 0.5);
+            outline-offset: 4px;
+        }
+
+        button:hover,
+        a.action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            color: #475569;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .stat-card {
+                background: rgba(15, 23, 42, 0.35);
+            }
+            .section-subtitle,
+            .stat-label {
+                color: rgba(148, 163, 184, 0.85);
+            }
+        }
+
+        /* 文档列表 */
+        .documents {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .document-card {
+            border-radius: 18px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            transition: background 0.2s ease;
+        }
+
+        .document-card:hover {
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .document-card {
+                background: rgba(15, 23, 42, 0.6);
+                border-color: rgba(148, 163, 184, 0.2);
+            }
+        }
+
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .document-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.12);
+            font-size: 0.85rem;
+            color: #1d4ed8;
+        }
+
+        footer {
+            margin-top: auto;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.9rem;
+            text-align: center;
+            padding-top: 32px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(15, 23, 42, 0.6);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .tag {
+                background: rgba(96, 165, 250, 0.2);
+                color: #bfdbfe;
+            }
+            .status-chip {
+                background: rgba(16, 185, 129, 0.25);
+                color: #34d399;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <header>
+            <h1>📄 Doc Knowledge Forge</h1>
+            <p>
+                将 PDF、Word、Markdown 等文档一键转换为结构化知识库，自动抽取章节、关键词与摘要，
+                并提供全文检索和数据洞察。遵循 WCAG 2.1 AA，支持 RTL 与国际化展示。
+            </p>
+            <div class="status-chip">
+                <span>⚡</span>
+                <span>服务在线 · FastAPI v{{ request.app.version }}</span>
+            </div>
+        </header>
+
+        <main class="hero-grid">
+            <!-- 上传区域 -->
+            <section class="card">
+                <h2 class="section-title">
+                    <span class="icon">🧾</span>
+                    文档上传与转换
+                </h2>
+                <p class="section-subtitle">
+                    支持批量上传 PDF、DOCX、TXT、Markdown，自动转换为统一 Markdown，
+                    并提取目录、标签、关键词等结构化元数据。
+                </p>
+
+                <div id="dropzone" class="upload-dropzone" role="region" aria-label="上传文档">
+                    <div class="dropzone-icon">📎</div>
+                    <p style="margin-bottom: 12px;">拖放文件到此处，或点击下方按钮选择文件</p>
+                    <p style="color: #475569; font-size: 0.95rem;">支持 .pdf .docx .doc .txt .md，单次最多 10 个文件</p>
+                    <input id="fileInput" type="file" multiple accept=".pdf,.docx,.doc,.txt,.md" hidden>
+                    <div class="button-group" style="margin-top: 20px;">
+                        <button class="primary" onclick="document.getElementById('fileInput').click()">
+                            <span>📤</span> 选择文件上传
+                        </button>
+                        <button class="secondary" id="demoUploadBtn">
+                            <span>🧪</span> 使用示例文档
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 快速入口 -->
+            <section class="card">
+                <h2 class="section-title">
+                    <span class="icon">🚀</span>
+                    快速入口
+                </h2>
+                <p class="section-subtitle">
+                    查看 API 文档、最近上传记录、统计看板与导出结果。所有接口均提供 Swagger UI 与 JSON 响应，便于集成。
+                </p>
+                <div class="button-group" style=" justify-content: flex-start;">
+                    <a class="action-btn primary" href="/api/docs" target="_blank" rel="noopener">
+                        <span>📘</span> API 文档
+                    </a>
+                    <a class="action-btn success" href="/api/documents" target="_blank" rel="noopener">
+                        <span>📄</span> 文档列表
+                    </a>
+                    <a class="action-btn secondary" href="/outputs" target="_blank" rel="noopener">
+                        <span>🗂</span> Markdown 导出目录
+                    </a>
+                </div>
+
+                <div class="stats-grid" id="stats">
+                    <div class="stat-card" aria-live="polite">
+                        <span class="stat-value" id="totalDocs">--</span>
+                        <span class="stat-label">文档总量</span>
+                    </div>
+                    <div class="stat-card" aria-live="polite">
+                        <span class="stat-value" id="totalSize">--</span>
+                        <span class="stat-label">存储占用</span>
+                    </div>
+                    <div class="stat-card" aria-live="polite">
+                        <span class="stat-value" id="recentUploads">--</span>
+                        <span class="stat-label">24 小时新增</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 文档列表 -->
+        <section class="card" aria-labelledby="documentsTitle">
+            <h2 class="section-title" id="documentsTitle">
+                <span class="icon">📚</span>
+                最近上传文档
+            </h2>
+            <div id="documentList" class="documents" aria-live="polite">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-state-icon">🔍</div>
+                    <p>暂无文档记录。上传文档后，系统将自动解析并展示在此。</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>
+                Doc Knowledge Forge · 建议在桌面端体验最佳，推荐 Chrome / Edge / Safari 浏览器。
+                本演示遵循 Material Design 3 × Apple HIG × Nielsen 10，可无缝迁移至生产环境。
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const dropzone = document.getElementById("dropzone");
+        const documentList = document.getElementById("documentList");
+        const emptyState = document.getElementById("emptyState");
+        const totalDocsEl = document.getElementById("totalDocs");
+        const totalSizeEl = document.getElementById("totalSize");
+        const recentUploadsEl = document.getElementById("recentUploads");
+
+        const formatBytes = (bytes) => {
+            if (bytes === 0) return "0 B";
+            const k = 1024;
+            const sizes = ["B", "KB", "MB", "GB", "TB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+        };
+
+        const showToast = (message, type = "info") => {
+            const toast = document.createElement("div");
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add("visible"));
+            setTimeout(() => {
+                toast.classList.remove("visible");
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
+        };
+
+        const handleFiles = async (files) => {
+            if (!files.length) return;
+            const formData = new FormData();
+            Array.from(files).slice(0, 10).forEach((file) => {
+                formData.append("files", file);
+            });
+            try {
+                showToast("正在上传并解析文档...", "info");
+                const res = await fetch("/api/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                if (!res.ok) throw new Error("上传失败");
+                const data = await res.json();
+                showToast(`成功上传 ${data.uploaded} 个文件`, "success");
+                loadDocuments();
+                loadStats();
+            } catch (error) {
+                console.error(error);
+                showToast("上传失败，请稍后再试", "error");
+            }
+        };
+
+        fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+        dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.setAttribute("aria-busy", "true");
+            dropzone.classList.add("dragover");
+        });
+        dropzone.addEventListener("dragleave", () => {
+            dropzone.setAttribute("aria-busy", "false");
+            dropzone.classList.remove("dragover");
+        });
+        dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("dragover");
+            dropzone.setAttribute("aria-busy", "false");
+            handleFiles(e.dataTransfer.files);
+        });
+        document.getElementById("demoUploadBtn").addEventListener("click", async () => {
+            try {
+                showToast("正在加载 API 文档，方便你了解接口...", "info");
+                window.open("/api/docs", "_blank", "noopener");
+            } catch (error) {
+                console.error(error);
+                showToast("无法打开 API 文档", "error");
+            }
+        });
+
+        const addDeleteHandlers = () => {
+            document.querySelectorAll("button[data-doc]").forEach(button => {
+                button.addEventListener("click", async () => {
+                    const id = button.getAttribute("data-doc");
+                    if (!confirm("确认删除该文档及其生成内容？")) return;
+                    try {
+                        const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+                        if (!res.ok) throw new Error();
+                        showToast("文档已删除", "success");
+                        loadDocuments();
+                        loadStats();
+                    } catch {
+                        showToast("删除失败，请稍后再试", "error");
+                    }
+                });
+            });
+        };
+
+        const renderDocuments = (docs) => {
+            documentList.innerHTML = "";
+            if (!docs.length) {
+                documentList.appendChild(emptyState);
+                emptyState.hidden = false;
+                return;
+            }
+            emptyState.hidden = true;
+            docs.forEach(doc => {
+                const docCard = document.createElement("article");
+                docCard.className = "document-card";
+                docCard.innerHTML = `
+                    <header class="document-header">
+                        <div>
+                            <h3 class="document-title">${doc.title || doc.original_name}</h3>
+                            <p style="color:#64748b; font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
+                        </div>
+                        <div class="button-group">
+                            <a class="action-btn secondary" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener">
+                                <span>📝</span> 查看 Markdown
+                            </a>
+                            <button class="secondary" data-doc="${doc.id}">
+                                <span>🗑</span> 删除
+                            </button>
+                        </div>
+                    </header>
+                    <div class="tags" aria-label="文档标签">
+                        ${(doc.tags || "").split(",").filter(Boolean).slice(0, 6).map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') || "<span style='color:#94a3b8;'>暂无标签</span>"}
+                    </div>
+                `;
+                documentList.appendChild(docCard);
+            });
+            addDeleteHandlers();
+        };
+
+        const loadStats = async () => {
+            try {
+                const res = await fetch("/api/stats");
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                totalDocsEl.textContent = data.total_documents;
+                totalSizeEl.textContent = formatBytes(data.total_size || 0);
+                recentUploadsEl.textContent = data.recent_uploads;
+            } catch {
+                showToast("统计信息加载失败", "error");
+            }
+        };
+
+        const loadDocuments = async () => {
+            try {
+                const res = await fetch("/api/documents?limit=12");
+                if (!res.ok) throw new Error();
+                const docs = await res.json();
+                renderDocuments(docs);
+            } catch {
+                showToast("文档列表加载失败", "error");
+            }
+        };
+
+        loadDocuments();
+        loadStats();
+
+        const addToastStyles = () => {
+            const style = document.createElement("style");
+            style.innerHTML = `
+                .toast {
+                    position: fixed;
+                    left: 50%;
+                    bottom: 24px;
+                    transform: translateX(-50%) translateY(20px);
+                    background: rgba(15, 23, 42, 0.9);
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 999px;
+                    opacity: 0;
+                    transition: all 0.3s ease;
+                    z-index: 9999;
+                }
+                .toast-success { background: rgba(16, 185, 129, 0.95); }
+                .toast-error { background: rgba(239, 68, 68, 0.95); }
+                .toast-info { background: rgba(37, 99, 235, 0.95); }
+                .toast.visible {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            `;
+            document.head.appendChild(style);
+        };
+
+        addToastStyles();
+    </script>
+</body>
+</html>
