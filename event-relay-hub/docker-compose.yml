@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  event-hub:
+    build: .
+    container_name: event-relay-hub
+    ports:
+      - "8202:8202"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=postgresql://eventhub:eventhub_pass@postgres:5432/event_hub
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      - postgres
+    volumes:
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    networks:
+      - hub-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: event-hub-db
+    environment:
+      POSTGRES_USER: eventhub
+      POSTGRES_PASSWORD: eventhub_pass
+      POSTGRES_DB: event_hub
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - hub-network
+
+networks:
+  hub-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+

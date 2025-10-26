@@ -1,0 +1,40 @@
+# Global ignores
+*.log
+*.pyc
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Node artifacts
+node_modules/
+dist/
+.next/
+out/
+
+# Playwright
+playwright-report/
+test-results/
+
+# Docker
+.env
+.env.local
+.env.*.local
+
+# Storybook
+storybook-static/
+
+# Project specific outputs
+global-price-sentinel/reports/
+global-price-sentinel/screenshots/
+doc-knowledge-forge/outputs/
+insight-viz-studio/exports/
+

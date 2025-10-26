@@ -1,0 +1,40 @@
+# 监控目标配置
+# 这是实际可用的示例配置
+
+targets:
+  # 示例 1: 监控 HTTPBin（用于测试）
+  - id: httpbin-test
+    url: "https://httpbin.org/html"
+    name_selector: "h1"
+    currency: USD
+    threshold_pct: 5.0
+    enabled: true
+  
+  # 示例 2: 监控 Example.com（用于测试）
+  - id: example-website
+    url: "https://example.com"
+    name_selector: "h1"
+    currency: USD
+    threshold_pct: 3.0
+    enabled: true
+  
+  # 示例 3: 自定义监控目标（请修改为实际商品页面）
+  - id: custom-product-1
+    url: "https://www.example-shop.com/product/123"
+    name_selector: "h1.product-title"
+    price_selector: "span.price"
+    stock_selector: "span.stock-status"
+    currency: USD
+    threshold_pct: 5.0
+    enabled: false  # 改为 true 启用
+  
+# 配置说明:
+# - id: 唯一标识符
+# - url: 目标网页 URL
+# - name_selector: 产品名称的 CSS 选择器
+# - price_selector: 价格的 CSS 选择器
+# - price_regex: 价格正则表达式（可选，与 price_selector 二选一）
+# - stock_selector: 库存状态选择器（可选）
+# - currency: 货币单位
+# - threshold_pct: 价格变动告警阈值（百分比）
+# - enabled: 是否启用

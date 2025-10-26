@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # Project 1: Global Price Sentinel
+  price-sentinel:
+    build:
+      context: ./global-price-sentinel
+      dockerfile: Dockerfile
+    container_name: portfolio-price-sentinel
+    ports:
+      - "8101:8101"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8101
+      - DATABASE_URL=sqlite:///./price_sentinel.db
+    volumes:
+      - ./global-price-sentinel/reports:/app/reports
+      - ./global-price-sentinel/screenshots:/app/screenshots
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Project 2: Event Relay Hub
+  event-hub:
+    build:
+      context: ./event-relay-hub
+      dockerfile: Dockerfile
+    container_name: portfolio-event-hub
+    ports:
+      - "8202:8202"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8202
+      - DATABASE_URL=sqlite:///./event_hub.db
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+  # Project 3: SaaS Dashboard
+  saas-dashboard:
+    build:
+      context: ./saas-northstar-dashboard
+      dockerfile: Dockerfile
+    container_name: portfolio-saas-dashboard
+    ports:
+      - "8303:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - portfolio-network
+
+networks:
+  portfolio-network:
+    driver: bridge
+

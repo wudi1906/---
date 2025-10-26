@@ -1,0 +1,110 @@
+================================================
+  作品集快速启动指南
+================================================
+
+【最简单的方法】
+-------------------------------------------------
+
+1. 双击运行: START_ALL.bat
+2. 等待 30-60 秒
+3. 打开浏览器访问: http://localhost:8101
+
+
+【如果遇到问题】
+-------------------------------------------------
+
+方案A: 先停止，再启动
+  1. 双击 STOP_ALL.bat
+  2. 等待5秒
+  3. 双击 START_ALL.bat
+
+方案B: 逐个启动（更稳定）
+  1. 进入 global-price-sentinel 文件夹
+     双击 start.bat
+  2. 进入 event-relay-hub 文件夹
+     双击 start.bat
+  3. 进入 saas-northstar-dashboard 文件夹
+     在PowerShell中运行: npm run dev
+
+
+【验证服务是否正常】
+-------------------------------------------------
+
+双击运行: TEST_ALL.bat
+
+应该看到:
+  [OK] Project 1 is running
+  [OK] Project 2 is running
+  [OK] Project 3 is running
+
+
+【访问地址】
+-------------------------------------------------
+
+主页门户:
+  http://localhost:8101
+  (展示所有6个项目，点击按钮访问各个功能)
+
+项目1 - 价格监控:
+  http://localhost:8101/api/docs
+
+项目2 - Webhook中台:
+  http://localhost:8202
+  http://localhost:8202/api/docs
+
+项目3 - SaaS看板:
+  http://localhost:8303
+
+
+【停止服务】
+-------------------------------------------------
+
+方法1: 关闭各个窗口
+方法2: 双击 STOP_ALL.bat
+方法3: 在运行窗口按 Ctrl+C
+
+
+【常见问题】
+-------------------------------------------------
+
+Q: 窗口是黑屏？
+A: 可能是PowerShell脚本问题，使用 .bat 文件:
+   - global-price-sentinel\start.bat
+   - event-relay-hub\start.bat
+
+Q: 端口被占用？
+A: 运行 STOP_ALL.bat 停止所有服务
+
+Q: 项目2数据库错误？
+A: 删除 event-relay-hub\.env 文件，重新运行
+
+Q: 依赖安装失败？
+A: 检查网络连接，或使用国内镜像:
+   pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+
+【文件列表】
+-------------------------------------------------
+
+启动脚本:
+  START_ALL.bat          一键启动所有项目
+  STOP_ALL.bat           停止所有项目
+  TEST_ALL.bat           测试所有服务
+
+单个项目启动:
+  global-price-sentinel\start.bat
+  event-relay-hub\start.bat
+  saas-northstar-dashboard: npm run dev
+
+文档:
+  README.md              项目总览
+  运行指南.md            详细运行指南
+  功能详解.md            功能说明
+  项目完成总结.md        完成情况
+
+
+【技术支持】
+-------------------------------------------------
+
+如需帮助，请查看相关文档或联系开发者。
+

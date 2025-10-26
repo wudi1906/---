@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  price-sentinel:
+    build: .
+    container_name: global-price-sentinel
+    ports:
+      - "8101:8101"
+    environment:
+      - DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=8101
+      - DATABASE_URL=sqlite:///./price_sentinel.db
+      - HEADLESS=True
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+      - ./screenshots:/app/screenshots
+      - ./configs:/app/configs
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8101/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - sentinel-network
+
+  # 可选: PostgreSQL 数据库
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: price-sentinel-db
+  #   environment:
+  #     POSTGRES_USER: sentinel
+  #     POSTGRES_PASSWORD: your_password
+  #     POSTGRES_DB: price_monitor
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - sentinel-network
+  #   restart: unless-stopped
+
+networks:
+  sentinel-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+

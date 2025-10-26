@@ -1,0 +1,52 @@
+# 监控目标配置示例
+# 复制为 targets.yml 并修改为实际监控目标
+
+targets:
+  # 示例 1: 亚马逊产品
+  - id: amazon-sample-1
+    url: "https://www.amazon.com/dp/B08N5WRWNW"
+    name_selector: "#productTitle"
+    price_selector: "span.a-price-whole"
+    stock_selector: "#availability span"
+    currency: USD
+    threshold_pct: 5.0
+    enabled: true
+  
+  # 示例 2: 使用正则表达式解析价格
+  - id: custom-site-1
+    url: "https://example.com/product/123"
+    name_selector: "h1.product-name"
+    price_regex: "\\$([0-9]+\\.[0-9]{2})"
+    currency: USD
+    threshold_pct: 3.0
+    enabled: true
+  
+  # 示例 3: 多货币产品
+  - id: ebay-sample-1
+    url: "https://www.ebay.com/itm/123456789"
+    name_selector: "h1.x-item-title__mainTitle"
+    price_selector: "div.x-price-primary span"
+    currency: USD
+    threshold_pct: 10.0
+    enabled: false
+  
+  # 示例 4: 中文网站
+  - id: taobao-sample-1
+    url: "https://item.taobao.com/item.htm?id=123456789"
+    name_selector: "div.tb-detail-hd h1"
+    price_selector: "span.tb-rmb-num"
+    currency: CNY
+    threshold_pct: 5.0
+    enabled: false
+
+# 配置说明:
+# - id: 唯一标识符，用于识别产品
+# - url: 产品页面URL
+# - name_selector: 产品名称的CSS选择器
+# - price_selector: 价格的CSS选择器
+# - price_regex: 价格的正则表达式（与 price_selector 二选一）
+# - stock_selector: 库存状态的CSS选择器（可选）
+# - currency: 货币单位 (USD/EUR/GBP/CNY等)
+# - threshold_pct: 价格变动告警阈值（百分比）
+# - enabled: 是否启用该监控目标
+
