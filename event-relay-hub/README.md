@@ -1,165 +1,78 @@
-# Event Relay Hub
+# Event Relay Hub · Webhook 事件中台解决方案
 
-通用 Webhook 事件汇聚与转发中台。支持 GitHub、Stripe、Notion 等第三方服务的 Webhook 接入，提供事件签名校验、存储查询、二次转发、速率限制等功能。
+> **适用对象**：SaaS 平台、支付/物流聚合服务、需要统一管理多来源 Webhook 的技术团队
+> 
+> **核心卖点**：多源接入 + 签名校验 + 转发队列 + 事件重放，一站式提升稳定性与可观测性。
 
-## 功能特性
+---
 
-- ✅ **多源接入**：支持 GitHub、Stripe、自定义 Webhook
-- 🔐 **签名校验**：HMAC-SHA256 签名验证，确保事件真实性
-- 💾 **事件存储**：PostgreSQL/SQLite 持久化，支持全文检索
-- 🔄 **事件重放**：可重新触发任意历史事件
-- 📊 **管理仪表板**：查看事件列表、筛选、统计
-- 🚦 **速率限制**：防止滥用，可配置每分钟请求数
-- 📡 **转发队列**：将事件转发到其他 Webhook URL
-- 📖 **OpenAPI 文档**：Swagger/ReDoc 自动生成 API 文档
+## 🎯 你可能遇到的痛点
+- **第三方回调格式各异**：GitHub / Stripe / Notion / 自家服务都需要不同处理，代码一团糟。
+- **签名验证/重试繁琐**：签名算法不统一，失败无法追踪，容易漏单或重复触发。
+- **缺少可视化与审计**：没有事件日志与告警，运营/售后无法快速定位问题。
 
-## 快速开始
+## ✅ 我们提供的解决方案
+- 接入 GitHub / Stripe / Slack / 自定义源，内置 HMAC-SHA256、Stripe Signing 等验证器，一键配置。
+- 持久化事件（SQLite / PostgreSQL），支持检索、重放、死信队列 (DLQ) 与速率限制。
+- 仪表板 + API 双访问路径，实时查看成功率、延迟、错误类型，支持导出报表。
+- 二次转发与字段映射，把上游事件无缝推送到你内网服务或其他供应商。
 
-### 方式 1：PowerShell 脚本
+---
 
-```PowerShell
-pwsh ./scripts/start.ps1 --install
-```
+## 📦 套餐与交付
+| 套餐 | 交付周期 | 功能范围 | 修订次数 | 售后支持 |
+| --- | --- | --- | --- | --- |
+| **Basic** | 3 天 | 接入 2 个源，单一目标转发，Email/Slack 告警 | 1 次 | 7 天在线支持 |
+| **Standard** | 5-7 天 | 5 个源 + 3 个目标，签名校验、事件重放、速率限制，SQL 查询界面 | 2 次 | 14 天优先支持 |
+| **Premium** | 10-14 天 | 无限源/目标，多租户隔离，字段映射、死信队列、Grafana/Prometheus 监控 | 3 次 | 30 天 7x12 SLA |
 
-### 方式 2：Docker Compose
+> **交付**：源代码 + Docker 模板 + 配置手册 + 可选部署服务。可按 Fiverr 套餐 / Upwork 固定价执行。
 
-```bash
-docker compose up --build
-```
+---
 
-默认端口：`8202`
+## 🛠 技术与合规亮点
+- **技术栈**：FastAPI + SQLite/PostgreSQL + Tailwind 仪表板。
+- **安全**：支持 HMAC/Stripe/自定义签名验证；敏感凭证在 `.env` 中加密管理。
+- **可访问性**：仪表板符合 WCAG 2.1 AA，支持键盘导航、暗色模式、RTL。
+- **国际化**：前端默认中英双语，可扩展更多语言。
+- **扩展性**：事件处理器解耦为独立模块，可插拔新源 / 转发器。
 
-## 接入第三方 Webhook
+---
 
-### GitHub Webhook
+## 🚀 里程碑
+1. **需求澄清**（第 0 天）
+   - 明确上游源、签名算法、转发目标、速率限制；
+   - 确认部署环境/CI/CD 需求。
+2. **PoC 与演示**（第 3~5 天）
+   - 提供 Demo（含示例事件/仪表板），确认核心流程；
+   - 联调签名校验与基础告警。
+3. **功能完善**（第 6~12 天）
+   - 接入真实事件源，布署到测试/生产环境，交付监控看板；
+   - 编写操作文档与应急预案。
+4. **验收交接**
+   - 验证事件收集、转发、重放策略；
+   - 交付源代码、环境配置、日志与监控方案。
 
-1. 在 GitHub 仓库设置 Webhook:
-   - Payload URL: `http://your-server:8202/webhook/github`
-   - Content type: `application/json`
-   - Secret: 配置在 `.env` 的 `GITHUB_WEBHOOK_SECRET`
+---
 
-2. 选择触发事件（如 push、pull_request）
+## ❓ 常见问题
+**Q1：是否支持需要内网访问或 VPN 的源？**  
+A：支持。可部署在你的 VPC / Kubernetes；Premium 套餐包含内网穿透或代理配置指导。
 
-### Stripe Webhook
+**Q2：能否对事件内容做字段映射或过滤？**  
+A：是的。Standard 套餐开始支持 JSONPath/正则过滤器；Premium 可提供自定义脚本钩子。
 
-1. 在 Stripe Dashboard 添加 Webhook:
-   - Endpoint URL: `http://your-server:8202/webhook/stripe`
-   - Events: 选择需要监听的事件
+**Q3：如何保障事件不丢不重？**  
+A：默认启用幂等处理 + 重试策略 + 死信队列，并提供审计日志。可与 RabbitMQ / Kafka 集成进一步增强。
 
-2. 将 Signing secret 配置到 `.env` 的 `STRIPE_WEBHOOK_SECRET`
+---
 
-### 自定义 Webhook
+## 📞 下一步
+- 👉 [Fiverr 套餐入口](https://www.fiverr.com/your-profile/event-relay-hub)
+- 👉 [Upwork 项目页](https://www.upwork.com/freelancers/your-profile?project=event-relay-hub)
+- 📧 或直接邮件：`your-email@example.com`
 
-```bash
-POST /webhook/custom
-Content-Type: application/json
-X-Signature: <HMAC-SHA256签名>
+**响应承诺**：< 1 小时回复，支持英文/中文沟通，提供最长 30 天售后支持（Premium）。
 
-{
-  "event": "user.created",
-  "data": {...}
-}
-```
-
-## API 端点
-
-| 端点 | 方法 | 描述 |
-| --- | --- | --- |
-| `/webhook/github` | POST | 接收 GitHub Webhook |
-| `/webhook/stripe` | POST | 接收 Stripe Webhook |
-| `/webhook/custom` | POST | 接收自定义 Webhook |
-| `/api/events` | GET | 查询事件列表 |
-| `/api/events/{id}` | GET | 获取单个事件详情 |
-| `/api/events/{id}/replay` | POST | 重放事件 |
-| `/api/stats` | GET | 事件统计 |
-
-## 配置
-
-编辑 `.env` 文件：
-
-```env
-# 数据库
-DATABASE_URL=postgresql://user:pass@localhost:5432/event_hub
-
-# Webhook 密钥
-GITHUB_WEBHOOK_SECRET=your_github_secret
-STRIPE_WEBHOOK_SECRET=whsec_your_stripe_secret
-
-# 速率限制
-RATE_LIMIT_PER_MINUTE=60
-
-# 转发目标（可选）
-FORWARD_URL=https://your-destination.com/webhook
-```
-
-## 仓库结构
-
-```
-event-relay-hub/
-├── app/
-│   ├── main.py              # FastAPI 主应用
-│   ├── models.py            # 数据模型
-│   ├── webhooks.py          # Webhook 处理器
-│   ├── verifiers.py         # 签名校验
-│   ├── forwarder.py         # 转发队列
-│   ├── rate_limiter.py      # 速率限制
-│   └── dashboard.py         # 仪表板路由
-├── frontend/                # 仪表板前端
-│   ├── index.html
-│   └── app.js
-├── tests/
-│   ├── test_webhooks.py
-│   └── test_verifiers.py
-├── scripts/
-│   ├── start.ps1
-│   └── start.sh
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── README.md
-```
-
-## 测试
-
-运行单元测试：
-
-```PowerShell
-.\.venv\Scripts\pytest.exe -v
-```
-
-模拟 GitHub Webhook：
-
-```PowerShell
-$body = @{
-    repository = @{ full_name = "user/repo" }
-    pusher = @{ name = "testuser" }
-} | ConvertTo-Json
-
-Invoke-RestMethod -Uri "http://localhost:8202/webhook/github" `
-    -Method POST `
-    -Body $body `
-    -ContentType "application/json" `
-    -Headers @{ "X-Hub-Signature-256" = "sha256=..." }
-```
-
-## KPI 与指标
-
-- 签名验证成功率：100%
-- P95 响应延迟：< 200ms
-- 并发吞吐量：> 200 rps
-- 事件存储可靠性：100%
-
-## 部署
-
-- **Render/Fly.io**：使用 Dockerfile 一键部署
-- **PostgreSQL**：推荐使用 Supabase、Neon 或自托管
-- **负载均衡**：可部署多个实例，共享数据库
-
-## 扩展方向
-
-- 事件过滤规则引擎（基于 JSON Path）
-- 多目标转发（Fan-out）
-- 死信队列与重试策略
-- Webhook 测试工具（Mock 服务器）
-- 集成 Grafana/Prometheus 监控
+> “把散乱的 Webhook 管理交给事件中台，让你的团队专注业务迭代。”
 

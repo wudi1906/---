@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full-Stack Developer Portfolio - 6 Production-Ready Projects</title>
+    <meta name="description" content="Upwork/Fiverr作品集 - 价格监控、Webhook中继、SaaS看板、文档知识库、A11y组件、数据可视化">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #F97316;
+            --success: #10b981;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: rgba(148, 163, 184, 0.2);
+            --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: clamp(24px, 5vw, 60px) clamp(16px, 4vw, 40px);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: clamp(40px, 6vw, 80px);
+            animation: fadeInDown 0.8s ease-out;
+        }
+        
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            letter-spacing: -0.02em;
+        }
+        
+        .hero p {
+            font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.4);
+        }
+        
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Projects Grid */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+            gap: 32px;
+            margin-bottom: 60px;
+        }
+        
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+        
+        .project-card:nth-child(1) { animation-delay: 0.1s; }
+        .project-card:nth-child(2) { animation-delay: 0.2s; }
+        .project-card:nth-child(3) { animation-delay: 0.3s; }
+        .project-card:nth-child(4) { animation-delay: 0.4s; }
+        .project-card:nth-child(5) { animation-delay: 0.5s; }
+        .project-card:nth-child(6) { animation-delay: 0.6s; }
+        
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 60px -15px rgba(37, 99, 235, 0.35);
+            border-color: var(--primary);
+        }
+        
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .project-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+        
+        .project-info h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .pain-point {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 3px solid #ef4444;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #991b1b;
+        }
+        
+        .solution {
+            margin-bottom: 20px;
+            font-size: 1rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tech-tag {
+            padding: 6px 12px;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary-dark);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .project-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .action-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .action-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .action-secondary {
+            background: rgba(37, 99, 235, 0.08);
+            color: var(--primary);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+        
+        .action-secondary:hover {
+            background: rgba(37, 99, 235, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .action-demo {
+            background: rgba(249, 115, 22, 0.1);
+            color: var(--accent);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+        
+        .action-demo:hover {
+            background: rgba(249, 115, 22, 0.2);
+            border-color: var(--accent);
+        }
+
+        .action-cta {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .action-cta:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+            transform: translateY(-2px);
+        }
+
+        .hero-note {
+            margin-top: 18px;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .hero-note a {
+            color: #f8fafc;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        
+        /* Footer CTA */
+        .footer-cta {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 40px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.8s ease-out 0.7s backwards;
+        }
+        
+        .footer-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+        
+        .footer-cta p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            margin-bottom: 32px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .contact-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .action-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <h1>🚀 Full-Stack Developer Portfolio</h1>
+            <p>
+                6个生产级项目 · 符合Upwork/Fiverr客户需求 · 遵循WCAG 2.1 AA/Material Design 3/Apple HIG ·
+                响应<1小时 · 准时交付 · 清晰里程碑
+            </p>
+            <div class="hero-cta">
+                <a href="#projects" class="btn btn-primary" aria-label="浏览全部项目作品集">
+                    <span>👀</span> 查看作品集
+                </a>
+                <a href="#contact" class="btn btn-outline" aria-label="联系我开启合作">
+                    <span>💬</span> 联系接单
+                </a>
+                <a href="#packages" class="btn btn-primary" aria-label="跳转到套餐与价格">
+                    <span>🛒</span> 查看套餐
+                </a>
+            </div>
+            <p class="hero-note">👉 想立即体验？直接导入示例数据，或 <a href="#packages">跳到套餐区</a> 了解定价。</p>
+        </header>
+
+        <section id="projects" class="projects-grid">
+            <!-- Project 1 -->
+            <article class="project-card" id="project-global-price-sentinel">
+                <div class="project-header">
+                    <div class="project-icon">🔍</div>
+                    <div class="project-info">
+                        <h2>Global Price Sentinel</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ 电商卖家手工监控竞品价格,耗时且易漏
+                </div>
+                <p class="solution">
+                    自动抓取多站点价格,变动触发Email/Webhook告警,生成对比报告(HTML/PDF)。支持代理池规避反爬。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">Playwright</span>
+                    <span class="tech-tag">FastAPI</span>
+                    <span class="tech-tag">SQLite</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8101" class="action-btn action-primary" target="_blank" aria-label="打开 Global Price Sentinel 在线示例">
+                        <span>🚀</span> Live Demo
+                    </a>
+                    <a href="http://localhost:8101/api/docs" class="action-btn action-secondary" target="_blank" aria-label="查看 Global Price Sentinel API 文档">
+                        <span>📘</span> API文档
+                    </a>
+                    <a href="https://www.fiverr.com/your-profile/global-price-sentinel" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 Global Price Sentinel 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=global-price-sentinel" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 Global Price Sentinel 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+
+            <!-- Project 2 -->
+            <article class="project-card" id="project-event-relay-hub">
+                <div class="project-header">
+                    <div class="project-icon">🔗</div>
+                    <div class="project-info">
+                        <h2>Event Relay Hub</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ SaaS需接收第三方Webhook,缺统一管理与重试机制
+                </div>
+                <p class="solution">
+                    统一接收Stripe/GitHub/Slack事件,验证签名,条件路由,失败重试+死信队列。可视化成功率与延迟。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">FastAPI</span>
+                    <span class="tech-tag">SQLite</span>
+                    <span class="tech-tag">JWT</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8202" class="action-btn action-primary" target="_blank" aria-label="打开 Event Relay Hub 在线示例">
+                        <span>🚀</span> Live Demo
+                    </a>
+                    <a href="http://localhost:8202/api/docs" class="action-btn action-secondary" target="_blank" aria-label="查看 Event Relay Hub API 文档">
+                        <span>📘</span> API文档
+                    </a>
+                    <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8202/api/demo/seed', this)" aria-label="导入 Event Relay Hub 示例数据">
+                        <span>🧪</span> 导入示例
+                    </button>
+                    <a href="https://www.fiverr.com/your-profile/event-relay-hub" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 Event Relay Hub 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=event-relay-hub" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 Event Relay Hub 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+
+            <!-- Project 3 -->
+            <article class="project-card" id="project-saas-northstar-dashboard">
+                <div class="project-header">
+                    <div class="project-icon">📊</div>
+                    <div class="project-info">
+                        <h2>SaaS Northstar Dashboard</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ 创业公司需跟踪MRR/留存/NPS,但BI工具太重
+                </div>
+                <p class="solution">
+                    选择模板(B2C/B2B/电商)或上传CSV,自动计算指标与趋势,可视化看板,导出PNG/PDF,生成分享链接。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Next.js</span>
+                    <span class="tech-tag">React</span>
+                    <span class="tech-tag">Tailwind</span>
+                    <span class="tech-tag">Chart.js</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8303" class="action-btn action-primary" target="_blank" aria-label="打开 SaaS Northstar Dashboard 在线示例">
+                        <span>🚀</span> Live Demo
+                    </a>
+                    <a href="http://localhost:8303/import" class="action-btn action-secondary" target="_blank" aria-label="跳转至 CSV 导入页面">
+                        <span>📥</span> CSV导入
+                    </a>
+                    <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8303/api/demo/seed', this)" aria-label="导入 SaaS Northstar Dashboard 示例数据">
+                        <span>🧪</span> 导入示例
+                    </button>
+                    <a href="https://www.fiverr.com/your-profile/saas-dashboard" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 SaaS Dashboard 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=saas-dashboard" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 SaaS Dashboard 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+
+            <!-- Project 4 -->
+            <article class="project-card" id="project-doc-knowledge-forge">
+                <div class="project-header">
+                    <div class="project-icon">📄</div>
+                    <div class="project-info">
+                        <h2>Doc Knowledge Forge</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ 企业有大量PDF/Word,需统一检索与知识沉淀
+                </div>
+                <p class="solution">
+                    批量上传文档,自动转Markdown+提取关键词/摘要,SQLite FTS全文检索,标签筛选,在线Markdown查看器。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">FastAPI</span>
+                    <span class="tech-tag">pymupdf</span>
+                    <span class="tech-tag">SQLite FTS</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8404" class="action-btn action-primary" target="_blank" aria-label="打开 Doc Knowledge Forge 在线示例">
+                        <span>🚀</span> Live Demo
+                    </a>
+                    <a href="http://localhost:8404/api/docs" class="action-btn action-secondary" target="_blank" aria-label="查看 Doc Knowledge Forge API 文档">
+                        <span>📘</span> API文档
+                    </a>
+                    <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8404/api/demo/seed', this)" aria-label="导入 Doc Knowledge Forge 示例数据">
+                        <span>🧪</span> 导入示例
+                    </button>
+                    <a href="https://www.fiverr.com/your-profile/doc-knowledge-forge" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 Doc Knowledge Forge 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=doc-knowledge-forge" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 Doc Knowledge Forge 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+
+            <!-- Project 5 -->
+            <article class="project-card" id="project-a11y-component-atlas">
+                <div class="project-header">
+                    <div class="project-icon">♿</div>
+                    <div class="project-info">
+                        <h2>A11y Component Atlas</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ 开发团队需符合WCAG 2.1 AA的组件,从零搭建成本高
+                </div>
+                <p class="solution">
+                    React组件库,内置键盘/屏幕阅读器支持,Button/Input/Modal/Tabs等,Storybook文档+axe自动检测。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">React</span>
+                    <span class="tech-tag">Radix UI</span>
+                    <span class="tech-tag">Storybook</span>
+                    <span class="tech-tag">Vitest</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8505" class="action-btn action-primary" target="_blank" aria-label="打开 A11y Component Atlas Storybook">
+                        <span>🚀</span> Storybook
+                    </a>
+                    <a href="https://github.com/your-repo/a11y-atlas" class="action-btn action-secondary" target="_blank" aria-label="查看 A11y Component Atlas 代码仓库">
+                        <span>💻</span> GitHub
+                    </a>
+                    <a href="https://www.fiverr.com/your-profile/a11y-component-atlas" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 A11y Component Atlas 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=a11y-component-atlas" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 A11y Component Atlas 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+
+            <!-- Project 6 -->
+            <article class="project-card" id="project-insight-viz-studio">
+                <div class="project-header">
+                    <div class="project-icon">📈</div>
+                    <div class="project-info">
+                        <h2>Insight Viz Studio</h2>
+                        <span class="status-badge">
+                            <span>⚡</span> Ready
+                        </span>
+                    </div>
+                </div>
+                <div class="pain-point">
+                    ⚠️ 业务人员需快速生成图表报告,但不会编程
+                </div>
+                <p class="solution">
+                    上传CSV/JSON,系统推荐图表类型(柱状/折线/饼图),拖拽字段映射,配置主题,一键导出PNG/PDF或周报/月报模板。
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-tag">Python</span>
+                    <span class="tech-tag">FastAPI</span>
+                    <span class="tech-tag">ECharts</span>
+                    <span class="tech-tag">Pandas</span>
+                </div>
+                <div class="project-actions">
+                    <a href="http://localhost:8606" class="action-btn action-primary" target="_blank" aria-label="打开 Insight Viz Studio 在线示例">
+                        <span>🚀</span> Live Demo
+                    </a>
+                    <a href="http://localhost:8606/api/docs" class="action-btn action-secondary" target="_blank" aria-label="查看 Insight Viz Studio API 文档">
+                        <span>📘</span> API文档
+                    </a>
+                    <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8606/api/demo/seed', this)" aria-label="导入 Insight Viz Studio 示例数据">
+                        <span>🧪</span> 导入示例
+                    </button>
+                    <a href="https://www.fiverr.com/your-profile/insight-viz-studio" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Fiverr 查看 Insight Viz Studio 套餐">
+                        <span>🛒</span> Fiverr 套餐
+                    </a>
+                    <a href="https://www.upwork.com/freelancers/your-profile?project=insight-viz-studio" class="action-btn action-cta" target="_blank" rel="noopener" aria-label="在 Upwork 查看 Insight Viz Studio 项目">
+                        <span>🌐</span> Upwork 项目
+                    </a>
+                </div>
+            </article>
+        </section>
+
+        <section id="packages" class="footer-cta" style="margin-top: 48px;">
+            <h2>🎯 Fiverr / Upwork 套餐入口</h2>
+            <p>每个项目都提供 Basic / Standard / Premium 三档套餐，交付周期与修订次数清晰。点击上方对应套餐按钮即可查看详情或直接下单。</p>
+        </section>
+
+        <section id="contact" class="footer-cta">
+            <h2>💼 准备好开始您的项目了吗?</h2>
+            <p>
+                我专注于高质量交付、清晰沟通与按时完成。所有项目均遵循行业最佳实践(Material Design 3、Apple HIG、WCAG 2.1 AA)。
+                响应时间<1小时,支持Fiverr/Upwork平台交易保障。
+            </p>
+            <div class="contact-options">
+                <a href="https://www.fiverr.com/your-profile" class="btn btn-primary" target="_blank">
+                    <span>🟢</span> Fiverr Profile
+                </a>
+                <a href="https://www.upwork.com/freelancers/your-profile" class="btn btn-primary" target="_blank">
+                    <span>🔵</span> Upwork Profile
+                </a>
+                <a href="mailto:your-email@example.com" class="btn btn-outline">
+                    <span>📧</span> Email直接联系
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        async function seedDemo(url, btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span>⏳</span> 加载中...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                const data = await res.json();
+                
+                if (data.success) {
+                    btn.innerHTML = '<span>✅</span> 已导入';
+                    btn.style.background = 'rgba(16, 185, 129, 0.2)';
+                    btn.style.color = '#10b981';
+                    btn.style.borderColor = '#10b981';
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        btn.style = '';
+                    }, 2000);
+                    
+                    alert('✅ 示例数据已导入! 现在可以点击 "Live Demo" 查看效果。');
+                } else {
+                    throw new Error(data.error || '导入失败');
+                }
+            } catch (error) {
+                btn.innerHTML = '<span>❌</span> 失败';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+                alert('❌ 导入失败: ' + error.message + '\\n\\n请确保对应服务已启动。');
+            }
+        }
+    </script>
+</body>
+</html>
+

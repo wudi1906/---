@@ -1,137 +1,78 @@
-# SaaS Northstar Dashboard
+# SaaS Northstar Dashboard · SaaS 指标看板解决方案
 
-SaaS 关键指标看板 - 快速掌握 MRR/ARR/Churn/LTV 等核心业务指标。
+> **适用对象**：SaaS 创业者、增长团队、运营/财务分析师
+> 
+> **核心卖点**：5 分钟导入数据，全天候可视化 MRR/ARR/Churn/LTV，支持团队协作与报告导出。
 
-## 功能特性
+---
 
-- 📊 **核心指标**: MRR, ARR, Churn Rate, LTV, CAC
-- 📈 **趋势图表**: Chart.js 可视化，支持多时间段
-- 📥 **CSV 导入**: 批量导入订阅/退款/获客数据
-- 💱 **多币种**: 支持 USD/EUR/GBP/CNY 切换
-- 📱 **响应式**: 移动端优先设计，适配各种屏幕
-- 🌙 **暗色模式**: 支持亮/暗主题切换
-- 📸 **导出功能**: 导出图表为 PNG 图片
+## 🎯 你可能遇到的痛点
+- **指标散落在多个系统**：Stripe、Paddle、CRM、财务表格各管一摊，决策时难以聚合。
+- **自建看板耗时耗力**：设计图表、处理数据、保证可访问性都需要人力维护。
+- **报告输出慢**：每周/每月手动整理 KPI，浪费时间且容易出错。
 
-## 快速开始
+## ✅ 我们提供的解决方案
+- 支持导入订阅/流失/获客 CSV（或 API 对接），自动计算 MRR、ARR、Churn、LTV、CAC 等核心指标。
+- 折线图、留存表、渠道分析等可视化开箱即用，暗色模式/多币种/RTL 已内建。
+- 一键导出 PNG/PDF 报告，可用于投资人更新、董事会报表、团队同步会议。
+- 数据验证与异常提示，避免因空值/币种错误导致的报表失真。
 
-```bash
-npm install
-npm run dev
-```
+---
 
-访问: http://localhost:8303
+## 📦 套餐与交付内容
+| 套餐 | 交付周期 | 功能范围 | 修订次数 | 售后支持 |
+| --- | --- | --- | --- | --- |
+| **Basic** | 3 天 | 本地部署仪表盘 + CSV 导入 + MRR/ARR/Churn 图表 | 1 次 | 7 天在线支持 |
+| **Standard** | 5-7 天 | 增加 CAC/LTV/留存表 + 多币种 + PNG 导出 + 团队协作登陆 | 2 次 | 14 天优先支持 |
+| **Premium** | 10-12 天 | Stripe/Paddle API 自动同步 + 邮件周报 + Grafana/Looker 接口 + 多租户 | 3 次 | 30 天 7x12 SLA |
 
-## 技术栈
+> **交付方式**：源代码 + 安装脚本 + 使用手册，可选托管部署（Vercel/Render）。费用可按 Fiverr 套餐或 Upwork 固定价执行。
 
-- **前端**: Next.js 14 (App Router) + React 18
-- **样式**: Tailwind CSS 3
-- **图表**: Chart.js 4
-- **状态管理**: Zustand
-- **数据处理**: Papaparse (CSV 解析)
-- **图表导出**: html2canvas
+---
 
-## 项目结构
+## 🔧 技术亮点 & 合规
+- **技术栈**：Next.js 14 + React 18 + Tailwind CSS + Chart.js + Zustand。
+- **可访问性**：遵循 WCAG 2.1 AA，支持键盘导航、屏幕阅读器、RTL 布局。
+- **多语言/多币种**：默认中英双语，可扩展更多语言；支持 USD/EUR/GBP/CNY 等常用币种。
+- **图表导出**：内置 html2canvas，可导出高分辨率 PNG；Premium 套餐提供 PDF 模版。
+- **数据隐私**：仅使用客户提供的订阅/流失数据，不存储敏感信息，可按需部署在客户 VPC。
 
-```
-saas-northstar-dashboard/
-├── app/
-│   ├── page.tsx              # 主Dashboard
-│   ├── import/page.tsx       # CSV导入页
-│   └── layout.tsx            # 布局
-├── components/
-│   ├── MetricCard.tsx        # 指标卡片
-│   ├── TrendChart.tsx        # 趋势图表
-│   ├── CohortTable.tsx       # 留存表
-│   └── ThemeToggle.tsx       # 主题切换
-├── lib/
-│   ├── metrics.ts            # 指标计算
-│   ├── parser.ts             # CSV解析
-│   └── store.ts              # 状态管理
-├── data/samples/             # 示例数据
-│   ├── subscriptions.csv
-│   ├── churn.csv
-│   └── acquisition.csv
-└── public/
-```
+---
 
-## 指标计算公式
+## 🚀 里程碑
+1. **需求澄清**（第 0 天）
+   - 确认指标范围、汇率/币种、数据源格式、团队权限；
+   - 确定部署方式（本地 / Vercel / Docker）。
+2. **PoC 演示**（第 2~4 天）
+   - 提供 Demo 环境（含示例数据），确认指标与图表；
+   - 审核 UI/UX，确定导出模版。
+3. **功能完善**（第 5~10 天）
+   - 接入真实数据源，完成部署；
+   - 提供图表导出、周报自动化、权限设置。
+4. **验收交接**
+   - 验证指标正确性，交付操作手册、培训录屏；
+   - 提供回滚方案与数据导入指南。
 
-### MRR (Monthly Recurring Revenue)
-```
-MRR = Sum(当月活跃订阅金额)
-```
+---
 
-### ARR (Annual Recurring Revenue)
-```
-ARR = MRR × 12
-```
+## ❓ 常见问题
+**Q1：数据源只支持 CSV 吗？**  
+A：Basic/Standard 默认使用 CSV；Premium 套餐可对接 Stripe/Paddle/Chargebee/自定义 API，实现每日同步。
 
-### Churn Rate (流失率)
-```
-Churn Rate = (期初客户数 - 期末客户数) / 期初客户数 × 100%
-```
+**Q2：团队成员是否可协作？**  
+A：Standard 起支持多用户角色管理；Premium 提供单点登录 (SSO) 与权限分级。
 
-### LTV (Lifetime Value)
-```
-LTV = ARPU / Churn Rate
-```
+**Q3：如何保证数据安全？**  
+A：可部署在客户云环境，敏感信息保存在 `.env.local`。我们提供网络隔离/访问控制建议，并支持定期安全审计。
 
-### CAC (Customer Acquisition Cost)
-```
-CAC = 营销支出 / 新增客户数
-```
+---
 
-## 示例数据格式
+## 📞 下一步
+- 👉 [Fiverr 套餐入口](https://www.fiverr.com/your-profile/saas-dashboard)
+- 👉 [Upwork 项目页](https://www.upwork.com/freelancers/your-profile?project=saas-dashboard)
+- 📧 或直接邮件：`your-email@example.com`
 
-### subscriptions.csv
-```csv
-date,customer_id,plan,amount,currency
-2024-01-01,C001,Pro,99,USD
-2024-01-01,C002,Basic,29,USD
-```
+**响应承诺**：< 1 小时回复，可提供英文/中文沟通，最多 30 天售后支持（按套餐）。
 
-### churn.csv
-```csv
-date,customer_id,reason
-2024-01-15,C003,price
-```
-
-### acquisition.csv
-```csv
-date,channel,cost,customers
-2024-01-01,google_ads,5000,50
-```
-
-## 部署
-
-### Vercel (推荐)
-
-```bash
-npm run build
-vercel deploy
-```
-
-### Docker
-
-```bash
-docker build -t saas-dashboard .
-docker run -p 8303:3000 saas-dashboard
-```
-
-## 环境变量
-
-创建 `.env.local`：
-
-```env
-NEXT_PUBLIC_DEFAULT_CURRENCY=USD
-NEXT_PUBLIC_DATE_FORMAT=YYYY-MM-DD
-```
-
-## 扩展方向
-
-- 集成 Stripe/Paddle API 自动导入
-- 预测性分析（使用 ML 预测 Churn）
-- 多租户支持
-- 实时数据同步（WebSocket）
-- 邮件定时报告
+> “打造属于你的 SaaS 北极星指标看板，从数据到洞察只需一步。”
 

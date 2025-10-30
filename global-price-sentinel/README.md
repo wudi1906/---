@@ -1,95 +1,77 @@
-# Global Price Sentinel
+# Global Price Sentinel · 电商价格监控旗舰方案
 
-跨境电商价格/库存监控自动化方案。基于 Playwright + FastAPI + SQLite，支持配置 SKU 列表、变更检测、自动报告与 Webhook 告警。
+> **适用对象**：跨境电商团队、品牌出海运营、竞品/渠道运营经理
+> 
+> **核心卖点**：全天候价格监控、自动告警、趋势报告，交付最快 3 天上线。
 
-## 功能特性
-- YAML 配置多站点多 SKU（URL + 选择器/正则）
-- Playwright（或 httpx 回退）抓取最新价格/库存
-- 变更检测与重试机制，失败自动记录日志
-- HTML/CSV 报告生成，支持 7 天历史
-- Web 控制面板（FastAPI + Tailwind）查看趋势
-- Slack/Discord/钉钉 Webhook 推送
+---
 
-## 快速开始
-```PowerShell
-pwsh ./scripts/start.ps1
-```
+## 🎯 你正在面对的挑战？
+- **手工监控耗时 & 容易漏掉**：SKU 多、平台多，人工表格更新易出错。
+- **价格变动响应慢**：竞争对手促销、库存变化无法第一时间看到。
+- **缺少趋势洞察**：历史数据零散，无法用作定价策略依据。
 
-或使用 Docker：
-```bash
-docker compose up --build
-```
+## ✅ 我们提供的解决方案
+- 自动化抓取 Amazon / 京东 / 淘宝等站点，支持同一 SKU 多地区价格对比。
+- 配置化阈值告警（Email / Webhook / 钉钉 / Slack），1 分钟内通知关键人。
+- 可视化控制台 + 周报（月报）导出（HTML / CSV），掌握竞品趋势与库存波动。
+- 代理池 + 重试机制 + 失败日志，保障稳定性并可审计。
 
-首次运行会自动创建 SQLite 数据库、生成示例报告并启动本地服务（默认端口 `8101`）。
+---
 
-## 配置
-编辑 `configs/targets.example.yml` 并复制为 `configs/targets.yml`。
-```yaml
-targets:
-  - id: sample-sku-1
-    url: https://example.com/products/sku-1
-    name_selector: h1.product-title
-    price_selector: span.price
-    currency: USD
-    threshold:
-      price_change_pct: 5
-  - id: sample-sku-2
-    url: https://example.com/products/sku-2
-    name_selector: h1
-    price_regex: "\\$([0-9]+\\.[0-9]{2})"
-    currency: USD
-```
+## 📦 套餐与交付内容
+| 套餐 | 交付周期 | 功能范围 | 修订次数 | 售后支持 |
+| --- | --- | --- | --- | --- |
+| **Basic** | 3 天 | 接入 3 个站点 / 5 个 SKU，Email 告警 + HTML 周报 | 1 次 | 7 天在线支持 |
+| **Standard** | 5-7 天 | 接入 10 个站点 / 20 个 SKU，Webhook 集成（Slack / 钉钉），PDF/CSV 导出，自定义调度 | 2 次 | 14 天优先支持 |
+| **Premium** | 10-15 天 | 无限 SKU，多币种、代理池、Grafana 看板、Prometheus 指标，用户分级通知 | 3 次 | 30 天 7x12 SLA |
 
-## 测试
-```PowerShell
-.\.venv\Scripts\pytest.exe
-```
+> **交付方式**：提供源代码 + 安装脚本 + 使用手册，可选 Docker 部署。费用可按 Fiverr 套餐或 Upwork 固定价执行。
 
-## KPI 与指标
-- 抓取成功率 ≥ 95%
-- 采集周期：默认 12 小时，可在 `.env` 中配置 `CRON_SCHEDULE`
-- 报告生成时间（样例数据）：< 1.2s
+---
 
-## 演示资产
-- `assets/demo.mp4`：15s 操作演示（占位）
-- `assets/screenshots/`：控制面板截图
-- `docs/ux/`：各地区视觉规范（Figma 链接占位）
+## 🔧 技术亮点 & 合规
+- **技术栈**：Playwright + FastAPI + SQLite/PostgreSQL + Tailwind UI。
+- **架构保障**：采集、监控、告警模块解耦，支持水平扩展。
+- **可访问性**：遵循 WCAG 2.1 AA，控制台支持键盘操作、暗色模式、RTL。
+- **数据合规**：仅抓取公开页面，不存储敏感信息，支持 GDPR 合规配置。
+- **多语言**：控制台支持中英文切换，可按需追加其他语言。
 
-## 仓库结构
-```
-global-price-sentinel/
-├── app/
-│   ├── main.py
-│   ├── monitor.py
-│   ├── models.py
-│   ├── reporter.py
-│   ├── scheduler.py
-│   ├── settings.py
-│   └── webhooks.py
-├── configs/
-│   ├── targets.example.yml
-│   └── prompts/
-├── reports/
-├── screenshots/
-├── scripts/
-│   ├── start.ps1
-│   └── start.sh
-├── tests/
-│   └── test_monitor.py
-├── docker-compose.yml
-├── Dockerfile
-├── Makefile
-├── requirements.txt
-└── .env.example
-```
+---
 
-## 部署
-- Docker Compose (默认 SQLite)
-- Render/Fly.io：可使用 `Dockerfile`
-- 定时任务：GitHub Actions + cron，通过 CLI `python -m app.scheduler` 触发
+## 🚀 交付流程（固定里程碑）
+1. **需求澄清**（第 0 天）
+   - 明确站点/SKU 列表、告警阈值、接收渠道；
+   - 确认部署环境（本地 / 云端 / Docker）。
+2. **原型演示**（第 2~4 天）
+   - 提供 Demo 链接（含示例数据），验收抓取与告警；
+   - 评审 UI/UX，确认报告模版。
+3. **功能完善**（第 5~10 天）
+   - 接入真实数据源、部署到指定环境；
+   - 提供培训与使用文档。
+4. **验收与交接**
+   - 终验清单：抓取成功率报告、告警演练、回滚预案。
+   - 交付源代码、配置文件、操作手册。
 
-## 扩展方向
-- 多区域代理池（BrightData、Oxylabs 等）
-- Captcha 规避（2Captcha/Playwright stealth）
-- 历史价格分析 & 策略建议
-- KPI 接入 Grafana/Prometheus
+---
+
+## ❓ 常见问题（FAQ）
+**Q1：是否支持需要登录的站点或反爬策略？**  
+A：支持。可配置账号登录/验证码处理（使用 Playwright 方案），高级套餐包含代理池与验证码服务集成。
+
+**Q2：告警渠道可以接入哪些？**  
+A：默认提供 Email / Webhook / Slack / Discord / 钉钉，亦可扩展至 Teams、企业微信。可按用户分级通知。
+
+**Q3：部署在我的服务器上是否安全？**  
+A：源代码交付 + Docker 模板，所有凭证存储于 `.env`，我们提供加固建议。也可托管在你的 VPC 或 Render/Fly.io。
+
+---
+
+## 📞 下一步怎么做？
+- 👉 [Fiverr 套餐入口](https://www.fiverr.com/your-profile/global-price-sentinel)（选套餐 + 下单）
+- 👉 [Upwork 项目页](https://www.upwork.com/freelancers/your-profile?project=global-price-sentinel)（提交需求）
+- 📧 直接邮件：`your-email@example.com`（说明站点/数量/时间）
+
+**响应承诺**：< 1 小时回复，首次会议可当日安排。交付后提供 7~30 天售后支持（按套餐）。
+
+> “价格监控，不再是繁琐任务。让系统替你盯住竞品，把时间用在策略与增长上。”

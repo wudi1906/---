@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }} - 文档查看</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', 'Microsoft YaHei', sans-serif; margin: 0; }
+        header { padding: 16px 20px; background: #111827; color: #fff; }
+        header a { color: #93c5fd; text-decoration: none; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .toolbar { display: flex; gap: 12px; margin-bottom: 16px; }
+        .btn { padding: 8px 14px; border-radius: 8px; border: 1px solid #e5e7eb; background: #f9fafb; cursor: pointer; }
+        pre { white-space: pre-wrap; word-wrap: break-word; background: #0b1020; color: #e5e7eb; padding: 16px; border-radius: 8px; line-height: 1.6; }
+        .meta { color: #6b7280; margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/">← 返回列表</a>
+            <h1 style="margin:8px 0 0 0; font-size: 1.25rem;">{{ title }}</h1>
+        </div>
+    </header>
+    <main class="container">
+        <div class="toolbar">
+            <button class="btn" id="downloadBtn">下载 Markdown</button>
+            <button class="btn" id="copyBtn">复制 Markdown</button>
+        </div>
+        <div class="meta">Markdown 预览（原文）</div>
+        <pre id="md"></pre>
+    </main>
+    <script>
+        const docId = {{ doc_id }};
+        const mdEl = document.getElementById('md');
+        async function loadMarkdown() {
+            const res = await fetch(`/api/documents/${docId}/markdown`);
+            if (!res.ok) { mdEl.textContent = '加载失败'; return; }
+            const text = await res.text();
+            mdEl.textContent = text;
+        }
+        document.getElementById('downloadBtn').onclick = () => {
+            window.open(`/api/documents/${docId}/markdown`, '_blank');
+        };
+        document.getElementById('copyBtn').onclick = async () => {
+            try { await navigator.clipboard.writeText(mdEl.textContent); alert('已复制'); } catch { alert('复制失败'); }
+        };
+        loadMarkdown();
+    </script>
+</body>
+</html>

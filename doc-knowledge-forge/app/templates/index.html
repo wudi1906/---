@@ -337,6 +337,18 @@
         </header>
 
         <main class="hero-grid">
+            <section class="card">
+                <h2 class="section-title">
+                    <span class="icon">🔎</span>
+                    全文检索
+                </h2>
+                <p class="section-subtitle">输入关键词后回车，支持在标题与正文中搜索。</p>
+                <div style="display:flex; gap:12px; margin-top:12px;">
+                    <input id="searchInput" type="text" placeholder="搜索关键词..." aria-label="搜索关键词" style="flex:1; padding:12px 14px; border-radius:10px; border:1px solid #e2e8f0;" />
+                    <button id="searchBtn" class="primary"><span>🔎</span> 搜索</button>
+                </div>
+                <div id="searchResults" style="margin-top:16px;"></div>
+            </section>
             <!-- 上传区域 -->
             <section class="card">
                 <h2 class="section-title">
@@ -358,7 +370,10 @@
                             <span>📤</span> 选择文件上传
                         </button>
                         <button class="secondary" id="demoUploadBtn">
-                            <span>🧪</span> 使用示例文档
+                            <span>🧪</span> 导入示例数据
+                        </button>
+                        <button class="secondary" id="resetBtn">
+                            <span>♻️</span> 重置数据
                         </button>
                     </div>
                 </div>
@@ -494,11 +509,26 @@
         });
         document.getElementById("demoUploadBtn").addEventListener("click", async () => {
             try {
-                showToast("正在加载 API 文档，方便你了解接口...", "info");
-                window.open("/api/docs", "_blank", "noopener");
-            } catch (error) {
-                console.error(error);
-                showToast("无法打开 API 文档", "error");
+                const res = await fetch("/api/demo/seed", { method: "POST" });
+                if (!res.ok) throw new Error();
+                showToast("示例数据已导入", "success");
+                loadDocuments();
+                loadStats();
+            } catch (e) {
+                showToast("示例数据导入失败", "error");
+            }
+        });
+
+        document.getElementById("resetBtn").addEventListener("click", async () => {
+            if (!confirm("确认清空当前数据？该操作不可恢复")) return;
+            try {
+                const res = await fetch("/api/demo/reset", { method: "POST" });
+                if (!res.ok) throw new Error();
+                showToast("数据已重置", "success");
+                loadDocuments();
+                loadStats();
+            } catch (e) {
+                showToast("重置失败", "error");
             }
         });
 
@@ -519,6 +549,50 @@
                 });
             });
         };
+
+        const renderSearchResults = (items, keyword) => {
+            const host = document.getElementById('searchResults');
+            host.innerHTML = '';
+            if (!items.length) {
+                host.innerHTML = '<div class="empty-state">未找到相关内容</div>';
+                return;
+            }
+            items.forEach(it => {
+                const el = document.createElement('div');
+                el.className = 'document-card';
+                const safeSnippet = (it.snippet || '').replace(new RegExp(keyword, 'ig'), m => `<mark>${m}</mark>`);
+                el.innerHTML = `
+                    <header class="document-header">
+                        <div>
+                            <h3 class="document-title">${it.title || it.filename}</h3>
+                        </div>
+                        <div class="button-group">
+                            <a class="action-btn secondary" href="/view/${it.document_id}" target="_blank" rel="noopener">
+                                <span>👁️</span> 在线查看
+                            </a>
+                        </div>
+                    </header>
+                    <div style="color:#475569;line-height:1.6;">${safeSnippet}</div>
+                `;
+                host.appendChild(el);
+            });
+        };
+
+        const doSearch = async () => {
+            const keyword = document.getElementById('searchInput').value.trim();
+            if (!keyword) { showToast('请输入关键词','info'); return; }
+            try {
+                const res = await fetch(`/api/search?q=${encodeURIComponent(keyword)}&limit=20`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                renderSearchResults(data, keyword);
+            } catch {
+                showToast('搜索失败','error');
+            }
+        };
+
+        document.getElementById('searchBtn').addEventListener('click', doSearch);
+        document.getElementById('searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
 
         const renderDocuments = (docs) => {
             documentList.innerHTML = "";

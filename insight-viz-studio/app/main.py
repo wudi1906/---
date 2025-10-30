@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 
 from app.settings import settings
+import random
 
 
 app = FastAPI(
@@ -293,6 +294,57 @@ async def generate_chart(
         option = {"title": {"text": "Chart"}}
     
     return option
+
+
+@app.post("/api/demo/seed")
+async def demo_seed():
+    """生成示例CSV数据文件"""
+    settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    
+    # 生成销售数据CSV
+    sales_data = {
+        "Date": [f"2024-{i//30+1:02d}-{i%30+1:02d}" for i in range(90)],
+        "Revenue": [5000 + random.randint(-1500, 3500) for _ in range(90)],
+        "Orders": [random.randint(80, 250) for _ in range(90)],
+        "Customers": [random.randint(60, 180) for _ in range(90)]
+    }
+    df = pd.DataFrame(sales_data)
+    csv_path = settings.UPLOAD_DIR / "sample_sales.csv"
+    df.to_csv(csv_path, index=False)
+    
+    # 生成产品分类数据CSV
+    product_data = {
+        "Category": ["Electronics", "Clothing", "Food", "Books", "Toys"],
+        "Sales": [random.randint(10000, 50000) for _ in range(5)],
+        "Units": [random.randint(200, 800) for _ in range(5)]
+    }
+    df2 = pd.DataFrame(product_data)
+    csv_path2 = settings.UPLOAD_DIR / "sample_products.csv"
+    df2.to_csv(csv_path2, index=False)
+    
+    return {
+        "success": True,
+        "files": ["sample_sales.csv", "sample_products.csv"],
+        "message": "示例数据已生成，可在上传区选择使用"
+    }
+
+
+@app.post("/api/demo/reset")
+async def demo_reset():
+    """清空上传和导出文件"""
+    for p in settings.UPLOAD_DIR.glob("*"):
+        try:
+            if p.is_file():
+                p.unlink()
+        except Exception:
+            pass
+    for p in settings.EXPORT_DIR.glob("*"):
+        try:
+            if p.is_file():
+                p.unlink()
+        except Exception:
+            pass
+    return {"success": True}
 
 
 if __name__ == "__main__":

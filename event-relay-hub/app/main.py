@@ -20,6 +20,8 @@ from app.forwarder import EventForwarder
 from app.rate_limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+import random
+import json
 
 
 # 创建应用
@@ -271,6 +273,55 @@ async def get_stats(db: Session = Depends(get_db)):
         recent_24h=recent_24h,
         signature_success_rate=sig_success_rate
     )
+
+
+@app.post("/api/demo/seed")
+async def demo_seed(db: Session = Depends(get_db)):
+    """导入示例事件数据"""
+    sources = ["stripe", "github", "slack"]
+    event_types_map = {
+        "stripe": ["payment.succeeded", "subscription.created", "invoice.paid"],
+        "github": ["push", "pull_request", "issue_comment"],
+        "slack": ["message.im", "app_mention", "reaction_added"]
+    }
+    
+    created_count = 0
+    for days_ago in range(7, 0, -1):
+        for source in sources:
+            for event_type in random.sample(event_types_map[source], k=random.randint(1, 3)):
+                event = Event(
+                    source=source,
+                    event_type=event_type,
+                    payload=json.dumps({"id": f"evt_{random.randint(1000,9999)}", "data": "sample"}),
+                    headers=json.dumps({"X-Source": source.title()}),
+                    signature_valid=random.choice([True, True, True, False]),
+                    created_at=datetime.utcnow() - timedelta(days=days_ago, hours=random.randint(0, 23))
+                )
+                db.add(event)
+                created_count += 1
+                
+                # 添加转发日志
+                if random.random() > 0.3:
+                    log = ForwardLog(
+                        event_id=None,  # 稍后会关联
+                        target_url="https://api.example.com/webhook",
+                        status_code=random.choice([200, 200, 200, 500]),
+                        success=random.choice([True, True, True, False]),
+                        created_at=event.created_at
+                    )
+                    db.add(log)
+    
+    db.commit()
+    return {"success": True, "seeded_events": created_count}
+
+
+@app.post("/api/demo/reset")
+async def demo_reset(db: Session = Depends(get_db)):
+    """清空所有事件数据"""
+    db.query(Event).delete()
+    db.query(ForwardLog).delete()
+    db.commit()
+    return {"success": True}
 
 
 if __name__ == "__main__":

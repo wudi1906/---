@@ -68,6 +68,83 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.post("/api/demo/seed")
+async def demo_seed(db: Session = Depends(get_db)):
+    """导入示例数据"""
+    settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    settings.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    samples = [
+        ("Company_Handbook.pdf", "公司员工手册，包含行为准则与福利政策。", "txt"),
+        ("API_Guide.docx", "REST API 使用指南，介绍鉴权与错误码。", "txt"),
+        ("Marketing_Plan.md", "市场推广计划，季度目标与渠道策略。", "md"),
+        ("Q3_Report.pdf", "第三季度业务报告，营收与增长数据。", "txt"),
+        ("Product_FAQ.txt", "产品常见问题，安装配置与故障排除。", "txt"),
+    ]
+
+    created_ids: List[int] = []
+    for original_name, text, ext in samples:
+        safe_filename = original_name
+        file_ext = ext
+        file_path = settings.UPLOAD_DIR / safe_filename
+        file_path.write_text(text, encoding="utf-8")
+
+        parsed = parse_document(str(file_path), file_ext)
+        keywords = DocumentParser.extract_keywords(parsed.get("text", ""))
+        markdown_content = DocumentParser.text_to_markdown(
+            parsed.get("text", ""), parsed.get("title")
+        )
+
+        md_filename = file_path.stem + ".md"
+        md_path = settings.OUTPUT_DIR / md_filename
+        md_path.write_text(markdown_content, encoding="utf-8")
+
+        doc = Document(
+            filename=safe_filename,
+            original_name=original_name,
+            file_type=file_ext,
+            file_path=str(file_path),
+            markdown_path=str(md_path),
+            title=parsed.get("title") or file_path.stem,
+            content=parsed.get("text", "")[:10000],
+            tags=",".join(keywords),
+            file_size=file_path.stat().st_size,
+            page_count=parsed.get("page_count", 0),
+        )
+        db.add(doc)
+        db.commit()
+        db.refresh(doc)
+        created_ids.append(doc.id)
+
+    return {"success": True, "seeded": len(created_ids), "document_ids": created_ids}
+
+
+@app.post("/api/demo/reset")
+async def demo_reset(db: Session = Depends(get_db)):
+    """清空示例数据与生成文件"""
+    # 清库
+    docs = db.query(Document).all()
+    for d in docs:
+        db.delete(d)
+    db.commit()
+
+    # 清文件
+    for p in settings.UPLOAD_DIR.glob("*"):
+        try:
+            if p.is_file():
+                p.unlink()
+        except Exception:
+            pass
+    for p in settings.OUTPUT_DIR.glob("*"):
+        try:
+            if p.is_file():
+                p.unlink()
+        except Exception:
+            pass
+
+    return {"success": True}
+
+
 @app.get("/api/health")
 async def health_check():
     """健康检查"""
@@ -149,10 +226,14 @@ async def upload_documents(
 async def get_documents(
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    tag: Optional[str] = Query(None, description="按标签过滤，模糊匹配"),
     db: Session = Depends(get_db)
 ):
-    """获取文档列表"""
-    docs = db.query(Document).order_by(desc(Document.created_at)).limit(limit).offset(offset).all()
+    """获取文档列表，可选标签过滤"""
+    query = db.query(Document)
+    if tag:
+        query = query.filter(Document.tags.like(f"%{tag}%"))
+    docs = query.order_by(desc(Document.created_at)).limit(limit).offset(offset).all()
     return docs
 
 
@@ -221,6 +302,15 @@ async def search_documents(
         ))
     
     return results
+
+
+@app.get("/view/{doc_id}", response_class=HTMLResponse)
+async def view_document(doc_id: int, request: Request, db: Session = Depends(get_db)):
+    """在线查看文档（Markdown 原文渲染为文本预览）"""
+    doc = db.query(Document).filter(Document.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return templates.TemplateResponse("viewer.html", {"request": request, "doc_id": doc_id, "title": doc.title or doc.original_name})
 
 
 @app.get("/api/stats", response_model=DocumentStats)
