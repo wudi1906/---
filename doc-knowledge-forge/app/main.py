@@ -16,10 +16,16 @@ from sqlalchemy import desc, func
 
 from app.settings import settings
 from app.models import (
-    init_db, get_db, Document, DocumentResponse,
-    DocumentCreate, SearchResult, DocumentStats
+    init_db,
+    get_db,
+    Document,
+    DocumentResponse,
+    DocumentCreate,
+    SearchResult,
+    DocumentStats,
 )
 from app.parser import parse_document, DocumentParser
+from app.rag_service import rag_service
 
 
 app = FastAPI(
@@ -75,11 +81,11 @@ async def demo_seed(db: Session = Depends(get_db)):
     settings.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     samples = [
-        ("Company_Handbook.pdf", "公司员工手册，包含行为准则与福利政策。", "txt"),
-        ("API_Guide.docx", "REST API 使用指南，介绍鉴权与错误码。", "txt"),
-        ("Marketing_Plan.md", "市场推广计划，季度目标与渠道策略。", "md"),
-        ("Q3_Report.pdf", "第三季度业务报告，营收与增长数据。", "txt"),
-        ("Product_FAQ.txt", "产品常见问题，安装配置与故障排除。", "txt"),
+        ("Company_Handbook.pdf", "公司员工手册，包含行为准则与福利政策。", ".txt"),
+        ("API_Guide.docx", "REST API 使用指南，介绍鉴权与错误码。", ".txt"),
+        ("Marketing_Plan.md", "市场推广计划，季度目标与渠道策略。", ".md"),
+        ("Q3_Report.pdf", "第三季度业务报告，营收与增长数据。", ".txt"),
+        ("Product_FAQ.txt", "产品常见问题，安装配置与故障排除。", ".txt"),
     ]
 
     created_ids: List[int] = []
@@ -114,6 +120,7 @@ async def demo_seed(db: Session = Depends(get_db)):
         db.add(doc)
         db.commit()
         db.refresh(doc)
+        rag_service.index_document(db, doc, parsed.get("text", ""))
         created_ids.append(doc.id)
 
     return {"success": True, "seeded": len(created_ids), "document_ids": created_ids}
@@ -156,6 +163,7 @@ async def health_check():
     }
 
 
+@app.post("/api/docs/upload")
 @app.post("/api/upload")
 async def upload_documents(
     files: List[UploadFile] = File(...),
@@ -163,11 +171,18 @@ async def upload_documents(
 ):
     """上传文档"""
     uploaded_docs = []
+    details = []
     
     for file in files:
         # 检查文件类型
         file_ext = Path(file.filename).suffix.lower()
         if file_ext not in settings.ALLOWED_EXTENSIONS:
+            details.append({
+                "original_name": file.filename,
+                "stored_name": None,
+                "status": "skipped",
+                "message": f"Unsupported file type: {file_ext}"
+            })
             continue
         
         # 生成唯一文件名
@@ -181,6 +196,20 @@ async def upload_documents(
         
         # 解析文档
         parsed = parse_document(str(file_path), file_ext)
+
+        if parsed.get("error"):
+            details.append({
+                "original_name": file.filename,
+                "stored_name": safe_filename,
+                "status": "failed",
+                "message": parsed["error"]
+            })
+            try:
+                if file_path.exists():
+                    file_path.unlink()
+            except OSError:
+                pass
+            continue
         
         # 提取关键词
         keywords = DocumentParser.extract_keywords(parsed.get("text", ""))
@@ -212,13 +241,26 @@ async def upload_documents(
         db.add(doc)
         db.commit()
         db.refresh(doc)
-        
+
+        chunk_count = rag_service.index_document(db, doc, parsed.get("text", ""))
+
+        status = "success" if chunk_count > 0 else "partial"
+
         uploaded_docs.append(doc.id)
+        details.append({
+            "document_id": doc.id,
+            "original_name": file.filename,
+            "stored_name": safe_filename,
+            "status": status,
+            "chunked": chunk_count,
+            "tags": keywords,
+        })
     
     return {
         "success": True,
         "uploaded": len(uploaded_docs),
-        "document_ids": uploaded_docs
+        "document_ids": uploaded_docs,
+        "details": details,
     }
 
 
@@ -266,42 +308,47 @@ async def get_document_markdown(doc_id: int, db: Session = Depends(get_db)):
 @app.get("/api/search")
 async def search_documents(
     q: str = Query(..., min_length=1, description="搜索关键词"),
-    limit: int = Query(20, ge=1, le=100),
+    top_k: int = Query(5, ge=1, le=20),
     db: Session = Depends(get_db)
 ):
     """搜索文档"""
-    # 简单的全文搜索（使用LIKE）
-    query = db.query(Document).filter(
-        (Document.title.like(f"%{q}%")) | (Document.content.like(f"%{q}%"))
-    ).limit(limit).all()
-    
-    results = []
-    for doc in query:
-        # 生成摘要片段
-        content = doc.content or ""
-        index = content.lower().find(q.lower())
-        
-        if index != -1:
-            start = max(0, index - 100)
-            end = min(len(content), index + 100)
-            snippet = content[start:end]
-            if start > 0:
-                snippet = "..." + snippet
-            if end < len(content):
-                snippet = snippet + "..."
-        else:
-            snippet = content[:200] if content else ""
-        
-        results.append(SearchResult(
-            document_id=doc.id,
-            filename=doc.original_name,
-            title=doc.title,
-            snippet=snippet,
-            highlights=[q],
-            relevance_score=1.0
-        ))
-    
+    results = rag_service.search(db, q, top_k)
+
+    # 回退：若暂未创建向量，使用模糊匹配
+    if not results:
+        fallback = db.query(Document).filter(
+            (Document.title.like(f"%{q}%")) | (Document.content.like(f"%{q}%"))
+        ).limit(top_k).all()
+        for doc in fallback:
+            snippet = (doc.content or "")[: settings.HIGHLIGHT_LENGTH]
+            results.append(SearchResult(
+                document_id=doc.id,
+                chunk_id=-1,
+                chunk_index=0,
+                filename=doc.original_name,
+                title=doc.title,
+                snippet=snippet + ("..." if snippet else ""),
+                highlights=[q],
+                relevance_score=0.1,
+            ))
+
     return results
+
+
+@app.get("/api/chunks/{chunk_id}")
+async def get_chunk_detail(chunk_id: int, db: Session = Depends(get_db)):
+    """获取分块原文"""
+    chunk = rag_service.get_chunk(db, chunk_id)
+    if not chunk:
+        raise HTTPException(status_code=404, detail="Chunk not found")
+
+    doc = db.query(Document).filter(Document.id == chunk.document_id).first()
+    document_title = doc.title or doc.original_name if doc else None
+
+    return {
+        "chunk": chunk.model_dump(),
+        "document_title": document_title,
+    }
 
 
 @app.get("/view/{doc_id}", response_class=HTMLResponse)

@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "a11y-component-atlas": "file:.."
+  }
+}

@@ -9,14 +9,16 @@ from typing import Optional, Dict, Any
 from playwright.async_api import async_playwright, Browser, Page, TimeoutError as PlaywrightTimeout
 
 from app.settings import settings
-from app.models import TargetConfig, PriceRecord, SessionLocal
+from app.models import TargetConfig, PriceRecord, SessionLocal, MonitorConfigSchema
+from app.config_service import ConfigService
 
 
 class PriceMonitor:
     """价格监控器"""
     
-    def __init__(self):
+    def __init__(self, config: Optional[MonitorConfigSchema] = None):
         self.browser: Optional[Browser] = None
+        self.config = config or ConfigService.get_config()
         
     async def __aenter__(self):
         """异步上下文管理器入口"""
@@ -27,8 +29,16 @@ class PriceMonitor:
             "args": []
         }
         
-        # 配置代理
-        if settings.PROXY_SERVER:
+        proxy_config = self.config if self.config else None
+        if proxy_config and proxy_config.proxy_enabled and proxy_config.proxy_server:
+            browser_args["proxy"] = {
+                "server": proxy_config.proxy_server,
+            }
+            if proxy_config.proxy_username:
+                browser_args["proxy"]["username"] = proxy_config.proxy_username
+            if proxy_config.proxy_password:
+                browser_args["proxy"]["password"] = proxy_config.proxy_password
+        elif settings.PROXY_SERVER:
             browser_args["proxy"] = {
                 "server": settings.PROXY_SERVER,
                 "username": settings.PROXY_USERNAME,
@@ -181,7 +191,8 @@ class PriceMonitor:
 
 async def run_monitor_cycle(targets: list[TargetConfig]):
     """运行一次完整的监控周期"""
-    async with PriceMonitor() as monitor:
+    config = ConfigService.get_config()
+    async with PriceMonitor(config=config) as monitor:
         records = await monitor.monitor_targets(targets)
         print(f"\n监控完成: 共 {len(records)} 条记录")
         return records

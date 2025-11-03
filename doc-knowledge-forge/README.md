@@ -1,79 +1,80 @@
 # Doc Knowledge Forge · 文档到知识库的一站式解决方案
 
+[English Version](./README.en.md) | 中文版本
+
 > **适用对象**：咨询/律所/制造业/教育等拥有大量 PDF、Word、手册资料的团队
 >
 > **核心卖点**：批量转换 → 自动标签 → 全文检索 → 在线高亮查看 → 批量导出，最快 3 天交付。
 
 ---
 
-## 🎯 你正在面对的痛点
-- **文件分散难搜索**：文档分布在网盘/邮箱/本地，找资料耗费时间且结果不完整。
-- **知识沉淀困难**：知识依赖个人经验，缺少统一归档、标签、版本管理。
-- **交付效率低**：每次项目复盘/客户交付都要手动整理，容易遗漏、重复劳动。
+## 1. 背景与痛点 · Background & Pain
+- 文件散落在网盘/邮箱/本地，检索耗时且不完整。
+- 知识依赖个人经验，缺少统一归档、标签与版本管理。
+- 项目交付/复盘需手动整理文档，效率低且易遗漏。
 
-## ✅ 解决方案概览
-- 支持 PDF / DOCX / TXT / Markdown 批量上传，自动转换为结构化 Markdown。
-- 自动提取章节、关键词、标签，生成目录树 + 全文检索，让知识秒级可查。
-- 在线高亮查看 + 一键批量导出，便于对外交付或内部归档。
-- 可选向量检索、AI 摘要、OCR 扩展，满足更高阶知识管理需求。
+## 2. 解决方案 · Solution & Value
+- 批量上传 PDF / DOCX / TXT / Markdown，自动转换为结构化 Markdown。
+- 自动提取章节、关键词、标签，生成目录树 + 全文检索。
+- 在线高亮查看、一键批量导出 ZIP，便于对外交付或内部归档。
+- 可选向量检索、AI 摘要、OCR 扩展，支持高阶知识管理场景。
 
----
+## 3. 交付清单 · Deliverables
+- 🖥️ **Live Demo**：`http://localhost:8404`（含示例文档，可一键导入）。
+- 📦 **源代码与脚本**：FastAPI 后端、解析/分块/向量化管道、Tailwind 前端、Docker Compose。
+- 🧠 **RAG 管线**：Sentence-Transformers + 可选 FAISS，支持向量检索、片段高亮、分块可视化。
+- 📕 **文档套件**：部署指南、标签配置说明、权限/日志手册、FAQ。
+- 🧪 **API / Postman**：`http://localhost:8404/api/docs` 与更新后的 Postman 集合（含 `/api/docs/upload`、`/api/chunks/{id}`）。
+- 📑 **导出模板**：Markdown/ZIP 批量导出配置、向量检索与 OCR 扩展指南。
 
-## 📦 套餐与交付内容
-| 套餐 | 交付周期 | 功能范围 | 修订次数 | 售后支持 |
-| --- | --- | --- | --- | --- |
-| **Basic** | 3 天 | 本地部署 + 多格式上传 + Markdown 转换 + 全文检索 + 导出 | 1 次 | 7 天在线支持 |
-| **Standard** | 5-7 天 | 增加自动标签、目录树、批量导出 ZIP、暗色模式、权限控制 | 2 次 | 14 天优先支持 |
-| **Premium** | 10-14 天 | OCR（扫描件）、向量检索 + AI 摘要、API 集成、SAML/SSO、审计日志 | 3 次 | 30 天 7x12 SLA |
+## 4. 实施流程与周期 · Process & Timeline
+1. **需求澄清（Day 0）**：确认文档格式/数量、标签策略、部署/安全要求。
+2. **PoC 演示（Day 3-5）**：交付 Demo（示例文档），验证解析、检索、导出体验。
+3. **功能完善（Day 6-12）**：接入真实文档库，部署测试/生产，完善权限与扩展。
+4. **验收交接（Day 12+）**：交付源代码、脚本、培训资料，完成验收清单与回滚预案。
 
-> **交付方式**：源代码 + 部署脚本 + 培训文档，可选 Docker / Kubernetes / 私有云部署。
+## 5. SLA 与质量保证 · SLA & Quality
+- < 1 小时响应，按套餐提供 7~30 天支持，含中文/英文沟通。
+- 前端符合 WCAG 2.1 AA，支持键盘导航、暗色模式、RTL 布局。
+- 结构化日志、全文检索指标、慢查询监控；OCR/向量扩展提供性能基准。
+- 默认本地/私有云部署，凭证写入 `.env`，可启用加密/审计/权限控制（Premium）。
 
----
+## 6. KPI / 成功指标占位 · KPI & Outcomes
+- 3 天内交付可用知识库 Demo，转换准确率 ≥ 98%。
+- 文档检索时间从分钟级降至秒级，交付准备效率提升 2×。
+- 项目复盘/交付材料整理时间减少 60%，知识复用率显著提升。
 
-## 🔧 技术亮点 & 合规
-- **技术栈**：FastAPI + SQLite/FAISS + Tailwind + Vanilla JS（可接入 React/Vue）。
-- **解析能力**：pymupdf（PDF）、python-docx（Word）、markdownify（HTML 转 Markdown）。
-- **全文检索**：默认 SQLite FTS5，支持扩展 Elasticsearch / OpenSearch。
-- **可访问性**：遵循 WCAG 2.1 AA，键盘可达、暗色模式、RTL（阿语/希伯来语）。
-- **国际化**：中英 UI 默认启用，支持按需扩展语言；文本存储 UTF-8。
-- **安全/隐私**：本地部署可控，可运行在内网环境；敏感数据不出企业网络。支持登录审计、权限控制与数据加密（Premium）。
+## 7. RAG · 分块向量检索说明
+- **分块策略**：默认 800 字符窗口 + 200 重叠，自动对齐句末，兼容中英文混排。
+- **嵌入模型**：`sentence-transformers/all-MiniLM-L6-v2`（可通过 `.env` 覆盖），内置 np-based 检索，自动降级。
+- **核心接口**：
+  - `POST /api/docs/upload`：Multipart 上传并同步完成解析→分块→向量化，返回每个文件的分块数量与关键词。
+  - `GET /api/search?q=&top_k=`：语义检索，返回片段编号、得分、摘要及高亮关键词。
+  - `GET /api/chunks/{chunk_id}`：提取指定分块原文，可用于前端高亮或导出。
+- **前端体验**：上传进度提示、向量检索榜单、片段预览（高亮命中词）、一键跳转原文 Viewer。
 
----
+```bash
+# 示例：使用 curl 上传并检索
+curl -F "files=@handbook.pdf" http://localhost:8404/api/docs/upload
+curl "http://localhost:8404/api/search?q=policy&top_k=5"
+curl http://localhost:8404/api/chunks/1
+```
 
-## 🚀 交付里程碑
-1. **需求澄清**（第 0 天）
-   - 确认文件格式/数量、标签逻辑、部署环境、安全策略。
-   - 确定导出/权限/多语言等扩展需求。
-2. **PoC 演示**（第 3~5 天）
-   - 提供 Demo 环境（含示例文档），确认解析效果、检索体验。
-   - 审核 UI/UX，确认导出模版与标签体系。
-3. **功能完善**（第 6~12 天）
-   - 接入真实文档库，优化标签/检索，部署到测试/生产环境。
-   - 编写操作手册 + 培训录屏。
-4. **验收交接**
-   - 验证转换准确率、检索体验、导出流程；
-   - 交付源代码、部署脚本、回滚方案。
+## 8. 常见问题 · FAQ
+**Q1：支持扫描件 PDF 吗？**  
+A：Premium 集成 OCR（Tesseract/第三方 API），支持多语言文字提取。
 
----
+**Q2：标签和目录可自定义吗？**  
+A：支持关键词映射、章节模板、内部词典对接，可视化配置界面。
 
-## ❓ 常见问题
-**Q1：是否支持扫描件 PDF？**  
-A：Premium 套餐集成 OCR（Tesseract/第三方 API），可从扫描件提取文字，支持多语言。
+**Q3：数据如何保障安全？**  
+A：默认在内网/私有云部署，敏感数据不出企业网络，可启用登录审计、权限控制、数据加密。
 
-**Q2：标签和目录是否可自定义？**  
-A：支持。提供规则配置（关键词映射、章节模板），也可接入内部词典/分类体系。
-
-**Q3：如何保障数据安全？**  
-A：默认本地部署，可运行在内网环境；敏感数据不出企业网络。支持登录审计、权限控制与数据加密（Premium）。
-
----
-
-## 📞 下一步
-- 👉 [Fiverr 套餐入口](https://www.fiverr.com/your-profile/doc-knowledge-forge)
-- 👉 [Upwork 项目页](https://www.upwork.com/freelancers/your-profile?project=doc-knowledge-forge)
-- 📧 或直接邮件：`your-email@example.com`
-
-**响应承诺**：< 1 小时回复；可提供中文/英文沟通；最长 30 天售后支持（按套餐）。
+## 9. CTA · 下一步行动
+- 🔵 [Upwork · 立即咨询](https://www.upwork.com/fl/yourname)
+- 🟢 [Fiverr · 套餐下单](https://www.fiverr.com/yourname)
+- 📧 [Email · 预约演示](mailto:you@example.com?subject=Doc%20Knowledge%20Forge%20Consultation)
+- 🚀 [本地 Demo · 立即体验](http://localhost:8404)
 
 > “让散落文档秒变知识库，把时间留给创造价值。”
 

@@ -6,7 +6,7 @@ import asyncio
 from typing import Optional
 import httpx
 
-from app.models import Event, ForwardLog, SessionLocal
+from app.models import Event, ForwardLog, SessionLocal, DeadLetterEvent
 from app.settings import settings
 
 
@@ -26,7 +26,9 @@ class EventForwarder:
         """
         db = SessionLocal()
         log = ForwardLog(event_id=event.id, target_url=target_url)
+        dlq_entry = None
         
+        success_flag = False
         try:
             async with httpx.AsyncClient(timeout=settings.FORWARD_TIMEOUT) as client:
                 # 准备 payload
@@ -46,6 +48,7 @@ class EventForwarder:
                 
                 log.status_code = response.status_code
                 log.success = response.status_code in (200, 201, 202, 204)
+                success_flag = log.success
                 
                 if not log.success:
                     log.error_message = f"HTTP {response.status_code}: {response.text[:500]}"
@@ -53,19 +56,44 @@ class EventForwarder:
         except httpx.TimeoutException:
             log.success = False
             log.error_message = "Request timeout"
+            success_flag = False
         except Exception as e:
             log.success = False
             log.error_message = str(e)[:500]
+            success_flag = False
         finally:
             # 更新事件转发状态
-            event.forwarded = log.success
-            
+            managed_event = db.query(Event).filter(Event.id == event.id).first()
+            if managed_event:
+                managed_event.forwarded = log.success
+
+            # 更新/写入死信队列
+            dlq_entry = db.query(DeadLetterEvent).filter(DeadLetterEvent.event_id == event.id).first()
+            if log.success:
+                if dlq_entry:
+                    db.delete(dlq_entry)
+            else:
+                if dlq_entry:
+                    dlq_entry.retry_count += 1
+                    dlq_entry.reason = log.error_message
+                    dlq_entry.last_error = log.error_message
+                    dlq_entry.target_url = target_url
+                else:
+                    dlq_entry = DeadLetterEvent(
+                        event_id=event.id,
+                        target_url=target_url,
+                        reason=log.error_message,
+                        last_error=log.error_message,
+                        retry_count=1,
+                    )
+                    db.add(dlq_entry)
+
             # 保存日志
             db.add(log)
             db.commit()
             db.close()
         
-        return log.success
+        return success_flag
     
     async def replay_event(self, event_id: int, target_url: Optional[str] = None) -> bool:
         """
@@ -88,7 +116,8 @@ class EventForwarder:
             if not url:
                 return False
             
-            return await self.forward_event(event, url)
+            success = await self.forward_event(event, url)
+            return success
         finally:
             db.close()
 

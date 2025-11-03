@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Event Relay Hub · 签名验证配置</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full text-slate-100">
+    <main class="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
+      <header class="space-y-3">
+        <h1 class="text-3xl font-bold tracking-tight">签名验证预设</h1>
+        <p class="max-w-2xl text-base text-slate-300">
+          为 GitHub / Stripe / 自定义源配置签名密钥与头部。启用后，系统会使用相应的 HMAC-SHA256 规则校验请求。
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 text-sm text-blue-300 underline hover:text-blue-200" aria-label="返回主页">
+          ← 返回欢迎页
+        </a>
+      </header>
+
+      <section id="status" aria-live="polite" class="hidden rounded-lg border border-slate-700 bg-slate-800/60 p-4 text-sm"></section>
+
+      <section class="space-y-6" id="templates"></section>
+    </main>
+
+    <template id="template-card">
+      <form class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800/50 p-6" novalidate>
+        <header class="flex flex-col gap-1">
+          <h2 class="text-lg font-semibold"></h2>
+          <p class="text-sm text-slate-300"></p>
+        </header>
+
+        <div class="flex items-center gap-2">
+          <input type="checkbox" class="h-4 w-4"/>
+          <label class="text-sm font-medium">启用签名验证</label>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium">签名密钥</label>
+          <input type="password" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="••••••" />
+          <p class="text-xs text-slate-400">只需在此输入密钥即可更新；留空表示保留原值。</p>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm font-medium">签名头部</label>
+          <input type="text" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            保存
+          </button>
+          <button data-action="test" type="button" class="inline-flex items-center justify-center rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            测试签名
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-400" data-role="test-result"></p>
+      </form>
+    </template>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const listEl = document.getElementById('templates');
+      const templateEl = document.getElementById('template-card');
+
+      function showStatus(message, variant = 'success') {
+        statusEl.textContent = message;
+        statusEl.classList.remove('hidden');
+        statusEl.classList.toggle('border-green-500', variant === 'success');
+        statusEl.classList.toggle('text-green-200', variant === 'success');
+        statusEl.classList.toggle('border-red-500', variant === 'error');
+        statusEl.classList.toggle('text-red-200', variant === 'error');
+      }
+
+      async function loadTemplates() {
+        try {
+          const response = await fetch('/api/signatures');
+          if (!response.ok) throw new Error('加载签名模板失败');
+          const data = await response.json();
+          renderTemplates(data);
+          showStatus('✔️ 签名模板已加载，可编辑并保存。');
+        } catch (error) {
+          showStatus(error.message || '加载失败，请稍后重试。', 'error');
+        }
+      }
+
+      function renderTemplates(templates) {
+        listEl.innerHTML = '';
+        templates.forEach((tpl) => {
+          const node = templateEl.content.firstElementChild.cloneNode(true);
+          const title = node.querySelector('h2');
+          const desc = node.querySelector('p');
+          const checkbox = node.querySelector('input[type="checkbox"]');
+          const secretInput = node.querySelector('input[type="password"]');
+          const headerInput = node.querySelector('input[type="text"]');
+          const testBtn = node.querySelector('button[data-action="test"]');
+          const testResult = node.querySelector('[data-role="test-result"]');
+
+          title.textContent = `${tpl.display_name || tpl.source.toUpperCase()} (${tpl.source})`;
+          desc.textContent = tpl.description || '';
+          checkbox.checked = Boolean(tpl.enabled);
+          headerInput.value = tpl.signature_header || '';
+          secretInput.placeholder = tpl.has_secret ? '••••••••' : '未设置密钥';
+
+          node.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const payload = {
+              enabled: checkbox.checked,
+              secret: secretInput.value.trim() || null,
+              signature_header: headerInput.value.trim() || null
+            };
+
+            try {
+              const response = await fetch(`/api/signatures/${tpl.source}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+
+              if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.detail || '保存失败');
+              }
+
+              secretInput.value = '';
+              loadTemplates();
+              showStatus(`${tpl.display_name || tpl.source} 签名模板已更新。`);
+            } catch (error) {
+              showStatus(error.message || '保存失败，请检查字段是否完整。', 'error');
+            }
+          });
+
+          testBtn.addEventListener('click', async () => {
+            try {
+              const response = await fetch(`/api/signatures/${tpl.source}/test`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ payload: { ping: 'pong' } }),
+              });
+              if (!response.ok) throw new Error('测试失败');
+              const data = await response.json();
+              testResult.textContent = `示例请求头：${data.header}: ${data.value}`;
+              showStatus('✔️ 测试签名生成成功，可复制请求头到第三方平台进行联调。');
+            } catch (error) {
+              showStatus(error.message || '测试失败，请确认已启用且配置了密钥。', 'error');
+            }
+          });
+
+          listEl.appendChild(node);
+        });
+      }
+
+      loadTemplates();
+    </script>
+  </body>
+</html>
+

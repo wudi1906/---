@@ -1,0 +1,195 @@
+{
+  "info": {
+    "name": "Global Price Sentinel",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for Global Price Sentinel monitoring, scheduling and alert configuration"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "health"]
+        }
+      }
+    },
+    {
+      "name": "Get Monitor Config",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/config/monitor",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "config", "monitor"]
+        }
+      }
+    },
+    {
+      "name": "Update Monitor Config",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"scheduler_mode\": \"interval\",\n  \"cron_expression\": \"0 */12 * * *\",\n  \"interval_minutes\": 180,\n  \"proxy_enabled\": false,\n  \"proxy_server\": null,\n  \"proxy_username\": null,\n  \"proxy_password\": null,\n  \"alert_channels\": [\n    {\n      \"type\": \"slack\",\n      \"enabled\": true,\n      \"webhook_url\": \"https://hooks.slack.com/services/XXXXXXXX/XXXXXXXX\"\n    },\n    {\n      \"type\": \"email\",\n      \"enabled\": true,\n      \"recipients\": [\n        \"ops@example.com\",\n        \"owner@example.com\"\n      ]\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/config/monitor",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "config", "monitor"]
+        }
+      }
+    },
+    {
+      "name": "Manual Monitor Run",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[{\n  \"id\": \"amazon-laptop\",\n  \"url\": \"https://amazon.com/laptop\",\n  \"currency\": \"USD\",\n  \"threshold_pct\": 5\n}]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/monitor/run",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "monitor", "run"]
+        }
+      }
+    },
+    {
+      "name": "Get Price Records",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/records?limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "records"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Generate Report (HTML)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/report/generate?days=7&format=html",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "report", "generate"],
+          "query": [
+            {
+              "key": "days",
+              "value": "7"
+            },
+            {
+              "key": "format",
+              "value": "html"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Seed Demo Data",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/demo/seed",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "demo", "seed"]
+        }
+      }
+    },
+    {
+      "name": "Reset Demo Data",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/demo/reset",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "demo", "reset"]
+        }
+      }
+    },
+    {
+      "name": "Scheduler Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/scheduler/status?limit=5",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "scheduler", "status"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Test Alert Channel",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"email\",\n  \"payload\": {\n    \"recipients\": [\n      \"ops@example.com\"\n    ]\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/alerts/test",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "alerts", "test"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8101"
+    }
+  ]
+}
+

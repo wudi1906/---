@@ -2,6 +2,14 @@
   作品集快速启动指南
 ================================================
 
+【痛点 / 解决方案摘要】
+-------------------------------------------------
+- 痛点：买家担心 Demo 启动复杂、无法一次体验全部交付价值。
+- 解决方案：提供 START_ALL/STOP_ALL/TEST_ALL、一键门户、六个端点，30 秒交付体验。
+- 交付物：批处理/PowerShell 脚本、Postman 集合、示例数据、详细 README、售后 SLA 模板。
+- 流程：启动 → 门户演示 → 子项目深度讲解 → FAQ/CTA 导向。
+- CTA：Upwork https://www.upwork.com/fl/yourname · Fiverr https://www.fiverr.com/yourname · Email you@example.com。
+
 【最简单的方法】
 -------------------------------------------------
 
@@ -55,6 +63,15 @@
 项目3 - SaaS看板:
   http://localhost:8303
 
+项目4 - 文档知识库:
+  http://localhost:8404
+
+项目5 - A11y 组件库:
+  http://localhost:8505
+
+项目6 - 数据可视化:
+  http://localhost:8606
+
 
 【停止服务】
 -------------------------------------------------
@@ -107,4 +124,12 @@ A: 检查网络连接，或使用国内镜像:
 -------------------------------------------------
 
 如需帮助，请查看相关文档或联系开发者。
+
+【FAQ / CTA】
+-------------------------------------------------
+- Q: 买家常问的交付时长/售后？
+  A: Basic/Standard/Premium 推荐 3/7/14 天交付，售后 7~30 天远程支持。
+- Q: 如何预约演示？
+  A: 发送邮件至 you@example.com，或通过 Upwork/Fiverr 直接下单。
+- 下一步：访问 Upwork https://www.upwork.com/fl/yourname · Fiverr https://www.fiverr.com/yourname · Email mailto:you@example.com。
 

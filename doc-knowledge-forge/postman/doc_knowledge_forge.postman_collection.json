@@ -1,0 +1,285 @@
+{
+  "info": {
+    "_postman_id": "a0c864a7-0f80-41b3-b2e8-1289e9a2b0d1",
+    "name": "Doc Knowledge Forge · Smoke",
+    "description": "smoke | Local smoke tests for Doc Knowledge Forge (demo seed/reset, documents, search, stats, view, health).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Document (RAG)",
+      "request": {
+        "method": "POST",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "files",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/docs/upload",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "docs",
+            "upload"
+          ]
+        },
+        "description": "Upload PDF/DOCX/TXT via multipart form. The service will parse, chunk, generate embeddings, and return chunk counts."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Upload succeeded\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seed Demo Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/demo/seed",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "demo",
+            "seed"
+          ]
+        },
+        "description": "Populate demo documents (PDF/DOCX/TXT) for local testing."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Seed request succeeded\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reset Demo Data",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/demo/reset",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "demo",
+            "reset"
+          ]
+        },
+        "description": "Clear demo documents and generated markdown files after tests."
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Reset request succeeded\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List Documents (limit 5)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/documents?limit=5",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "documents"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "description": "Fetch latest document metadata (title, tags, size)."
+      },
+      "response": []
+    },
+    {
+      "name": "Vector Search (q=plan, top_k=5)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/search?q=plan&top_k=5",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "plan"
+            },
+            {
+              "key": "top_k",
+              "value": "5"
+            }
+          ]
+        },
+        "description": "Run a semantic search using vector similarity. Adjust top_k to control number of returned chunks."
+      },
+      "response": []
+    },
+    {
+      "name": "Chunk Detail (chunk_id)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/chunks/{{chunkId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "chunks",
+            "{{chunkId}}"
+          ]
+        },
+        "description": "Fetch the raw content of a stored chunk (use chunk_id from vector search results)."
+      },
+      "response": []
+    },
+    {
+      "name": "Stats Overview",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/stats",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "stats"
+          ]
+        },
+        "description": "Retrieve document statistics (counts by type, recent uploads)."
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        },
+        "description": "Service status, version, and timestamp." 
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Health endpoint up\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json()).to.have.property('status');",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Online Viewer (doc_id=1)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/view/1",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "view",
+            "1"
+          ]
+        },
+        "description": "Open online markdown viewer for doc_id=1 (requires demo seed data)."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8404"
+    },
+    {
+      "key": "chunkId",
+      "value": "1"
+    }
+  ]
+}

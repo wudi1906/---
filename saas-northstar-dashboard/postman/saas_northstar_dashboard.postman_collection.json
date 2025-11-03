@@ -1,0 +1,242 @@
+{
+  "info": {
+    "name": "SaaS Northstar Dashboard",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for SaaS Northstar Dashboard"
+  },
+  "item": [
+    {
+      "name": "基础",
+      "item": [
+        {
+          "name": "健康检查",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('返回健康状态', function () {",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.status).to.eql('healthy');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "获取 KPI 模板",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/templates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "templates"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('返回模板列表', function () {",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.templates.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "导入流程",
+      "item": [
+        {
+          "name": "导入样例数据",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"b2b-saas\",\n  \"datasets\": {\n    \"subscriptions\": [\n      {\n        \"date\": \"2024-01-01\",\n        \"customerId\": \"C0001\",\n        \"plan\": \"Pro\",\n        \"amount\": \"129\",\n        \"currency\": \"USD\"\n      },\n      {\n        \"date\": \"2024-02-15\",\n        \"customerId\": \"C0003\",\n        \"plan\": \"Starter\",\n        \"amount\": \"79\",\n        \"currency\": \"USD\"\n      }\n    ],\n    \"churn\": [\n      {\n        \"date\": \"2024-02-20\",\n        \"customerId\": \"C0005\",\n        \"reason\": \"budget\"\n      }\n    ],\n    \"acquisition\": [\n      {\n        \"date\": \"2024-01-01\",\n        \"channel\": \"Paid Ads\",\n        \"cost\": \"1200\",\n        \"customers\": \"12\"\n      }\n    ]\n  },\n  \"mappings\": {\n    \"subscriptions\": {\n      \"date\": \"date\",\n      \"customerId\": \"customerId\",\n      \"plan\": \"plan\",\n      \"amount\": \"amount\",\n      \"currency\": \"currency\"\n    },\n    \"churn\": {\n      \"date\": \"date\",\n      \"customerId\": \"customerId\",\n      \"reason\": \"reason\"\n    },\n    \"acquisition\": {\n      \"date\": \"date\",\n      \"channel\": \"channel\",\n      \"cost\": \"cost\",\n      \"customers\": \"customers\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "import"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('导入成功', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.success).to.be.true;",
+                  "  pm.expect(data.calculation.metrics.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "查询最新导入",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/import/latest",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "import", "latest"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('已存在导入记录', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const data = pm.response.json();",
+                  "  pm.expect(data.success).to.be.true;",
+                  "  pm.expect(data.calculation.metrics.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "导出 CSV",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/exports?format=csv",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exports"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "csv"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('CSV 导出成功', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "导出 Excel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/exports?format=excel",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "exports"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "excel"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Excel 导出成功', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('spreadsheetml');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "导入失败示例 (缺少映射)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"b2b-saas\",\n  \"datasets\": {},\n  \"mappings\": {}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "import"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('缺少数据集返回 400', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8303"
+    }
+  ]
+}
+

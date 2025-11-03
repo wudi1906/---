@@ -55,6 +55,7 @@ const palette = {
 export default function TrendChart({ title, data, height = 300 }: TrendChartProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [exporting, setExporting] = useState(false)
+  const [exportingPdf, setExportingPdf] = useState(false)
   const chartContainerRef = useRef<HTMLDivElement | null>(null)
 
   const themedData = useMemo<ChartData<'line'>>(() => {
@@ -132,7 +133,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
     }
   }, [theme])
 
-  const handleExport = async () => {
+  const handleExportPng = async () => {
     if (!chartContainerRef.current) return
     try {
       setExporting(true)
@@ -149,6 +150,50 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
       alert('Failed to export chart. Please try again.')
     } finally {
       setExporting(false)
+    }
+  }
+
+  const handleExportPdf = async () => {
+    if (!chartContainerRef.current) return
+    try {
+      setExportingPdf(true)
+      const canvas = await html2canvas(chartContainerRef.current, {
+        backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
+        scale: window.devicePixelRatio || 2,
+      })
+      const image = canvas.toDataURL('image/png')
+      const printWindow = window.open('', '_blank', 'noopener')
+      if (!printWindow) {
+        alert('请允许浏览器弹窗以导出 PDF。')
+        return
+      }
+      // Basic printable HTML document
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${title} Export</title>
+            <style>
+              body { margin: 0; display: flex; align-items: center; justify-content: center; background: ${theme === 'dark' ? '#0f172a' : '#ffffff'}; }
+              img { max-width: 100%; height: auto; }
+            </style>
+          </head>
+          <body>
+            <img src="${image}" alt="${title}" />
+            <script>
+              window.onload = function() {
+                window.focus();
+                window.print();
+              };
+            </script>
+          </body>
+        </html>
+      `)
+      printWindow.document.close()
+    } catch (error) {
+      console.error('Failed to export chart PDF', error)
+      alert('导出 PDF 失败，请稍后重试。')
+    } finally {
+      setExportingPdf(false)
     }
   }
 
@@ -179,19 +224,34 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
               Dark
             </button>
           </div>
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={exporting}
-            aria-label="导出图表为 PNG"
-            className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ${
-              exporting
-                ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
-                : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-          >
-            {exporting ? 'Exporting…' : 'Export PNG'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportPng}
+              disabled={exporting}
+              aria-label="导出图表为 PNG"
+              className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ${
+                exporting
+                  ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              {exporting ? '导出中…' : '导出 PNG'}
+            </button>
+            <button
+              type="button"
+              onClick={handleExportPdf}
+              disabled={exportingPdf}
+              aria-label="导出图表为 PDF"
+              className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ${
+                exportingPdf
+                  ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              {exportingPdf ? '准备中…' : '导出 PDF'}
+            </button>
+          </div>
         </div>
       </div>
       <div ref={chartContainerRef} style={{ height: `${height}px` }}>

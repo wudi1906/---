@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Global Price Sentinel · 调度与告警配置</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full text-slate-100">
+    <main class="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
+      <header class="space-y-3">
+        <h1 class="text-3xl font-bold tracking-tight">调度与告警配置</h1>
+        <p class="max-w-2xl text-base text-slate-300">
+          配置价格监控的执行频率、代理池以及告警渠道。所有变更立即生效，调度器需重启方可应用新的计划时间。
+        </p>
+        <a href="/" class="inline-flex items-center gap-2 text-sm text-blue-300 underline hover:text-blue-200" aria-label="返回门户主页">
+          ← 返回作品集门户
+        </a>
+      </header>
+
+      <section aria-live="polite" id="status" class="rounded-lg border border-slate-700 bg-slate-800/50 p-4 text-sm text-slate-200 hidden"></section>
+
+      <section class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800/50 p-6" aria-label="任务运行态" id="scheduler-section">
+        <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">任务运行态看板</h2>
+            <p class="text-xs text-slate-400">查看调度任务的最新执行情况与下一次计划运行时间，便于快速排障与回归。</p>
+          </div>
+          <button id="refreshSchedulerStatus" class="self-start rounded-full bg-slate-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            刷新状态
+          </button>
+        </header>
+        <div id="schedulerStatus" class="space-y-4 text-sm">
+          <div class="grid gap-4 rounded-xl border border-slate-700 bg-slate-900/60 p-4 sm:grid-cols-2" role="group" aria-label="运行态摘要">
+            <div class="space-y-1">
+              <p class="text-xs text-slate-400">下次运行</p>
+              <p class="text-base font-semibold" id="nextRunDisplay">--</p>
+              <p class="text-xs text-slate-500" id="nextRunCountdown"></p>
+            </div>
+            <div class="space-y-1">
+              <p class="text-xs text-slate-400">最近一次执行</p>
+              <div id="lastRunSummary" class="text-sm">尚无执行记录</div>
+            </div>
+          </div>
+          <div>
+            <h3 class="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">最近执行记录</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-700">
+              <table class="min-w-full divide-y divide-slate-800 text-xs">
+                <thead class="bg-slate-900/80 text-slate-400">
+                  <tr>
+                    <th class="px-4 py-2 text-left">开始时间</th>
+                    <th class="px-4 py-2 text-left">结束时间</th>
+                    <th class="px-4 py-2 text-left">耗时</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left">消息</th>
+                  </tr>
+                </thead>
+                <tbody id="recentRunsBody" class="divide-y divide-slate-800 text-slate-200">
+                  <tr>
+                    <td class="px-4 py-3 text-center text-slate-400" colspan="5">暂无运行数据</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <form id="config-form" class="space-y-10" novalidate>
+        <fieldset class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800/50 p-6">
+          <legend class="px-2 text-lg font-semibold">任务调度</legend>
+          <div class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-3">
+              <span class="text-sm font-medium">调度模式</span>
+              <div class="flex flex-col gap-2 text-sm">
+                <label class="flex items-center gap-2">
+                  <input type="radio" name="schedulerMode" value="cron" class="h-4 w-4" />
+                  <span>使用 Cron 表达式（默认每 12 小时）</span>
+                </label>
+                <label class="flex items-center gap-2">
+                  <input type="radio" name="schedulerMode" value="interval" class="h-4 w-4" />
+                  <span>自定义间隔（分钟）</span>
+                </label>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <label for="cronExpression" class="text-sm font-medium">Cron 表达式</label>
+              <input id="cronExpression" name="cronExpression" type="text" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="示例：0 */12 * * *" aria-describedby="cron-help" />
+              <p id="cron-help" class="text-xs text-slate-400">5 段 Cron 表达式，分钟 小时 日 月 星期。</p>
+            </div>
+            <div class="space-y-3 md:col-span-2">
+              <label for="intervalMinutes" class="text-sm font-medium">间隔（分钟）</label>
+              <input id="intervalMinutes" name="intervalMinutes" type="number" min="5" max="1440" step="5" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" aria-describedby="interval-help" />
+              <p id="interval-help" class="text-xs text-slate-400">间隔模式下有效，范围 5 - 1440 分钟。</p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800/50 p-6">
+          <legend class="px-2 text-lg font-semibold">代理池设置</legend>
+          <div class="space-y-4">
+            <label class="flex items-center gap-2 text-sm font-medium">
+              <input type="checkbox" id="proxyEnabled" class="h-4 w-4" />
+              启用代理池（用于分布式抓取和风控绕过）
+            </label>
+            <div class="grid gap-4 md:grid-cols-3" id="proxyFields">
+              <div class="space-y-2">
+                <label for="proxyServer" class="text-sm font-medium">代理服务器</label>
+                <input id="proxyServer" type="text" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="http://proxy:8080" />
+              </div>
+              <div class="space-y-2">
+                <label for="proxyUsername" class="text-sm font-medium">用户名</label>
+                <input id="proxyUsername" type="text" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+              </div>
+              <div class="space-y-2">
+                <label for="proxyPassword" class="text-sm font-medium">密码</label>
+                <input id="proxyPassword" type="password" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="space-y-4 rounded-2xl border border-slate-700 bg-slate-800/50 p-6">
+          <legend class="px-2 text-lg font-semibold">告警渠道</legend>
+          <p class="text-sm text-slate-300">请选择需要启用的渠道。可同时启用多种方式，所有渠道都会记录到告警日志。</p>
+          <div class="grid gap-6 md:grid-cols-2">
+            <div class="space-y-3">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" id="emailEnabled" class="h-4 w-4" />
+                邮件告警
+              </label>
+              <label for="emailRecipients" class="sr-only">邮件收件人</label>
+              <textarea id="emailRecipients" class="h-24 w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="收件人邮箱，逗号分隔"></textarea>
+              <button type="button" id="testEmail" class="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+                测试邮件连通性
+              </button>
+            </div>
+            <div class="space-y-3">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" id="slackEnabled" class="h-4 w-4" />
+                Slack Webhook
+              </label>
+              <label for="slackWebhook" class="sr-only">Slack Webhook URL</label>
+              <input id="slackWebhook" type="url" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="https://hooks.slack.com/..." />
+              <button type="button" id="testSlack" class="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+                测试 Slack 通知
+              </button>
+            </div>
+            <div class="space-y-3 md:col-span-2">
+              <label class="flex items-center gap-2 text-sm font-medium">
+                <input type="checkbox" id="webhookEnabled" class="h-4 w-4" />
+                自定义 Webhook
+              </label>
+              <label for="genericWebhook" class="sr-only">Webhook URL</label>
+              <input id="genericWebhook" type="url" class="w-full rounded-md border border-slate-600 bg-slate-900 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="https://example.com/alert" />
+              <button type="button" id="testWebhook" class="inline-flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+                测试 Webhook
+              </button>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="flex items-center gap-4">
+          <button type="submit" class="inline-flex items-center justify-center rounded-full bg-blue-500 px-6 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            保存配置
+          </button>
+          <span class="text-xs text-slate-400">保存后将立即应用于手动监控，定时调度需重启调度器。</span>
+        </div>
+      </form>
+    </main>
+
+    <script>
+      const form = document.getElementById('config-form');
+      const statusEl = document.getElementById('status');
+      const schedulerModeInputs = document.querySelectorAll('input[name="schedulerMode"]');
+      const cronInput = document.getElementById('cronExpression');
+      const intervalInput = document.getElementById('intervalMinutes');
+      const proxyToggle = document.getElementById('proxyEnabled');
+      const proxyFields = document.querySelectorAll('#proxyFields input');
+      const refreshSchedulerBtn = document.getElementById('refreshSchedulerStatus');
+      const recentRunsBody = document.getElementById('recentRunsBody');
+      const nextRunDisplay = document.getElementById('nextRunDisplay');
+      const nextRunCountdown = document.getElementById('nextRunCountdown');
+      const lastRunSummary = document.getElementById('lastRunSummary');
+      const testEmailBtn = document.getElementById('testEmail');
+      const testSlackBtn = document.getElementById('testSlack');
+      const testWebhookBtn = document.getElementById('testWebhook');
+
+      function showStatus(message, variant = 'success') {
+        statusEl.textContent = message;
+        statusEl.classList.remove('hidden');
+        statusEl.classList.toggle('border-green-500', variant === 'success');
+        statusEl.classList.toggle('text-green-200', variant === 'success');
+        statusEl.classList.toggle('border-red-500', variant === 'error');
+        statusEl.classList.toggle('text-red-200', variant === 'error');
+      }
+
+      function toggleSchedulerFields(mode) {
+        if (mode === 'cron') {
+          cronInput.disabled = false;
+          intervalInput.disabled = true;
+          intervalInput.classList.add('opacity-50');
+        } else {
+          cronInput.disabled = true;
+          intervalInput.disabled = false;
+          intervalInput.classList.remove('opacity-50');
+        }
+      }
+
+      function toggleProxyFields(enabled) {
+        proxyFields.forEach((input) => {
+          input.disabled = !enabled;
+          input.classList.toggle('opacity-50', !enabled);
+        });
+      }
+
+      schedulerModeInputs.forEach((input) => {
+        input.addEventListener('change', (event) => toggleSchedulerFields(event.target.value));
+      });
+
+      proxyToggle.addEventListener('change', (event) => {
+        toggleProxyFields(event.target.checked);
+      });
+
+      function renderRecentRuns(runs) {
+        recentRunsBody.innerHTML = '';
+        if (!runs || runs.length === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = '<td class="px-4 py-3 text-center text-slate-400" colspan="5">暂无运行数据</td>';
+          recentRunsBody.appendChild(row);
+          return;
+        }
+
+        runs.forEach((run) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="px-4 py-2">${new Date(run.started_at).toLocaleString()}</td>
+            <td class="px-4 py-2">${run.finished_at ? new Date(run.finished_at).toLocaleString() : '--'}</td>
+            <td class="px-4 py-2">${typeof run.duration_ms === 'number' ? `${(run.duration_ms / 1000).toFixed(1)} s` : '--'}</td>
+            <td class="px-4 py-2">
+              <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${run.status === 'success' ? 'bg-emerald-600/20 text-emerald-300' : 'bg-red-600/20 text-red-300'}">
+                ${run.status === 'success' ? '成功' : '失败'}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-slate-300">${run.message || '--'}</td>
+          `;
+          recentRunsBody.appendChild(row);
+        });
+      }
+
+      function startCountdown() {
+        if (countdownTimer) clearInterval(countdownTimer);
+        if (!nextRunTimestamp) {
+          nextRunCountdown.textContent = '';
+          return;
+        }
+        const update = () => {
+          const diff = Math.max(0, Math.floor((nextRunTimestamp - Date.now()) / 1000));
+          if (diff <= 0) {
+            nextRunCountdown.textContent = '即将执行';
+            return;
+          }
+          const minutes = Math.floor(diff / 60);
+          const seconds = diff % 60;
+          nextRunCountdown.textContent = `约 ${minutes} 分 ${seconds} 秒后运行`;
+        };
+        update();
+        countdownTimer = setInterval(update, 1000);
+      }
+
+      async function loadSchedulerStatus() {
+        try {
+          const response = await fetch('/api/scheduler/status?limit=5');
+          if (!response.ok) throw new Error('加载调度状态失败');
+          const data = await response.json();
+
+          if (data.next_run_time) {
+            nextRunDisplay.textContent = new Date(data.next_run_time).toLocaleString();
+            nextRunTimestamp = new Date(data.next_run_time).getTime();
+          } else {
+            nextRunDisplay.textContent = '未配置下次运行时间';
+            nextRunTimestamp = null;
+          }
+          startCountdown();
+
+          if (data.last_run) {
+            const run = data.last_run;
+            const statusPill = `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${run.status === 'success' ? 'bg-emerald-600/20 text-emerald-300' : 'bg-red-600/20 text-red-300'}">${run.status === 'success' ? '成功' : '失败'}</span>`;
+            lastRunSummary.innerHTML = `${statusPill} <span class="ml-2">${new Date(run.started_at).toLocaleString()} → ${run.finished_at ? new Date(run.finished_at).toLocaleString() : '--'}</span><br /><span class="text-xs text-slate-400">${run.message || '无额外信息'}</span>`;
+          } else {
+            lastRunSummary.textContent = '尚无执行记录';
+          }
+
+          renderRecentRuns(data.recent_runs || []);
+        } catch (error) {
+          showStatus(error.message || '无法读取调度状态，请稍后重试。', 'error');
+        }
+      }
+
+      async function loadConfig() {
+        try {
+          const response = await fetch('/api/config/monitor');
+          if (!response.ok) throw new Error('加载配置失败');
+          const data = await response.json();
+
+          const modeInput = document.querySelector(`input[name="schedulerMode"][value="${data.scheduler_mode}"]`);
+          if (modeInput) {
+            modeInput.checked = true;
+            toggleSchedulerFields(data.scheduler_mode);
+          }
+          cronInput.value = data.cron_expression ?? '';
+          intervalInput.value = data.interval_minutes ?? 720;
+
+          proxyToggle.checked = Boolean(data.proxy_enabled);
+          document.getElementById('proxyServer').value = data.proxy_server ?? '';
+          document.getElementById('proxyUsername').value = data.proxy_username ?? '';
+          document.getElementById('proxyPassword').value = data.proxy_password ?? '';
+          toggleProxyFields(proxyToggle.checked);
+
+          const channels = Array.isArray(data.alert_channels) ? data.alert_channels : [];
+          const emailChannel = channels.find((c) => c.type === 'email');
+          const slackChannel = channels.find((c) => c.type === 'slack');
+          const webhookChannel = channels.find((c) => c.type === 'webhook');
+
+          document.getElementById('emailEnabled').checked = emailChannel ? emailChannel.enabled : false;
+          document.getElementById('emailRecipients').value = emailChannel && emailChannel.recipients ? emailChannel.recipients.join(', ') : '';
+
+          document.getElementById('slackEnabled').checked = slackChannel ? slackChannel.enabled : false;
+          document.getElementById('slackWebhook').value = slackChannel && slackChannel.webhook_url ? slackChannel.webhook_url : '';
+
+          document.getElementById('webhookEnabled').checked = webhookChannel ? webhookChannel.enabled : false;
+          document.getElementById('genericWebhook').value = webhookChannel && webhookChannel.webhook_url ? webhookChannel.webhook_url : '';
+
+          showStatus('配置加载完成，可进行修改。');
+        } catch (error) {
+          showStatus(error.message || '加载配置失败，请稍后再试。', 'error');
+        }
+      }
+
+      async function testChannel(channel) {
+        try {
+          const payload = {};
+          if (channel === 'email') {
+            const recipients = document
+              .getElementById('emailRecipients')
+              .value.split(',')
+              .map((item) => item.trim())
+              .filter(Boolean);
+            if (recipients.length) payload.recipients = recipients;
+            payload.subject = `[${document.title}] 邮件告警测试`;
+            payload.message = '这是一封来自 Global Price Sentinel 的连通性测试邮件。';
+          } else if (channel === 'slack') {
+            const url = document.getElementById('slackWebhook').value.trim();
+            if (url) payload.webhook_url = url;
+            payload.message = 'Slack 通知连通性测试';
+          } else if (channel === 'webhook') {
+            const url = document.getElementById('genericWebhook').value.trim();
+            if (url) payload.webhook_url = url;
+            payload.message = 'Webhook 通知连通性测试';
+          }
+
+          const response = await fetch('/api/alerts/test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ channel, payload })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.detail || result.message || '测试失败');
+          }
+
+          if (result.success) {
+            showStatus(`✅ ${result.message}`);
+          } else {
+            showStatus(result.message || '测试失败，请检查配置。', 'error');
+          }
+        } catch (error) {
+          showStatus(error.message || '测试失败，请确认渠道配置。', 'error');
+        }
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const schedulerMode = [...schedulerModeInputs].find((input) => input.checked)?.value || 'cron';
+        const proxyEnabled = proxyToggle.checked;
+
+        const payload = {
+          scheduler_mode: schedulerMode,
+          cron_expression: cronInput.value.trim() || '0 */12 * * *',
+          interval_minutes: Number(intervalInput.value) || 720,
+          proxy_enabled: proxyEnabled,
+          proxy_server: proxyEnabled ? document.getElementById('proxyServer').value.trim() || null : null,
+          proxy_username: proxyEnabled ? document.getElementById('proxyUsername').value.trim() || null : null,
+          proxy_password: proxyEnabled ? document.getElementById('proxyPassword').value.trim() || null : null,
+          alert_channels: []
+        };
+
+        if (document.getElementById('emailEnabled').checked) {
+          const recipients = document
+            .getElementById('emailRecipients')
+            .value.split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+          payload.alert_channels.push({ type: 'email', enabled: true, recipients });
+        }
+
+        if (document.getElementById('slackEnabled').checked) {
+          const url = document.getElementById('slackWebhook').value.trim();
+          payload.alert_channels.push({ type: 'slack', enabled: true, webhook_url: url });
+        }
+
+        if (document.getElementById('webhookEnabled').checked) {
+          const url = document.getElementById('genericWebhook').value.trim();
+          payload.alert_channels.push({ type: 'webhook', enabled: true, webhook_url: url });
+        }
+
+        try {
+          const response = await fetch('/api/config/monitor', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || '保存失败');
+          }
+
+          showStatus('✅ 配置已保存，新的告警与代理设置会立即生效。');
+        } catch (error) {
+          showStatus(error.message || '保存失败，请检查字段是否填写完整。', 'error');
+        }
+      });
+
+      loadConfig();
+      loadSchedulerStatus();
+    </script>
+  </body>
+</html>
+

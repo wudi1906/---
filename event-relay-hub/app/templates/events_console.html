@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full bg-slate-950">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Event Relay Hub · 事件控制台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="h-full text-slate-100">
+    <main class="mx-auto flex min-h-full w-full max-w-5xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+      <header class="space-y-2">
+        <h1 class="text-3xl font-bold tracking-tight">事件控制台</h1>
+        <p class="max-w-2xl text-sm text-slate-300">
+          查看事件、执行重放、处理死信队列。支持筛选、分页、批量操作，所有按钮均符合键盘与屏幕阅读器规范。
+        </p>
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+          <a href="/" class="inline-flex items-center gap-2 text-blue-300 underline hover:text-blue-100" aria-label="返回欢迎页">
+            ← 返回欢迎页
+          </a>
+          <a href="/console/signatures" class="inline-flex items-center gap-2 text-blue-300 underline hover:text-blue-100" aria-label="签名模板配置">
+            签名配置
+          </a>
+        </div>
+      </header>
+
+      <section id="status" aria-live="polite" class="hidden rounded-lg border border-slate-700 bg-slate-800/60 p-4 text-sm"></section>
+
+      <section id="statsPanel" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite">
+        <article class="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+          <p class="text-xs text-slate-400">总事件</p>
+          <p id="stat-total" class="mt-1 text-2xl font-semibold">-</p>
+        </article>
+        <article class="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+          <p class="text-xs text-slate-400">24 小时新增</p>
+          <p id="stat-recent" class="mt-1 text-2xl font-semibold">-</p>
+        </article>
+        <article class="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+          <p class="text-xs text-slate-400">签名成功率</p>
+          <p id="stat-sig" class="mt-1 text-2xl font-semibold">-</p>
+        </article>
+        <article class="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+          <p class="text-xs text-slate-400">死信队列</p>
+          <p id="stat-dlq" class="mt-1 text-2xl font-semibold">-</p>
+        </article>
+      </section>
+
+      <!-- Events Section -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        <header class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold">事件列表</h2>
+            <p class="text-xs text-slate-400">支持按来源、类型、签名状态与时间范围筛选，结果分页显示，可批量重放。</p>
+          </div>
+          <button id="refreshEvents" class="self-start rounded-full bg-slate-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            刷新数据
+          </button>
+        </header>
+
+        <form id="eventsFilterForm" class="grid gap-4 rounded-xl border border-slate-700 bg-slate-900/80 p-4 text-xs text-slate-200" aria-label="事件筛选表单">
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <label class="flex flex-col gap-1">
+              <span>来源 Source</span>
+              <input type="text" name="source" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="stripe / github ..." />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span>事件类型 Event Type</span>
+              <input type="text" name="event_type" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="payment.succeeded ..." />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span>签名状态 Signature</span>
+              <select name="signature_valid" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                <option value="">不限</option>
+                <option value="true">仅签名通过</option>
+                <option value="false">仅签名失败</option>
+              </select>
+            </label>
+            <label class="flex flex-col gap-1">
+              <span>起始时间 Start</span>
+              <input type="datetime-local" name="start_time" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span>结束时间 End</span>
+              <input type="datetime-local" name="end_time" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" />
+            </label>
+            <label class="flex flex-col gap-1">
+              <span>每页数量 Page Size</span>
+              <select name="page_size" class="rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </label>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              应用筛选
+            </button>
+            <button type="button" id="resetEventsFilters" class="rounded-lg border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              重置
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs" aria-live="polite">
+          <div class="flex flex-wrap items-center gap-3">
+            <button id="bulkReplayEvents" class="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900" disabled>
+              批量重放所选事件
+            </button>
+            <label class="flex items-center gap-2 text-slate-200">
+              <span>批量目标 URL（可选）</span>
+              <input type="url" id="bulkEventsTarget" class="w-56 rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="默认使用系统设置" />
+            </label>
+          </div>
+          <span id="eventsSelectionSummary" class="text-slate-400">已选 0 条事件</span>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-full divide-y divide-slate-800 text-left text-sm">
+            <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+              <tr>
+                <th scope="col" class="w-12 px-4 py-2">
+                  <input id="eventsSelectAll" type="checkbox" class="h-4 w-4 rounded border border-slate-500 text-blue-500 focus:ring-blue-400" aria-label="全选此页事件" />
+                </th>
+                <th scope="col" class="px-4 py-2">ID</th>
+                <th scope="col" class="px-4 py-2">来源</th>
+                <th scope="col" class="px-4 py-2">类型</th>
+                <th scope="col" class="px-4 py-2">时间</th>
+                <th scope="col" class="px-4 py-2">签名</th>
+                <th scope="col" class="px-4 py-2">操作</th>
+              </tr>
+            </thead>
+            <tbody id="eventsTable" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+        <footer id="eventsPagination" class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400"></footer>
+      </section>
+
+      <!-- DLQ Section -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        <header class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold">死信队列（DLQ）</h2>
+            <p class="text-xs text-slate-400">针对转发失败的事件，可多选进行重试或删除，亦支持一键清空。</p>
+          </div>
+          <button id="refreshDlq" class="rounded-full bg-slate-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            刷新队列
+          </button>
+        </header>
+
+        <form id="dlqFilterForm" class="mb-4 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4" novalidate>
+          <label class="flex flex-col gap-1">
+            <span class="font-semibold text-slate-300">事件来源</span>
+            <input name="source" type="text" placeholder="如：github" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="font-semibold text-slate-300">事件类型</span>
+            <input name="event_type" type="text" placeholder="如：invoice.paid" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="font-semibold text-slate-300">最小重试次数</span>
+            <input name="min_retry" type="number" min="0" step="1" placeholder="0" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </label>
+          <label class="flex flex-col gap-1">
+            <span class="font-semibold text-slate-300">关键字搜索</span>
+            <input name="search" type="text" placeholder="匹配原因/错误/来源" class="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </label>
+          <div class="flex items-end gap-2">
+            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              应用筛选
+            </button>
+            <button type="button" id="resetDlqFilters" class="rounded-lg border border-slate-600 px-4 py-2 font-semibold text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              重置
+            </button>
+            <span class="text-slate-500" aria-live="polite">筛选条件会自动保存，下次打开自动恢复。</span>
+          </div>
+        </form>
+
+        <div class="flex flex-wrap items-center gap-3 text-xs" aria-live="polite">
+          <button id="bulkReplayDlq" class="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white transition hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900" disabled>
+            批量重试所选
+          </button>
+          <button id="bulkDeleteDlq" class="rounded-lg border border-slate-600 px-4 py-2 font-semibold text-slate-200 transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900" disabled>
+            批量删除所选
+          </button>
+          <button id="clearDlq" class="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+            清空队列
+          </button>
+          <span id="dlqSelectionSummary" class="text-slate-400">已选 0 条死信</span>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-full divide-y divide-slate-800 text-left text-sm">
+            <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+              <tr>
+                <th class="w-12 px-4 py-2">
+                  <input id="dlqSelectAll" type="checkbox" class="h-4 w-4 rounded border border-slate-500 text-blue-500 focus:ring-blue-400" aria-label="全选此页死信" />
+                </th>
+                <th class="px-4 py-2">DLQ ID</th>
+                <th class="px-4 py-2">事件</th>
+                <th class="px-4 py-2">重试次数</th>
+                <th class="px-4 py-2">最后错误</th>
+                <th class="px-4 py-2">操作</th>
+              </tr>
+            </thead>
+            <tbody id="dlqTable" class="divide-y divide-slate-800"></tbody>
+          </table>
+        </div>
+        <footer id="dlqPagination" class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400"></footer>
+      </section>
+    </main>
+
+    <template id="event-row">
+      <tr class="bg-slate-900/40 hover:bg-slate-900/60">
+        <td class="px-4 py-3"><input type="checkbox" class="event-checkbox h-4 w-4 rounded border border-slate-500 text-blue-500 focus:ring-blue-400" aria-label="选择事件" /></td>
+        <td class="px-4 py-3 font-mono text-xs"></td>
+        <td class="px-4 py-3 text-xs"></td>
+        <td class="px-4 py-3 text-xs"></td>
+        <td class="px-4 py-3 text-xs text-slate-300"></td>
+        <td class="px-4 py-3 text-xs"></td>
+        <td class="px-4 py-3">
+          <form class="flex flex-col gap-2 text-xs" novalidate>
+            <label class="sr-only">目标 URL</label>
+            <input type="url" class="w-full rounded-md border border-slate-700 bg-slate-900 px-2 py-1 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400" placeholder="默认使用配置 URL" />
+            <button type="submit" class="inline-flex items-center justify-center rounded-md bg-blue-500 px-2 py-1 font-semibold text-white transition hover:bg-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              单条重放
+            </button>
+          </form>
+        </td>
+      </tr>
+    </template>
+
+    <template id="dlq-row">
+      <tr class="bg-slate-900/40 hover:bg-slate-900/60">
+        <td class="px-4 py-3"><input type="checkbox" class="dlq-checkbox h-4 w-4 rounded border border-slate-500 text-blue-500 focus:ring-blue-400" aria-label="选择死信" /></td>
+        <td class="px-4 py-3 font-mono text-xs"></td>
+        <td class="px-4 py-3 text-xs"></td>
+        <td class="px-4 py-3 text-xs"></td>
+        <td class="px-4 py-3 text-xs text-red-300"></td>
+        <td class="px-4 py-3 text-xs">
+          <div class="flex flex-wrap gap-2">
+            <button data-action="replay" class="rounded-md bg-emerald-500 px-2 py-1 text-white hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              重试
+            </button>
+            <button data-action="delete" class="rounded-md bg-slate-700 px-2 py-1 text-white hover:bg-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900">
+              删除
+            </button>
+          </div>
+        </td>
+      </tr>
+    </template>
+
+    <script>
+      const statusEl = document.getElementById('status');
+      const eventsTable = document.getElementById('eventsTable');
+      const dlqTable = document.getElementById('dlqTable');
+      const eventRowTemplate = document.getElementById('event-row');
+      const dlqRowTemplate = document.getElementById('dlq-row');
+      const statTotalEl = document.getElementById('stat-total');
+      const statRecentEl = document.getElementById('stat-recent');
+      const statSigEl = document.getElementById('stat-sig');
+      const statDlqEl = document.getElementById('stat-dlq');
+
+      const refreshEventsBtn = document.getElementById('refreshEvents');
+      const refreshDlqBtn = document.getElementById('refreshDlq');
+      const eventsFilterForm = document.getElementById('eventsFilterForm');
+      const resetEventsFiltersBtn = document.getElementById('resetEventsFilters');
+      const eventsSelectAll = document.getElementById('eventsSelectAll');
+      const dlqSelectAll = document.getElementById('dlqSelectAll');
+      const bulkReplayEventsBtn = document.getElementById('bulkReplayEvents');
+      const bulkEventsTargetInput = document.getElementById('bulkEventsTarget');
+      const eventsSelectionSummary = document.getElementById('eventsSelectionSummary');
+      const eventsPagination = document.getElementById('eventsPagination');
+      const bulkReplayDlqBtn = document.getElementById('bulkReplayDlq');
+      const bulkDeleteDlqBtn = document.getElementById('bulkDeleteDlq');
+      const clearDlqBtn = document.getElementById('clearDlq');
+      const dlqSelectionSummary = document.getElementById('dlqSelectionSummary');
+      const dlqPagination = document.getElementById('dlqPagination');
+      const dlqFilterForm = document.getElementById('dlqFilterForm');
+      const resetDlqFiltersBtn = document.getElementById('resetDlqFilters');
+
+      const STORAGE_KEY = 'erh_events_filters_v1';
+      const DLQ_STORAGE_KEY = 'erh_dlq_filters_v1';
+      const savedState = (() => {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        } catch (error) {
+          return {};
+        }
+      })();
+      const savedDlqState = (() => {
+        try {
+          return JSON.parse(localStorage.getItem(DLQ_STORAGE_KEY) || '{}');
+        } catch (error) {
+          return {};
+        }
+      })();
+
+      const eventsState = {
+        filters: {
+          source: savedState.filters?.source || '',
+          eventType: savedState.filters?.eventType || '',
+          signatureValid: savedState.filters?.signatureValid || '',
+          startTime: savedState.filters?.startTime || '',
+          endTime: savedState.filters?.endTime || '',
+        },
+        page: savedState.page || 1,
+        pageSize: savedState.pageSize || 20,
+        total: 0,
+        items: [],
+        selected: new Set(),
+      };
+
+      const dlqState = {
+        page: savedDlqState.page || 1,
+        pageSize: savedDlqState.pageSize || 20,
+        total: 0,
+        items: [],
+        selected: new Set(),
+        filters: {
+          source: savedDlqState.filters?.source || '',
+          eventType: savedDlqState.filters?.eventType || '',
+          search: savedDlqState.filters?.search || '',
+          minRetry: savedDlqState.filters?.minRetry ?? '',
+        },
+        loading: false,
+      };
+
+      const statsState = {
+        loading: false,
+        data: null,
+      };
+
+      function showStatus(message, variant = 'success') {
+        statusEl.textContent = message;
+        statusEl.classList.remove('hidden');
+        statusEl.classList.toggle('border-green-500', variant === 'success');
+        statusEl.classList.toggle('text-green-200', variant === 'success');
+        statusEl.classList.toggle('border-red-500', variant === 'error');
+        statusEl.classList.toggle('text-red-200', variant === 'error');
+      }
+
+      function setButtonLoading(button, isLoading) {
+        if (!button) return;
+        button.disabled = isLoading;
+        button.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+      }
+
+      function persistEventsState() {
+        const payload = {
+          filters: eventsState.filters,
+          page: eventsState.page,
+          pageSize: eventsState.pageSize,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      }
+
+      function persistDlqState() {
+        const payload = {
+          filters: dlqState.filters,
+          page: dlqState.page,
+          pageSize: dlqState.pageSize,
+        };
+        localStorage.setItem(DLQ_STORAGE_KEY, JSON.stringify(payload));
+      }
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.detail || '请求失败');
+        }
+        return response.json();
+      }
+
+      function toInputValue(value) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        const offset = date.getTimezoneOffset();
+        const local = new Date(date.getTime() - offset * 60000);
+        return local.toISOString().slice(0, 16);
+      }
+
+      function buildEventsParams() {
+        const params = new URLSearchParams();
+        if (eventsState.filters.source) params.set('source', eventsState.filters.source);
+        if (eventsState.filters.eventType) params.set('event_type', eventsState.filters.eventType);
+        if (eventsState.filters.signatureValid) params.set('signature_valid', eventsState.filters.signatureValid);
+        if (eventsState.filters.startTime) params.set('start_time', eventsState.filters.startTime);
+        if (eventsState.filters.endTime) params.set('end_time', eventsState.filters.endTime);
+        params.set('page', String(eventsState.page));
+        params.set('page_size', String(eventsState.pageSize));
+        return params;
+      }
+
+      function syncEventsFilterForm() {
+        eventsFilterForm.elements['source'].value = eventsState.filters.source;
+        eventsFilterForm.elements['event_type'].value = eventsState.filters.eventType;
+        eventsFilterForm.elements['signature_valid'].value = eventsState.filters.signatureValid;
+        eventsFilterForm.elements['start_time'].value = toInputValue(eventsState.filters.startTime);
+        eventsFilterForm.elements['end_time'].value = toInputValue(eventsState.filters.endTime);
+        eventsFilterForm.elements['page_size'].value = String(eventsState.pageSize);
+      }
+
+      function syncDlqFilterForm() {
+        if (!dlqFilterForm) return;
+        dlqFilterForm.elements['source'].value = dlqState.filters.source;
+        dlqFilterForm.elements['event_type'].value = dlqState.filters.eventType;
+        dlqFilterForm.elements['search'].value = dlqState.filters.search;
+        dlqFilterForm.elements['min_retry'].value = dlqState.filters.minRetry === '' ? '' : String(dlqState.filters.minRetry);
+      }
+
+      async function loadEvents() {
+        try {
+          const params = buildEventsParams();
+          const data = await fetchJson(`/api/events/search?${params.toString()}`);
+          eventsState.total = data.total;
+          eventsState.page = data.page;
+          eventsState.pageSize = data.page_size;
+          eventsState.items = data.items || [];
+          const totalPages = Math.max(1, Math.ceil((data.total || 0) / data.page_size));
+          if (eventsState.page > totalPages && totalPages > 0) {
+            eventsState.page = totalPages;
+            persistEventsState();
+            return loadEvents();
+          }
+          syncEventsFilterForm();
+          renderEvents();
+          persistEventsState();
+        } catch (error) {
+          showStatus(error.message || '加载事件失败', 'error');
+        }
+      }
+
+      async function loadDlq() {
+        dlqState.loading = true;
+        renderDlq();
+        try {
+          const params = new URLSearchParams({
+            page: String(dlqState.page),
+            page_size: String(dlqState.pageSize),
+          });
+          if (dlqState.filters.source) params.set('source', dlqState.filters.source);
+          if (dlqState.filters.eventType) params.set('event_type', dlqState.filters.eventType);
+          if (dlqState.filters.search) params.set('search', dlqState.filters.search);
+          if (dlqState.filters.minRetry !== '' && Number.isFinite(Number(dlqState.filters.minRetry))) {
+            params.set('min_retry', String(dlqState.filters.minRetry));
+          }
+
+          const data = await fetchJson(`/api/dlq?${params.toString()}`);
+          const totalPages = Math.max(1, Math.ceil((data.total || 0) / data.page_size));
+          if (dlqState.page > totalPages && totalPages > 0) {
+            dlqState.page = totalPages;
+            persistDlqState();
+            dlqState.loading = false;
+            return loadDlq();
+          }
+
+          dlqState.total = data.total;
+          dlqState.page = data.page;
+          dlqState.pageSize = data.page_size;
+          dlqState.items = data.items || [];
+          const visibleIds = new Set(dlqState.items.map((item) => item.id));
+          dlqState.selected.forEach((id) => {
+            if (!visibleIds.has(id)) {
+              dlqState.selected.delete(id);
+            }
+          });
+          syncDlqFilterForm();
+          persistDlqState();
+        } catch (error) {
+          showStatus(error.message || '加载死信队列失败', 'error');
+        } finally {
+          dlqState.loading = false;
+          renderDlq();
+        }
+      }
+
+      async function loadStats() {
+        try {
+          statsState.loading = true;
+          const data = await fetchJson('/api/stats');
+          statsState.data = data;
+          renderStats();
+        } catch (error) {
+          statTotalEl.textContent = '-';
+          statRecentEl.textContent = '-';
+          statSigEl.textContent = '-';
+          statDlqEl.textContent = '-';
+        } finally {
+          statsState.loading = false;
+        }
+      }
+
+      function renderEvents() {
+        eventsTable.innerHTML = '';
+        const currentIds = new Set(eventsState.items.map((item) => item.id));
+        eventsState.selected.forEach((id) => {
+          if (!currentIds.has(id)) return;
+        });
+
+        eventsState.items.forEach((event) => {
+          const row = eventRowTemplate.content.firstElementChild.cloneNode(true);
+          const cells = row.querySelectorAll('td');
+          const checkbox = row.querySelector('.event-checkbox');
+          checkbox.checked = eventsState.selected.has(event.id);
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              eventsState.selected.add(event.id);
+            } else {
+              eventsState.selected.delete(event.id);
+            }
+            updateEventsSelectionSummary();
+            syncEventsSelectAll();
+          });
+
+          cells[1].textContent = `#${event.id}`;
+          cells[2].textContent = event.source;
+          cells[3].textContent = event.event_type || '-';
+          cells[4].textContent = new Date(event.created_at).toLocaleString();
+          cells[5].textContent = event.signature_valid ? '✅ 已通过' : '⚠️ 未验证';
+
+          const form = row.querySelector('form');
+          const input = form.querySelector('input[type="url"]');
+          const submitBtn = form.querySelector('button[type="submit"]');
+          form.addEventListener('submit', async (evt) => {
+            evt.preventDefault();
+            setButtonLoading(submitBtn, true);
+            try {
+              const params = input.value ? `?target_url=${encodeURIComponent(input.value)}` : '';
+              const data = await fetchJson(`/api/events/${event.id}/replay${params}`, { method: 'POST' });
+              const note = typeof data.notes === 'string' ? data.notes : '';
+              showStatus(
+                [data.message || `事件 #${event.id} 已处理。`, note].filter(Boolean).join(' '),
+                data.success ? 'success' : 'error',
+              );
+              loadEvents();
+              loadDlq();
+              loadStats();
+            } catch (error) {
+              showStatus(error.message || '重放失败', 'error');
+            } finally {
+              setButtonLoading(submitBtn, false);
+            }
+          });
+
+          eventsTable.appendChild(row);
+        });
+
+        updateEventsSelectionSummary();
+        syncEventsSelectAll();
+        renderEventsPagination();
+      }
+
+      function updateEventsSelectionSummary() {
+        const count = eventsState.selected.size;
+        eventsSelectionSummary.textContent = `已选 ${count} 条事件`;
+        bulkReplayEventsBtn.disabled = count === 0;
+      }
+
+      function syncEventsSelectAll() {
+        const displayedIds = eventsState.items.map((item) => item.id);
+        if (displayedIds.length === 0) {
+          eventsSelectAll.checked = false;
+          eventsSelectAll.indeterminate = false;
+          return;
+        }
+        const selectedOnPage = displayedIds.filter((id) => eventsState.selected.has(id)).length;
+        eventsSelectAll.checked = selectedOnPage === displayedIds.length;
+        eventsSelectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < displayedIds.length;
+      }
+
+      function renderEventsPagination() {
+        eventsPagination.innerHTML = '';
+        const totalPages = Math.max(1, Math.ceil(eventsState.total / eventsState.pageSize));
+        const info = document.createElement('span');
+        info.textContent = `第 ${eventsState.page} / ${totalPages} 页，共 ${eventsState.total} 条`;
+        eventsPagination.appendChild(info);
+
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-2';
+
+        const prev = document.createElement('button');
+        prev.textContent = '上一页';
+        prev.disabled = eventsState.page === 1;
+        prev.className = 'rounded-lg border border-slate-600 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500';
+        prev.addEventListener('click', () => {
+          eventsState.page = Math.max(1, eventsState.page - 1);
+          loadEvents();
+        });
+
+        const next = document.createElement('button');
+        next.textContent = '下一页';
+        next.disabled = eventsState.page >= totalPages;
+        next.className = 'rounded-lg border border-slate-600 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500';
+        next.addEventListener('click', () => {
+          eventsState.page = Math.min(totalPages, eventsState.page + 1);
+          loadEvents();
+        });
+
+        controls.appendChild(prev);
+        controls.appendChild(next);
+        eventsPagination.appendChild(controls);
+      }
+
+      function renderDlq() {
+        dlqTable.innerHTML = '';
+        if (dlqState.loading) {
+          const emptyRow = document.createElement('tr');
+          emptyRow.innerHTML = '<td class="px-4 py-4 text-center text-xs text-slate-400" colspan="6">加载死信中…</td>';
+          dlqTable.appendChild(emptyRow);
+          updateDlqSelectionSummary();
+          syncDlqSelectAll();
+          renderDlqPagination();
+          return;
+        }
+
+        const displayedIds = new Set(dlqState.items.map((item) => item.id));
+        const staleSelection = [];
+        dlqState.selected.forEach((id) => {
+          if (!displayedIds.has(id)) staleSelection.push(id);
+        });
+        staleSelection.forEach((id) => dlqState.selected.delete(id));
+
+        if (!dlqState.items.length) {
+          const emptyRow = document.createElement('tr');
+          emptyRow.innerHTML = '<td class="px-4 py-4 text-center text-xs text-slate-400" colspan="6">🎉 当前没有死信事件。</td>';
+          dlqTable.appendChild(emptyRow);
+        } else {
+          dlqState.items.forEach((item) => {
+            const row = dlqRowTemplate.content.firstElementChild.cloneNode(true);
+            const cells = row.querySelectorAll('td');
+            const checkbox = row.querySelector('.dlq-checkbox');
+            checkbox.checked = dlqState.selected.has(item.id);
+            checkbox.addEventListener('change', () => {
+              if (checkbox.checked) dlqState.selected.add(item.id);
+              else dlqState.selected.delete(item.id);
+              updateDlqSelectionSummary();
+              syncDlqSelectAll();
+            });
+
+            cells[1].textContent = `DLQ-${item.id}`;
+            cells[2].innerHTML = `<div class="space-y-1"><div>${item.source} / ${item.event_type || '-'} (#${item.event_id})</div><div class="font-mono text-xs text-slate-400">${item.payload_preview || ''}</div></div>`;
+            cells[3].textContent = item.retry_count;
+            cells[4].textContent = item.last_error || item.reason || '-';
+
+            const replayBtn = row.querySelector('button[data-action="replay"]');
+            const deleteBtn = row.querySelector('button[data-action="delete"]');
+
+            replayBtn.addEventListener('click', async () => {
+              setButtonLoading(replayBtn, true);
+              try {
+                const data = await fetchJson(`/api/dlq/${item.id}/replay`, { method: 'POST' });
+                const note = typeof data.notes === 'string' ? data.notes : '';
+                showStatus(
+                  [data.message || `死信 DLQ-${item.id} 已处理。`, note].filter(Boolean).join(' '),
+                  data.success ? 'success' : 'error',
+                );
+                dlqState.selected.delete(item.id);
+                loadEvents();
+                loadDlq();
+                loadStats();
+              } catch (error) {
+                showStatus(error.message || '重放失败', 'error');
+              } finally {
+                setButtonLoading(replayBtn, false);
+              }
+            });
+
+            deleteBtn.addEventListener('click', async () => {
+              if (!confirm(`确定删除 DLQ-${item.id} 吗？`)) return;
+              try {
+                await fetchJson(`/api/dlq/${item.id}`, { method: 'DELETE' });
+                showStatus(`死信 DLQ-${item.id} 已删除。`);
+                dlqState.selected.delete(item.id);
+                loadDlq();
+              } catch (error) {
+                showStatus(error.message || '删除失败', 'error');
+              }
+            });
+
+            dlqTable.appendChild(row);
+          });
+        }
+
+        updateDlqSelectionSummary();
+        syncDlqSelectAll();
+        renderDlqPagination();
+      }
+
+      function renderStats() {
+        if (!statsState.data) return;
+        const data = statsState.data;
+        statTotalEl.textContent = data.total_events ?? '-';
+        statRecentEl.textContent = data.recent_24h ?? '-';
+        statSigEl.textContent = data.signature_success_rate != null ? `${data.signature_success_rate.toFixed(1)}%` : '-';
+        statDlqEl.textContent = data.dead_letters ?? '-';
+      }
+
+      function updateDlqSelectionSummary() {
+        if (dlqState.loading) {
+          dlqSelectionSummary.textContent = '死信加载中…';
+          bulkReplayDlqBtn.disabled = true;
+          bulkDeleteDlqBtn.disabled = true;
+          return;
+        }
+        const count = dlqState.selected.size;
+        dlqSelectionSummary.textContent = `已选 ${count} 条死信`;
+        bulkReplayDlqBtn.disabled = count === 0;
+        bulkDeleteDlqBtn.disabled = count === 0;
+      }
+
+      function syncDlqSelectAll() {
+        const displayedIds = dlqState.items.map((item) => item.id);
+        if (displayedIds.length === 0) {
+          dlqSelectAll.checked = false;
+          dlqSelectAll.indeterminate = false;
+          return;
+        }
+        const selectedOnPage = displayedIds.filter((id) => dlqState.selected.has(id)).length;
+        dlqSelectAll.checked = selectedOnPage === displayedIds.length;
+        dlqSelectAll.indeterminate = selectedOnPage > 0 && selectedOnPage < displayedIds.length;
+      }
+
+      function renderDlqPagination() {
+        dlqPagination.innerHTML = '';
+        const totalPages = Math.max(1, Math.ceil(dlqState.total / dlqState.pageSize));
+        const info = document.createElement('span');
+        info.textContent = `第 ${dlqState.page} / ${totalPages} 页，共 ${dlqState.total} 条`;
+        dlqPagination.appendChild(info);
+
+        const controls = document.createElement('div');
+        controls.className = 'flex items-center gap-2';
+
+        const prev = document.createElement('button');
+        prev.textContent = '上一页';
+        prev.disabled = dlqState.page === 1;
+        prev.className = 'rounded-lg border border-slate-600 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500';
+        prev.addEventListener('click', () => {
+          dlqState.page = Math.max(1, dlqState.page - 1);
+          loadDlq();
+        });
+
+        const next = document.createElement('button');
+        next.textContent = '下一页';
+        next.disabled = dlqState.page >= totalPages;
+        next.className = 'rounded-lg border border-slate-600 px-3 py-1.5 text-xs hover:bg-slate-800 disabled:cursor-not-allowed disabled:border-slate-700 disabled:text-slate-500';
+        next.addEventListener('click', () => {
+          dlqState.page = Math.min(totalPages, dlqState.page + 1);
+          loadDlq();
+        });
+
+        controls.appendChild(prev);
+        controls.appendChild(next);
+        dlqPagination.appendChild(controls);
+      }
+
+      eventsFilterForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(eventsFilterForm);
+        eventsState.filters.source = (formData.get('source') || '').trim();
+        eventsState.filters.eventType = (formData.get('event_type') || '').trim();
+        eventsState.filters.signatureValid = formData.get('signature_valid') || '';
+
+        const start = formData.get('start_time');
+        const end = formData.get('end_time');
+        eventsState.filters.startTime = start ? new Date(start).toISOString() : '';
+        eventsState.filters.endTime = end ? new Date(end).toISOString() : '';
+        eventsState.pageSize = Number(formData.get('page_size')) || 20;
+        eventsState.page = 1;
+        loadEvents();
+      });
+
+      resetEventsFiltersBtn.addEventListener('click', () => {
+        eventsState.filters = { source: '', eventType: '', signatureValid: '', startTime: '', endTime: '' };
+        eventsState.page = 1;
+        eventsState.pageSize = 20;
+        eventsFilterForm.reset();
+        loadEvents();
+      });
+
+      eventsSelectAll.addEventListener('change', () => {
+        const shouldSelect = eventsSelectAll.checked;
+        eventsState.items.forEach((item) => {
+          if (shouldSelect) {
+            eventsState.selected.add(item.id);
+          } else {
+            eventsState.selected.delete(item.id);
+          }
+        });
+        renderEvents();
+      });
+
+      dlqSelectAll.addEventListener('change', () => {
+        const shouldSelect = dlqSelectAll.checked;
+        dlqState.items.forEach((item) => {
+          if (shouldSelect) {
+            dlqState.selected.add(item.id);
+          } else {
+            dlqState.selected.delete(item.id);
+          }
+        });
+        renderDlq();
+      });
+
+      if (dlqFilterForm) {
+        dlqFilterForm.addEventListener('submit', (event) => {
+          event.preventDefault();
+          const formData = new FormData(dlqFilterForm);
+          dlqState.filters.source = (formData.get('source') || '').toString().trim();
+          dlqState.filters.eventType = (formData.get('event_type') || '').toString().trim();
+          dlqState.filters.search = (formData.get('search') || '').toString().trim();
+          const minRetryRaw = (formData.get('min_retry') || '').toString().trim();
+          dlqState.filters.minRetry = minRetryRaw === '' ? '' : Math.max(0, Number(minRetryRaw) || 0);
+          dlqState.page = 1;
+          persistDlqState();
+          loadDlq();
+        });
+      }
+
+      if (resetDlqFiltersBtn) {
+        resetDlqFiltersBtn.addEventListener('click', () => {
+          dlqState.filters = { source: '', eventType: '', search: '', minRetry: '' };
+          dlqState.page = 1;
+          dlqState.pageSize = 20;
+          if (dlqFilterForm) dlqFilterForm.reset();
+          persistDlqState();
+          loadDlq();
+        });
+      }
+
+      bulkReplayEventsBtn.addEventListener('click', async () => {
+        if (eventsState.selected.size === 0) return;
+        const ids = Array.from(eventsState.selected);
+        setButtonLoading(bulkReplayEventsBtn, true);
+        try {
+          const body = {
+            ids,
+          };
+          if (bulkEventsTargetInput.value) {
+            body.target_url = bulkEventsTargetInput.value;
+          }
+          const result = await fetchJson('/api/events/replay/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          result.success_ids.forEach((id) => eventsState.selected.delete(id));
+          const failedEntries = Object.entries(result.failed || {});
+          const noteEntries = Object.entries(result.notes || {});
+          const parts = [];
+          if (result.success_ids.length) {
+            parts.push(`成功 ${result.success_ids.length} 条`);
+          }
+          if (noteEntries.length) {
+            const preview = noteEntries
+              .slice(0, 3)
+              .map(([id, message]) => `#${id} ${message}`)
+              .join('；');
+            parts.push(`跳过 ${noteEntries.length} 条（${preview}${noteEntries.length > 3 ? '…' : ''}）`);
+          }
+          if (failedEntries.length) {
+            const preview = failedEntries
+              .slice(0, 3)
+              .map(([id, message]) => `#${id} ${message}`)
+              .join('；');
+            parts.push(`失败 ${failedEntries.length} 条（${preview}${failedEntries.length > 3 ? '…' : ''}）`);
+          }
+          const variant = failedEntries.length ? 'error' : 'success';
+          showStatus(parts.join(' / ') || '批量重放已处理。', variant);
+          loadEvents();
+          loadDlq();
+          loadStats();
+        } catch (error) {
+          showStatus(error.message || '批量重放失败', 'error');
+        } finally {
+          setButtonLoading(bulkReplayEventsBtn, false);
+        }
+      });
+
+      bulkReplayDlqBtn.addEventListener('click', async () => {
+        if (dlqState.selected.size === 0) return;
+        const ids = Array.from(dlqState.selected);
+        setButtonLoading(bulkReplayDlqBtn, true);
+        try {
+          const result = await fetchJson('/api/dlq/replay/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids }),
+          });
+          result.success_ids.forEach((id) => dlqState.selected.delete(id));
+          const failedEntries = Object.entries(result.failed || {});
+          const noteEntries = Object.entries(result.notes || {});
+          const parts = [];
+          if (result.success_ids.length) {
+            parts.push(`成功 ${result.success_ids.length} 条`);
+          }
+          if (noteEntries.length) {
+            const preview = noteEntries
+              .slice(0, 3)
+              .map(([id, message]) => `DLQ-${id} ${message}`)
+              .join('；');
+            parts.push(`跳过 ${noteEntries.length} 条（${preview}${noteEntries.length > 3 ? '…' : ''}）`);
+          }
+          if (failedEntries.length) {
+            const preview = failedEntries
+              .slice(0, 3)
+              .map(([id, message]) => `DLQ-${id} ${message}`)
+              .join('；');
+            parts.push(`失败 ${failedEntries.length} 条（${preview}${failedEntries.length > 3 ? '…' : ''}）`);
+          }
+          const summary = parts.length ? parts.join(' / ') : '死信批量重放已处理。';
+          const variant = failedEntries.length ? 'error' : 'success';
+          showStatus(summary, variant);
+          loadEvents();
+          loadDlq();
+          loadStats();
+        } catch (error) {
+          showStatus(error.message || '批量重放死信失败', 'error');
+        } finally {
+          setButtonLoading(bulkReplayDlqBtn, false);
+        }
+      });
+
+      bulkDeleteDlqBtn.addEventListener('click', async () => {
+        if (dlqState.selected.size === 0) return;
+        if (!confirm('确定删除选中的死信吗？')) return;
+        const ids = Array.from(dlqState.selected);
+        setButtonLoading(bulkDeleteDlqBtn, true);
+        try {
+          for (const id of ids) {
+            await fetchJson(`/api/dlq/${id}`, { method: 'DELETE' });
+            dlqState.selected.delete(id);
+          }
+          showStatus(`已删除 ${ids.length} 条死信。`);
+          loadDlq();
+          loadStats();
+        } catch (error) {
+          showStatus(error.message || '批量删除死信失败', 'error');
+        } finally {
+          setButtonLoading(bulkDeleteDlqBtn, false);
+        }
+      });
+
+      clearDlqBtn.addEventListener('click', async () => {
+        if (!confirm('确定清空死信队列吗？')) return;
+        setButtonLoading(clearDlqBtn, true);
+        try {
+          const result = await fetchJson('/api/dlq/clear', { method: 'POST' });
+          dlqState.selected.clear();
+          showStatus(`已清空死信队列（共 ${result.cleared} 条）。`);
+          loadDlq();
+          loadStats();
+        } catch (error) {
+          showStatus(error.message || '清空死信队列失败', 'error');
+        } finally {
+          setButtonLoading(clearDlqBtn, false);
+        }
+      });
+
+      refreshEventsBtn.addEventListener('click', loadEvents);
+      refreshDlqBtn.addEventListener('click', loadDlq);
+
+      syncEventsFilterForm();
+      syncDlqFilterForm();
+      loadEvents();
+      loadDlq();
+      loadStats();
+    </script>
+  </body>
+</html>
+
+

@@ -2,6 +2,14 @@
   QUICK START GUIDE
 ============================================
 
+PAIN → SOLUTION SNAPSHOT
+---------------------------------------------------------
+- Pain: 客户担心 Demo 启动复杂、无法一次看到全部价值。
+- Solution: 提供 START_ALL/STOP_ALL/TEST_ALL 批处理 + 门户主页，一键体验 6 个项目。
+- Deliverables: START_ALL/STOP_ALL/TEST_ALL、各项目 start.bat、Postman 集合、售后 SLA。
+- SLA: <1h 响应，按套餐提供 7~30 天远程支持。
+- CTA: Upwork https://www.upwork.com/fl/yourname · Fiverr https://www.fiverr.com/yourname · Email you@example.com。
+
 METHOD 1: Batch File (RECOMMENDED - No encoding issues)
 ---------------------------------------------------------
 
@@ -92,6 +100,9 @@ Project 2 API:   http://localhost:8202/api/docs
 Project 2 Events: http://localhost:8202/api/events
 
 Project 3 Dashboard: http://localhost:8303
+Project 4 Knowledge Forge: http://localhost:8404
+Project 5 Storybook: http://localhost:8505
+Project 6 Viz Studio: http://localhost:8606
 
 
 SUPPORT
@@ -101,4 +112,10 @@ For detailed documentation, see:
 - 运行指南.md
 - 功能详解.md
 - 项目完成总结.md
+
+CTA / NEXT STEP
+---------------------------------------------------------
+- Upwork 咨询: https://www.upwork.com/fl/yourname
+- Fiverr 套餐: https://www.fiverr.com/yourname
+- Email 预约演示: mailto:you@example.com
 

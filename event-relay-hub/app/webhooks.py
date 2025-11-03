@@ -10,6 +10,7 @@ from app.models import Event, EventCreate
 from app.verifiers import WebhookVerifier
 from app.settings import settings
 from app.forwarder import EventForwarder
+from app.signature_service import SignatureService
 
 
 class WebhookHandler:
@@ -19,29 +20,39 @@ class WebhookHandler:
         self.db = db
         self.forwarder = EventForwarder()
     
+    def _resolve_signature(self, source: str, default_header: str, settings_secret: Optional[str]) -> tuple[str, Optional[str], bool]:
+        template = SignatureService.get_template(source, session=self.db)
+        header = default_header
+        secret = settings_secret
+        required = False
+
+        if template:
+            header = template.signature_header or default_header
+            if template.enabled:
+                required = True
+                secret = template.secret
+        elif settings_secret:
+            required = True
+
+        return header, secret, required
+
     async def handle_github(self, request: Request) -> Dict[str, Any]:
         """处理 GitHub Webhook"""
         # 读取原始 payload
         payload = await request.body()
-        
-        # 获取签名
-        signature = request.headers.get('X-Hub-Signature-256', '')
+
+        header_name, secret, required = self._resolve_signature("github", "X-Hub-Signature-256", settings.GITHUB_WEBHOOK_SECRET)
+        signature = request.headers.get(header_name, '')
         event_type = request.headers.get('X-GitHub-Event', 'unknown')
-        
-        # 验证签名
-        signature_valid = False
-        if settings.GITHUB_WEBHOOK_SECRET:
-            signature_valid = WebhookVerifier.verify_github(
-                payload,
-                signature,
-                settings.GITHUB_WEBHOOK_SECRET
-            )
-        else:
-            # 如果未配置密钥，跳过验证（仅用于开发）
-            signature_valid = True
-        
-        if not signature_valid:
-            raise HTTPException(status_code=401, detail="Invalid signature")
+
+        if required and not secret:
+            raise HTTPException(status_code=401, detail="Signature secret not configured")
+
+        signature_valid = True
+        if required and secret:
+            signature_valid = WebhookVerifier.verify_github(payload, signature, secret)
+            if not signature_valid:
+                raise HTTPException(status_code=401, detail="Invalid signature")
         
         # 解析 payload
         try:
@@ -75,21 +86,17 @@ class WebhookHandler:
     async def handle_stripe(self, request: Request) -> Dict[str, Any]:
         """处理 Stripe Webhook"""
         payload = await request.body()
-        signature = request.headers.get('Stripe-Signature', '')
-        
-        # 验证签名
-        signature_valid = False
-        if settings.STRIPE_WEBHOOK_SECRET:
-            signature_valid = WebhookVerifier.verify_stripe(
-                payload,
-                signature,
-                settings.STRIPE_WEBHOOK_SECRET
-            )
-        else:
-            signature_valid = True
-        
-        if not signature_valid:
-            raise HTTPException(status_code=401, detail="Invalid signature")
+        header_name, secret, required = self._resolve_signature("stripe", "Stripe-Signature", settings.STRIPE_WEBHOOK_SECRET)
+        signature = request.headers.get(header_name, '')
+
+        if required and not secret:
+            raise HTTPException(status_code=401, detail="Signature secret not configured")
+
+        signature_valid = True
+        if required and secret:
+            signature_valid = WebhookVerifier.verify_stripe(payload, signature, secret)
+            if not signature_valid:
+                raise HTTPException(status_code=401, detail="Invalid signature")
         
         # 解析 payload
         try:
@@ -124,21 +131,17 @@ class WebhookHandler:
     async def handle_custom(self, request: Request) -> Dict[str, Any]:
         """处理自定义 Webhook"""
         payload = await request.body()
-        signature = request.headers.get('X-Signature', '')
-        
-        # 验证签名
-        signature_valid = False
-        if settings.CUSTOM_WEBHOOK_SECRET:
-            signature_valid = WebhookVerifier.verify_custom(
-                payload,
-                signature,
-                settings.CUSTOM_WEBHOOK_SECRET
-            )
-        else:
-            signature_valid = True
-        
-        if not signature_valid:
-            raise HTTPException(status_code=401, detail="Invalid signature")
+        header_name, secret, required = self._resolve_signature("custom", "X-Signature", settings.CUSTOM_WEBHOOK_SECRET)
+        signature = request.headers.get(header_name, '')
+
+        if required and not secret:
+            raise HTTPException(status_code=401, detail="Signature secret not configured")
+
+        signature_valid = True
+        if required and secret:
+            signature_valid = WebhookVerifier.verify_custom(payload, signature, secret)
+            if not signature_valid:
+                raise HTTPException(status_code=401, detail="Invalid signature")
         
         # 解析 payload
         try:

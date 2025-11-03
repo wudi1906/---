@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     # 搜索配置
     SEARCH_RESULTS_LIMIT: int = 50
     HIGHLIGHT_LENGTH: int = 200
+
+    # 向量检索配置
+    EMBEDDING_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2"
+    RAG_CHUNK_SIZE: int = 800
+    RAG_CHUNK_OVERLAP: int = 200
     
     model_config = SettingsConfigDict(
         env_file=".env",

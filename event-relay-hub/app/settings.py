@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     FORWARD_ENABLED: bool = False
     FORWARD_URL: Optional[str] = None
     FORWARD_TIMEOUT: int = 10
+    REPLAY_COOLDOWN_SECONDS: int = 30
+    REPLAY_SUCCESS_TTL_SECONDS: int = 300
     
     # 事件保留
     RETENTION_DAYS: int = 30

@@ -1,7 +1,7 @@
 """
 FastAPI 主应用
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Depends, Query
 from fastapi.responses import HTMLResponse, FileResponse
@@ -10,15 +10,46 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from pathlib import Path
+from apscheduler.triggers.cron import CronTrigger
 
 from app.settings import settings
 from app.models import (
-    init_db, get_db, PriceRecord, PriceRecordSchema, 
-    ReportSummary, TargetConfig, AlertLog
+    init_db,
+    get_db,
+    PriceRecord,
+    PriceRecordSchema,
+    ReportSummary,
+    TargetConfig,
+    AlertLog,
+    MonitorConfigSchema,
+    MonitorConfigUpdate,
+    MonitorJobRun,
+    MonitorJobRunSchema,
+    SchedulerStatusSchema,
+    AlertTestRequest,
+    AlertTestResponse,
 )
 from app.reporter import ReportGenerator
 from app.monitor import run_monitor_cycle
 import random
+from app.config_service import ConfigService
+from app.scheduler import scheduler_instance
+from app.webhooks import AlertDispatcher
+
+
+# 辅助函数：计算下次运行时间
+def _compute_next_run_time(config: MonitorConfigSchema) -> Optional[datetime]:
+    now = datetime.utcnow()
+    if config.scheduler_mode == "interval":
+        return now + timedelta(minutes=config.interval_minutes)
+
+    try:
+        trigger = CronTrigger.from_crontab(config.cron_expression, timezone=timezone.utc)
+        next_fire = trigger.get_next_fire_time(None, now.replace(tzinfo=timezone.utc))
+        return next_fire.replace(tzinfo=None) if next_fire else None
+    except Exception as exc:  # pragma: no cover - 容错
+        print(f"[scheduler] 无法解析 Cron 表达式 {config.cron_expression}: {exc}")
+        return None
 
 
 # 初始化应用
@@ -60,6 +91,67 @@ async def root():
     if portal_path.exists():
         return portal_path.read_text(encoding="utf-8")
     return "<html><body><h1>Portal not found</h1><p>请确保 PORTAL_REDESIGN.html 存在于作品集根目录。</p></body></html>"
+
+
+@app.get("/monitor/settings", response_class=HTMLResponse)
+async def monitor_settings_page():
+    template_path = Path(__file__).resolve().parent / "templates" / "monitor_settings.html"
+    if template_path.exists():
+        return template_path.read_text(encoding="utf-8")
+    return HTMLResponse(
+        "<h1>Monitor settings UI 未找到</h1><p>请检查 templates/monitor_settings.html 是否存在。</p>",
+        status_code=404,
+    )
+
+
+@app.get("/api/config/monitor", response_model=MonitorConfigSchema)
+async def get_monitor_config():
+    return ConfigService.get_config()
+
+
+@app.put("/api/config/monitor", response_model=MonitorConfigSchema)
+async def update_monitor_config(payload: MonitorConfigUpdate):
+    return ConfigService.update_config(payload)
+
+
+@app.get("/api/scheduler/status", response_model=SchedulerStatusSchema)
+async def get_scheduler_status(limit: int = Query(5, ge=1, le=50), db: Session = Depends(get_db)):
+    config = ConfigService.get_config()
+    next_run = _compute_next_run_time(config)
+
+    # 如果调度器已启动，使用实际下一次运行时间
+    if scheduler_instance:
+        job = scheduler_instance.get_job("monitor_task")
+        if job and job.next_run_time:
+            next_run = job.next_run_time.replace(tzinfo=None)
+
+    runs = (
+        db.query(MonitorJobRun)
+        .filter(MonitorJobRun.job_id == "monitor_task")
+        .order_by(desc(MonitorJobRun.started_at))
+        .limit(limit)
+        .all()
+    )
+
+    last_run = runs[0] if runs else None
+    time_until = None
+    if next_run:
+        time_until = int(max((next_run - datetime.utcnow()).total_seconds(), 0))
+
+    return SchedulerStatusSchema(
+        job_id="monitor_task",
+        job_name="Price Monitor Task",
+        next_run_time=next_run,
+        time_until_next_run_seconds=time_until,
+        last_run=MonitorJobRunSchema.model_validate(last_run) if last_run else None,
+        recent_runs=[MonitorJobRunSchema.model_validate(run) for run in runs],
+    )
+
+
+@app.post("/api/alerts/test", response_model=AlertTestResponse)
+async def test_alert_channel(payload: AlertTestRequest):
+    success, message, detail = AlertDispatcher.test_channel(payload.channel, payload.payload or {})
+    return AlertTestResponse(success=success, message=message, detail=detail)
 
 
 @app.get("/api/health")

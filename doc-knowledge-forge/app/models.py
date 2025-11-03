@@ -3,9 +3,19 @@
 """
 from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import Column, Integer, String, Text, DateTime, create_engine, Index
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    create_engine,
+    Index,
+    ForeignKey,
+    LargeBinary,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from pydantic import BaseModel
 
 from app.settings import settings
@@ -40,6 +50,34 @@ class Document(Base):
         Index('idx_created', 'created_at'),
     )
 
+    chunks = relationship(
+        "DocumentChunk",
+        back_populates="document",
+        cascade="all, delete-orphan",
+    )
+
+
+class DocumentChunk(Base):
+    """文档分块"""
+
+    __tablename__ = "document_chunks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), index=True)
+    chunk_index = Column(Integer, nullable=False)
+    content = Column(Text, nullable=False)
+    token_count = Column(Integer, default=0)
+    embedding = Column(LargeBinary)
+    embedding_dim = Column(Integer)
+    embedding_model = Column(String(100))
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    document = relationship("Document", back_populates="chunks")
+
+    __table_args__ = (
+        Index("idx_document_chunk", "document_id", "chunk_index"),
+    )
+
 
 # Pydantic 模型
 class DocumentCreate(BaseModel):
@@ -69,11 +107,27 @@ class DocumentResponse(BaseModel):
 class SearchResult(BaseModel):
     """搜索结果"""
     document_id: int
+    chunk_id: int
+    chunk_index: int
     filename: str
     title: Optional[str]
     snippet: str
     highlights: List[str]
     relevance_score: float
+
+
+class DocumentChunkResponse(BaseModel):
+    """文档分块响应"""
+
+    id: int
+    document_id: int
+    chunk_index: int
+    content: str
+    token_count: Optional[int]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class DocumentStats(BaseModel):

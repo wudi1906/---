@@ -1,0 +1,691 @@
+{
+  "info": {
+    "name": "Event Relay Hub",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for Event Relay Hub including signature templates, events, replay flows and DLQ operations"
+  },
+  "item": [
+    {
+      "name": "基础 · Health & Stats",
+      "item": [
+        {
+          "name": "健康检查 /api/health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.test('服务健康', function () {",
+                  "  pm.expect(data.status).to.eql('healthy');",
+                  "});",
+                  "pm.test('返回版本号', function () {",
+                  "  pm.expect(data).to.have.property('version');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "事件统计 /api/stats",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "stats"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const data = pm.response.json();",
+                  "pm.test('包含总事件与死信统计', function () {",
+                  "  pm.expect(data).to.have.property('total_events');",
+                  "  pm.expect(data).to.have.property('dead_letters');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "签名模板",
+      "item": [
+        {
+          "name": "列出签名模板",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/signatures",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "signatures"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const list = pm.response.json();",
+                  "pm.test('包含 GitHub / Stripe / Custom', function () {",
+                  "  const sources = list.map(item => item.source);",
+                  "  pm.expect(sources).to.include.members(['github', 'stripe', 'custom']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "更新 GitHub 签名模板",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"secret\": \"postman-secret\",\n  \"signature_header\": \"X-Hub-Signature-256\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/signatures/github",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "signatures", "github"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('启用并隐藏密钥', function () {",
+                  "  pm.expect(body.enabled).to.eql(true);",
+                  "  pm.expect(body.has_secret).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "生成测试签名头",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payload\": {\n    \"ping\": \"pong\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/signatures/github/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "signatures", "github", "test"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('返回 header 与 value', function () {",
+                  "  pm.expect(body.header).to.include('Signature');",
+                  "  pm.expect(body.value.length).to.be.above(10);",
+                  "});",
+                  "pm.test('提供 curl 示例', function () {",
+                  "  pm.expect(body.example_curl).to.include('curl -X POST');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "事件 API",
+      "item": [
+        {
+          "name": "搜索事件（分页）",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/events/search?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "search"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const result = pm.response.json();",
+                  "pm.test('返回分页字段', function () {",
+                  "  pm.expect(result).to.have.property('items');",
+                  "  pm.expect(result).to.have.property('total');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "批量重放事件",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [1, 2, 3],\n  \"target_url\": \"{{successTarget}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/replay/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "replay", "batch"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('请求返回 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('包含 success_ids 与 failed 字段', function () {",
+                  "  pm.expect(body).to.have.property('success_ids');",
+                  "  pm.expect(body).to.have.property('failed');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "单条重放事件",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/events/1/replay?target_url={{successTarget}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "1", "replay"],
+              "query": [
+                {
+                  "key": "target_url",
+                  "value": "{{successTarget}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('返回 200 或 404', function () {",
+                  "  pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "死信队列 API",
+      "item": [
+        {
+          "name": "列出死信 (分页)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const result = pm.response.json();",
+                  "pm.test('包含分页字段', function () {",
+                  "  pm.expect(result).to.have.keys(['items', 'total', 'page', 'page_size']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "批量重放死信",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq/replay/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq", "replay", "batch"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('返回 success_ids 数组', function () {",
+                  "  pm.expect(body).to.have.property('success_ids');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "清空死信队列",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq", "clear"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('返回清空数量', function () {",
+                  "  pm.expect(body).to.have.property('cleared');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Scenario · 死信重放闭环",
+      "item": [
+        {
+          "name": "步骤 1 · 清理演示数据",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/demo/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "demo", "reset"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('返回 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('重置成功', function () {",
+                  "  pm.expect(body.success).to.eql(true);",
+                  "});",
+                  "pm.environment.unset('eventId');",
+                  "pm.environment.unset('dlqId');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 2 · 导入示例事件",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/demo/seed",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "demo", "seed"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('返回 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('写入示例事件', function () {",
+                  "  pm.expect(body.seeded_events).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 3 · 获取最新事件 ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/events/search?page=1&page_size=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "search"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "1" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const result = pm.response.json();",
+                  "pm.test('存在事件可用于重放', function () {",
+                  "  pm.expect(result.items.length).to.be.above(0);",
+                  "});",
+                  "const first = result.items[0];",
+                  "pm.environment.set('eventId', first.id);",
+                  "pm.test('设置 eventId 环境变量', function () {",
+                  "  pm.expect(pm.environment.get('eventId')).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 4 · 模拟转发失败写入 DLQ",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/replay?target_url={{failureTarget}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{eventId}}", "replay"],
+              "query": [
+                {
+                  "key": "target_url",
+                  "value": "{{failureTarget}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('转发失败进入 DLQ', function () {",
+                  "  pm.expect(body.success).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 5 · 获取死信 ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq?page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const result = pm.response.json();",
+                  "pm.test('存在死信', function () {",
+                  "  pm.expect(result.items.length).to.be.above(0);",
+                  "});",
+                  "const dlqId = result.items[0].id;",
+                  "pm.environment.set('dlqId', dlqId);",
+                  "pm.test('保存 dlqId', function () {",
+                  "  pm.expect(pm.environment.get('dlqId')).to.exist;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 6 · 批量重放死信",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ids\": [{{dlqId}}],\n  \"target_url\": \"{{successTarget}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq/replay/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq", "replay", "batch"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('批量重放成功', function () {",
+                  "  pm.expect(body.success_ids).to.include(pm.environment.get('dlqId'));",
+                  "  pm.expect(Object.keys(body.failed)).to.have.lengthOf(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 7 · 清空死信并验证",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq/clear",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq", "clear"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const body = pm.response.json();",
+                  "pm.test('清空操作成功', function () {",
+                  "  pm.expect(body.success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "步骤 8 · 验证死信为空",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/dlq?page=1&page_size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dlq"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "page_size", "value": "10" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('状态码 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "const result = pm.response.json();",
+                  "pm.test('死信已清空', function () {",
+                  "  pm.expect(result.total).to.eql(0);",
+                  "  pm.expect(result.items).to.have.lengthOf(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8202"
+    },
+    {
+      "key": "failureTarget",
+      "value": "http://127.0.0.1:65535/webhook"
+    },
+    {
+      "key": "successTarget",
+      "value": "https://example.com/webhook"
+    }
+  ]
+}
+

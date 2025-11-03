@@ -1,233 +1,351 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doc Knowledge Forge</title>
+    <title>Doc Knowledge Forge — Turn Documents into Searchable Knowledge</title>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             color-scheme: light dark;
-            --bg-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-            --card-bg: rgba(255, 255, 255, 0.96);
-            --card-bg-dark: rgba(15, 23, 42, 0.7);
-            --text-primary: #0f172a;
-            --text-primary-dark: #f8fafc;
-            --accent: #2563eb;
-            --accent-sea: #F97316;
-            --accent-success: #10b981;
-            --border-color: rgba(148, 163, 184, 0.3);
-            --shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.45);
-            --shadow-dark: 0 25px 50px -12px rgba(15, 23, 42, 0.8);
+            --bg: linear-gradient(135deg, #312e81 0%, #1d4ed8 40%, #7c3aed 100%);
+            --glass: rgba(15, 23, 42, 0.55);
+            --glass-light: rgba(255, 255, 255, 0.12);
+            --panel: rgba(248, 250, 252, 0.96);
+            --panel-dark: rgba(17, 24, 39, 0.78);
+            --border: rgba(148, 163, 184, 0.2);
+            --shadow: 0 28px 60px -24px rgba(15, 23, 42, 0.6);
+            --primary: #2563eb;
+            --accent: #F97316;
+            --success: #10b981;
+            --text-dark: #0f172a;
+            --text-light: #f8fafc;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: "Inter", "Source Han Sans", "思源黑体", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--bg-gradient);
+            font-family: "Inter", "Source Han Sans", "思源黑体", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
             min-height: 100vh;
-            padding: clamp(24px, 5vw, 48px) clamp(16px, 6vw, 72px);
+            padding: clamp(28px, 6vw, 56px) clamp(18px, 7vw, 80px);
+            color: var(--text-light);
+        }
+
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
             display: flex;
             flex-direction: column;
-            color: var(--text-primary);
+            gap: clamp(32px, 6vw, 56px);
         }
 
-        .app-shell {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+        .hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: clamp(24px, 4vw, 48px);
+        }
+
+        .hero-card {
+            background: rgba(15, 23, 42, 0.35);
+            border-radius: 28px;
+            padding: clamp(28px, 5vw, 48px);
             backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: var(--shadow);
         }
 
-        header {
-            margin-bottom: clamp(32px, 6vw, 64px);
-            color: white;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: clamp(2.5rem, 6vw, 3.5rem);
+        .hero h1 {
+            font-size: clamp(2.6rem, 6vw, 3.6rem);
             font-weight: 700;
-            margin-bottom: 16px;
-            text-shadow: 0 12px 30px rgba(15, 23, 42, 0.45);
+            line-height: 1.1;
+            margin-bottom: 18px;
         }
 
-        header p {
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            opacity: 0.95;
-            line-height: 1.6;
+        .hero p.lead {
+            font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+            opacity: 0.92;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.2);
+            color: #bbf7d0;
+            font-weight: 600;
             margin-bottom: 20px;
         }
 
-        .hero-grid {
+        .hero-points {
+            list-style: none;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-            margin-bottom: clamp(36px, 7vw, 72px);
+            gap: 14px;
+            margin-bottom: 28px;
+            font-size: 0.98rem;
+            line-height: 1.6;
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: clamp(24px, 3vw, 40px);
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border-color);
+        .hero-points li span {
+            font-weight: 600;
+            color: #dbeafe;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 28px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.98rem;
+            border: 2px solid transparent;
+            transition: all 0.25s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #60a5fa, #2563eb);
+            color: white;
+            box-shadow: 0 20px 35px -20px rgba(37, 99, 235, 0.85);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 24px 40px -18px rgba(37, 99, 235, 0.9);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45);
+            transform: translateY(-2px);
+        }
+
+        .hero-panel {
             display: flex;
             flex-direction: column;
             gap: 24px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            padding: 18px;
+            border-radius: 20px;
+            background: rgba(30, 64, 175, 0.35);
+            border: 1px solid rgba(129, 140, 248, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.7;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .timeline {
+            background: rgba(15, 23, 42, 0.38);
+            border-radius: 22px;
+            padding: 24px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .timeline h3 {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .timeline-list {
+            list-style: none;
+            display: grid;
+            gap: 14px;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .timeline-step {
+            height: 36px;
+            width: 36px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.25);
+            display: grid;
+            place-items: center;
+            font-weight: 600;
+        }
+
+        .timeline-text strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: clamp(20px, 3vw, 32px);
+        }
+
+        .panel {
+            background: var(--panel);
+            color: var(--text-dark);
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 40px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                color: var(--text-primary-dark);
-            }
-            .card {
-                background: var(--card-bg-dark);
-                border-color: rgba(148, 163, 184, 0.15);
-                box-shadow: var(--shadow-dark);
+            .panel {
+                background: var(--panel-dark);
+                color: var(--text-light);
+                border-color: rgba(148, 163, 184, 0.25);
             }
         }
 
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 30px 60px -20px rgba(30, 64, 175, 0.55);
-        }
-
-        .section-title {
-            font-size: clamp(1.6rem, 3vw, 2rem);
+        .panel h2 {
+            font-size: 1.6rem;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--text-primary);
         }
 
-        .section-title span.icon {
-            font-size: 2rem;
+        .panel p {
+            font-size: 0.98rem;
+            line-height: 1.7;
+            color: rgba(15, 23, 42, 0.68);
         }
 
-        .section-subtitle {
-            color: #475569;
+        @media (prefers-color-scheme: dark) {
+            .panel p { color: rgba(226, 232, 240, 0.78); }
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
             font-size: 1rem;
-            line-height: 1.6;
         }
 
         .upload-dropzone {
             border: 2px dashed rgba(37, 99, 235, 0.35);
-            border-radius: 16px;
-            padding: clamp(32px, 4vw, 56px);
+            border-radius: 18px;
+            padding: clamp(36px, 5vw, 56px);
             text-align: center;
             transition: all 0.3s ease;
-            background: rgba(15, 23, 42, 0.02);
+            background: rgba(37, 99, 235, 0.06);
         }
 
         .upload-dropzone:hover,
         .upload-dropzone.dragover {
-            border-color: var(--accent);
-            background: rgba(37, 99, 235, 0.08);
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.12);
         }
 
-        .dropzone-icon {
-            font-size: clamp(3.5rem, 7vw, 4.5rem);
-            margin-bottom: 16px;
+        .upload-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
         }
 
         .button-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            justify-content: center;
+            gap: 10px;
         }
 
-        button,
-        a.action-btn {
-            border: none;
-            border-radius: 999px;
-            padding: 12px 24px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
+        .upload-progress {
+            display: none;
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: 18px;
+            padding: 20px;
+            border: 1px solid rgba(37, 99, 235, 0.15);
         }
 
-        button.primary,
-        a.action-btn.primary {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-            box-shadow: 0 18px 36px -18px rgba(37, 99, 235, 0.65);
+        .upload-progress.visible { display: block; }
+
+        .progress-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
         }
 
-        button.secondary,
-        a.action-btn.secondary {
-            background: rgba(15, 23, 42, 0.05);
-            color: inherit;
-        }
+        .progress-status { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+        .progress-status.processing { color: #1d4ed8; }
+        .progress-status.success { color: #047857; }
+        .progress-status.error { color: #dc2626; }
+        .progress-status.skipped { color: #ca8a04; }
 
-        button.success,
-        a.action-btn.success {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            box-shadow: 0 18px 36px -18px rgba(16, 185, 129, 0.65);
-        }
-
-        button:focus-visible,
-        a.action-btn:focus-visible {
-            outline: 3px solid rgba(37, 99, 235, 0.5);
-            outline-offset: 4px;
-        }
-
-        button:hover,
-        a.action-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .stats-grid {
+        .insight-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px;
         }
 
-        .stat-card {
-            padding: 18px;
-            border-radius: 20px;
-            background: rgba(15, 23, 42, 0.05);
+        .insight-card {
+            background: rgba(37, 99, 235, 0.08);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(37, 99, 235, 0.15);
+        }
+
+        .documents-section {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 20px;
         }
 
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .stat-label {
-            font-size: 0.95rem;
-            color: #475569;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .stat-card {
-                background: rgba(15, 23, 42, 0.35);
-            }
-            .section-subtitle,
-            .stat-label {
-                color: rgba(148, 163, 184, 0.85);
-            }
-        }
-
-        /* 文档列表 */
         .documents {
             display: flex;
             flex-direction: column;
@@ -235,37 +353,23 @@
         }
 
         .document-card {
+            background: rgba(248, 250, 252, 0.9);
             border-radius: 18px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(15, 23, 42, 0.08);
-            transition: background 0.2s ease;
-        }
-
-        .document-card:hover {
-            background: rgba(37, 99, 235, 0.08);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .document-card {
-                background: rgba(15, 23, 42, 0.6);
-                border-color: rgba(148, 163, 184, 0.2);
-            }
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .document-header {
             display: flex;
             justify-content: space-between;
             gap: 16px;
-            align-items: center;
+            align-items: flex-start;
         }
 
-        .document-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .tags {
+        .tag-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -273,18 +377,10 @@
 
         .tag {
             padding: 4px 10px;
-            border-radius: 999px;
             background: rgba(37, 99, 235, 0.12);
+            border-radius: 999px;
             font-size: 0.85rem;
             color: #1d4ed8;
-        }
-
-        footer {
-            margin-top: auto;
-            color: rgba(255, 255, 255, 0.75);
-            font-size: 0.9rem;
-            text-align: center;
-            padding-top: 32px;
         }
 
         .empty-state {
@@ -293,149 +389,160 @@
             color: rgba(15, 23, 42, 0.6);
         }
 
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 18px; }
 
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.15);
-            color: #047857;
-            padding: 6px 14px;
-            border-radius: 999px;
+        footer {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            color: rgba(226, 232, 240, 0.75);
             font-size: 0.9rem;
-            font-weight: 500;
+            padding-top: 12px;
         }
 
         @media (prefers-color-scheme: dark) {
-            .tag {
-                background: rgba(96, 165, 250, 0.2);
-                color: #bfdbfe;
-            }
-            .status-chip {
-                background: rgba(16, 185, 129, 0.25);
-                color: #34d399;
-            }
+            .tag { background: rgba(96, 165, 250, 0.22); color: #bfdbfe; }
+            .document-card { background: rgba(17, 24, 39, 0.65); border-color: rgba(148, 163, 184, 0.22); }
+            .insight-card { background: rgba(59, 130, 246, 0.12); border-color: rgba(96, 165, 250, 0.25); }
+            .empty-state { color: rgba(226, 232, 240, 0.65); }
         }
+
+        .search-results { display: grid; gap: 14px; }
+        .search-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: #475569; }
+        .score-chip { background: rgba(37, 99, 235, 0.12); color: #1d4ed8; padding: 4px 10px; border-radius: 999px; }
+        .chunk-preview { display: none; background: rgba(37, 99, 235, 0.08); border-radius: 18px; padding: 20px; border: 1px solid rgba(37, 99, 235, 0.16); }
+        .chunk-preview.visible { display: block; }
     </style>
 </head>
 <body>
-    <div class="app-shell">
-        <header>
-            <h1>📄 Doc Knowledge Forge</h1>
-            <p>
-                将 PDF、Word、Markdown 等文档一键转换为结构化知识库，自动抽取章节、关键词与摘要，
-                并提供全文检索和数据洞察。遵循 WCAG 2.1 AA，支持 RTL 与国际化展示。
-            </p>
-            <div class="status-chip">
-                <span>⚡</span>
-                <span>服务在线 · FastAPI v{{ request.app.version }}</span>
+    <div class="page">
+        <div class="hero">
+            <div class="hero-card">
+                <div class="status-chip">⚡ Service Online · FastAPI v{{ request.app.version }}</div>
+                <h1>Doc Knowledge Forge</h1>
+                <p class="lead">Batch upload PDF / DOCX / TXT / Markdown, convert into unified knowledge base with full-text search, semantic tags, and Markdown exports — ready for multilingual teams.</p>
+                <ul class="hero-points">
+                    <li><span>01 · Intake：</span> Multi-file drag & drop, OCR-friendly parsing, metadata extraction。</li>
+                    <li><span>02 · Intelligence：</span> Auto keywords · summaries · table-of-contents · chunking for vector search。</li>
+                    <li><span>03 · Delivery：</span> Instant search, Markdown reader, API endpoints, export pipelines。</li>
+                </ul>
+                <div class="hero-actions">
+                    <a class="btn btn-primary" href="#search-panel">🔍 立即体验检索</a>
+                    <a class="btn btn-outline" href="#upload-panel">📂 上传文件</a>
+                    <a class="btn btn-outline" href="#documents-section">📚 查看解析结果</a>
+                </div>
             </div>
-        </header>
-
-        <main class="hero-grid">
-            <section class="card">
-                <h2 class="section-title">
-                    <span class="icon">🔎</span>
-                    全文检索
-                </h2>
-                <p class="section-subtitle">输入关键词后回车，支持在标题与正文中搜索。</p>
-                <div style="display:flex; gap:12px; margin-top:12px;">
-                    <input id="searchInput" type="text" placeholder="搜索关键词..." aria-label="搜索关键词" style="flex:1; padding:12px 14px; border-radius:10px; border:1px solid #e2e8f0;" />
-                    <button id="searchBtn" class="primary"><span>🔎</span> 搜索</button>
+            <div class="hero-panel">
+                <div class="hero-metrics">
+                    <div class="metric-card">
+                        <span class="metric-label">Documents indexed</span>
+                        <span class="metric-value" id="totalDocs">--</span>
+                        <span style="font-size:0.85rem;opacity:0.75;">Total Docs</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Knowledge footprint</span>
+                        <span class="metric-value" id="totalSize">--</span>
+                        <span style="font-size:0.85rem;opacity:0.75;">Storage</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-label">Fresh uploads</span>
+                        <span class="metric-value" id="recentUploads">--</span>
+                        <span style="font-size:0.85rem;opacity:0.75;">Recent 24h</span>
+                    </div>
                 </div>
-                <div id="searchResults" style="margin-top:16px;"></div>
+                <div class="timeline">
+                    <h3>Workflow · 从原始文档到知识资产</h3>
+                    <ol class="timeline-list">
+                        <li class="timeline-item">
+                            <div class="timeline-step">1</div>
+                            <div class="timeline-text"><strong>Ingest & Enrich</strong>OCR / metadata / version tracking / language detection。</div>
+                        </li>
+                        <li class="timeline-item">
+                            <div class="timeline-step">2</div>
+                            <div class="timeline-text"><strong>Chunk & Vectorize</strong>Smart chunking, embeddings, keyword & summary extraction。</div>
+                        </li>
+                        <li class="timeline-item">
+                            <div class="timeline-step">3</div>
+                            <div class="timeline-text"><strong>Search & Deliver</strong>Full-text + semantic search, Markdown viewer, API + export automation。</div>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <section class="panel" id="search-panel">
+                <h2>🔎 Full-Text + Semantic Search</h2>
+                <p>Enter keywords to search across titles, content, and extracted highlights. Highlights will appear instantly with relevance score and chunk preview.</p>
+                <div class="input-group">
+                    <input id="searchInput" type="text" placeholder="e.g. onboarding policy, OKR template" aria-label="Search keywords">
+                    <button id="searchBtn" class="btn btn-primary"><span>🔍</span> Search</button>
+                </div>
+                <div id="searchResults" class="search-results" role="list" aria-live="polite"></div>
+                <aside id="chunkPreview" class="chunk-preview" aria-live="polite"></aside>
             </section>
-            <!-- 上传区域 -->
-            <section class="card">
-                <h2 class="section-title">
-                    <span class="icon">🧾</span>
-                    文档上传与转换
-                </h2>
-                <p class="section-subtitle">
-                    支持批量上传 PDF、DOCX、TXT、Markdown，自动转换为统一 Markdown，
-                    并提取目录、标签、关键词等结构化元数据。
-                </p>
 
-                <div id="dropzone" class="upload-dropzone" role="region" aria-label="上传文档">
-                    <div class="dropzone-icon">📎</div>
-                    <p style="margin-bottom: 12px;">拖放文件到此处，或点击下方按钮选择文件</p>
-                    <p style="color: #475569; font-size: 0.95rem;">支持 .pdf .docx .doc .txt .md，单次最多 10 个文件</p>
-                    <input id="fileInput" type="file" multiple accept=".pdf,.docx,.doc,.txt,.md" hidden>
-                    <div class="button-group" style="margin-top: 20px;">
-                        <button class="primary" onclick="document.getElementById('fileInput').click()">
-                            <span>📤</span> 选择文件上传
-                        </button>
-                        <button class="secondary" id="demoUploadBtn">
-                            <span>🧪</span> 导入示例数据
-                        </button>
-                        <button class="secondary" id="resetBtn">
-                            <span>♻️</span> 重置数据
-                        </button>
+            <section class="panel" id="upload-panel">
+                <h2>🧾 Document Intake & Conversion</h2>
+                <p>Upload up to 10 files per batch; we convert them into Markdown, extract metadata, generate semantic tags, and store clean chunks for downstream RAG.</p>
+                <div id="dropzone" class="upload-dropzone" role="region" aria-label="Upload documents">
+                    <div style="font-size:3.5rem;margin-bottom:16px;">📎</div>
+                    <p style="margin-bottom:10px;">Drag & drop files here, or choose from your device</p>
+                    <p style="opacity:0.75;font-size:0.92rem;">Supported: .pdf · .docx · .doc · .txt · .md · .html</p>
+                    <input id="fileInput" type="file" multiple accept=".pdf,.docx,.doc,.txt,.md,.html" hidden>
+                    <div class="upload-actions">
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📤 Choose Files</button>
+                        <button class="btn btn-outline" id="demoUploadBtn">🧪 Import Demo</button>
+                        <button class="btn btn-outline" id="resetBtn">♻️ Reset Data</button>
+                    </div>
+                </div>
+                <div id="uploadProgress" class="upload-progress" aria-live="polite"></div>
+            </section>
+
+            <section class="panel">
+                <h2>🚀 Knowledge Operations Console</h2>
+                <p>Monitor ingestion stats, access API, download exports, and embed the knowledge base into RAG applications or internal portals.</p>
+                <div class="button-group">
+                    <a class="btn btn-primary" href="/api/docs" target="_blank" rel="noopener">📘 API Docs</a>
+                    <a class="btn btn-outline" href="/api/documents" target="_blank" rel="noopener">📄 Raw Documents JSON</a>
+                    <a class="btn btn-outline" href="/outputs" target="_blank" rel="noopener">🗂 Markdown Exports</a>
+                </div>
+                <div class="insight-grid">
+                    <div class="insight-card">
+                        <strong>Roles</strong>
+                        <p>Knowledge managers upload sources, analysts curate tags, developers consume APIs。</p>
+                    </div>
+                    <div class="insight-card">
+                        <strong>Integrations</strong>
+                        <p>Zapier · Notion · Slack notifications · RAG pipelines (LangChain / LlamaIndex)。</p>
+                    </div>
+                    <div class="insight-card">
+                        <strong>Governance</strong>
+                        <p>Versioned outputs, tag taxonomy, retention policies, delete-on-demand。</p>
                     </div>
                 </div>
             </section>
+        </div>
 
-            <!-- 快速入口 -->
-            <section class="card">
-                <h2 class="section-title">
-                    <span class="icon">🚀</span>
-                    快速入口
-                </h2>
-                <p class="section-subtitle">
-                    查看 API 文档、最近上传记录、统计看板与导出结果。所有接口均提供 Swagger UI 与 JSON 响应，便于集成。
-                </p>
-                <div class="button-group" style=" justify-content: flex-start;">
-                    <a class="action-btn primary" href="/api/docs" target="_blank" rel="noopener">
-                        <span>📘</span> API 文档
-                    </a>
-                    <a class="action-btn success" href="/api/documents" target="_blank" rel="noopener">
-                        <span>📄</span> 文档列表
-                    </a>
-                    <a class="action-btn secondary" href="/outputs" target="_blank" rel="noopener">
-                        <span>🗂</span> Markdown 导出目录
-                    </a>
+        <section class="panel documents-section" id="documents-section" aria-labelledby="documentsTitle">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+                <h2 id="documentsTitle">📚 Recent Uploads & Knowledge Assets</h2>
+                <div style="display:flex;gap:12px;">
+                    <span style="font-size:0.9rem;opacity:0.7;">Sorted by most recent · limit 12</span>
                 </div>
-
-                <div class="stats-grid" id="stats">
-                    <div class="stat-card" aria-live="polite">
-                        <span class="stat-value" id="totalDocs">--</span>
-                        <span class="stat-label">文档总量</span>
-                    </div>
-                    <div class="stat-card" aria-live="polite">
-                        <span class="stat-value" id="totalSize">--</span>
-                        <span class="stat-label">存储占用</span>
-                    </div>
-                    <div class="stat-card" aria-live="polite">
-                        <span class="stat-value" id="recentUploads">--</span>
-                        <span class="stat-label">24 小时新增</span>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- 文档列表 -->
-        <section class="card" aria-labelledby="documentsTitle">
-            <h2 class="section-title" id="documentsTitle">
-                <span class="icon">📚</span>
-                最近上传文档
-            </h2>
+            </div>
             <div id="documentList" class="documents" aria-live="polite">
                 <div class="empty-state" id="emptyState">
                     <div class="empty-state-icon">🔍</div>
-                    <p>暂无文档记录。上传文档后，系统将自动解析并展示在此。</p>
+                    <p>No documents yet. Upload files or import demo data to explore the full experience.</p>
                 </div>
             </div>
         </section>
 
         <footer>
-            <p>
-                Doc Knowledge Forge · 建议在桌面端体验最佳，推荐 Chrome / Edge / Safari 浏览器。
-                本演示遵循 Material Design 3 × Apple HIG × Nielsen 10，可无缝迁移至生产环境。
-            </p>
+            <p>Doc Knowledge Forge · Desktop-first · WCAG 2.1 AA · Material Design 3 × Apple HIG</p>
+            <p>Includes ingestion API, search API, Markdown renderer, governance tooling, and export pipelines.</p>
         </footer>
     </div>
 
@@ -447,12 +554,17 @@
         const totalDocsEl = document.getElementById("totalDocs");
         const totalSizeEl = document.getElementById("totalSize");
         const recentUploadsEl = document.getElementById("recentUploads");
+        const uploadProgressEl = document.getElementById("uploadProgress");
+        const searchResultsEl = document.getElementById("searchResults");
+        const chunkPreviewEl = document.getElementById("chunkPreview");
+
+        let currentKeyword = "";
 
         const formatBytes = (bytes) => {
-            if (bytes === 0) return "0 B";
+            if (!bytes) return "0 B";
             const k = 1024;
             const sizes = ["B", "KB", "MB", "GB", "TB"];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
             return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
         };
 
@@ -464,71 +576,135 @@
             requestAnimationFrame(() => toast.classList.add("visible"));
             setTimeout(() => {
                 toast.classList.remove("visible");
-                setTimeout(() => toast.remove(), 300);
+                setTimeout(() => toast.remove(), 320);
             }, 3200);
+        };
+
+        const escapeRegExp = (string = "") => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const sanitizeHtml = (text = "") => text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        const highlightContent = (content, highlights) => {
+            let safe = sanitizeHtml(content || "");
+            (highlights || []).forEach(word => {
+                if (!word || !word.trim()) return;
+                const pattern = new RegExp(escapeRegExp(word.trim()), "gi");
+                safe = safe.replace(pattern, match => `<mark>${match}</mark>`);
+            });
+            return safe;
+        };
+
+        const statusIcons = { processing: "⏳", success: "✅", error: "❌", skipped: "⚠️", partial: "ℹ️" };
+        const statusLabels = { processing: "处理中", success: "已完成", error: "失败", skipped: "已跳过", partial: "部分完成" };
+
+        const setUploadProgress = (items = []) => {
+            if (!items.length) {
+                uploadProgressEl.classList.remove("visible");
+                uploadProgressEl.innerHTML = "";
+                return;
+            }
+            uploadProgressEl.classList.add("visible");
+            uploadProgressEl.innerHTML = items.map(item => `
+                <div class="progress-item">
+                    <div>
+                        <p class="progress-name">${sanitizeHtml(item.name)}</p>
+                        <p style="opacity:0.7;font-size:0.9rem;">${sanitizeHtml(item.detail || "")}</p>
+                    </div>
+                    <span class="progress-status ${item.status}">
+                        <span>${statusIcons[item.status] || "•"}</span>
+                        <span>${statusLabels[item.status] || item.status}</span>
+                    </span>
+                </div>
+            `).join("");
         };
 
         const handleFiles = async (files) => {
             if (!files.length) return;
+            const fileList = Array.from(files).slice(0, 10);
             const formData = new FormData();
-            Array.from(files).slice(0, 10).forEach((file) => {
-                formData.append("files", file);
-            });
+            fileList.forEach((file) => formData.append("files", file));
+
+            setUploadProgress(fileList.map(file => ({
+                name: file.name,
+                status: "processing",
+                detail: "上传中，正在解析并生成向量…",
+            })));
+
             try {
-                showToast("正在上传并解析文档...", "info");
-                const res = await fetch("/api/upload", {
-                    method: "POST",
-                    body: formData
-                });
-                if (!res.ok) throw new Error("上传失败");
+                showToast("Uploading and parsing documents…", "info");
+                const res = await fetch("/api/docs/upload", { method: "POST", body: formData });
+                if (!res.ok) throw new Error("Upload failed");
                 const data = await res.json();
-                showToast(`成功上传 ${data.uploaded} 个文件`, "success");
+                const details = data.details || [];
+
+                const statusMap = fileList.map(file => {
+                    const info = details.find(item => item.original_name === file.name || item.stored_name === file.name || (item.original_name && item.original_name.endsWith(file.name)));
+                    if (info) {
+                        const tagPreview = Array.isArray(info.tags) ? info.tags.slice(0, 3).join(", ") : (info.tags || "");
+                        const chunked = Number(info.chunked) || 0;
+                        const rawStatus = (info.status || (chunked > 0 ? "success" : "skipped")).toLowerCase();
+                        const status = rawStatus === "failed" ? "error" : rawStatus;
+                        let message = info.message || info.error;
+                        if (!message) {
+                            if (chunked > 0) {
+                                message = `已生成 ${chunked} 个分块${tagPreview ? ` · 关键词：${tagPreview}` : ""}`;
+                            } else if (status === "partial") {
+                                message = "上传成功，但未生成分块";
+                            } else if (status === "skipped") {
+                                message = "文件类型不支持或解析失败";
+                            }
+                        }
+                        return { name: file.name, status, detail: message || "处理完成" };
+                    }
+                    return { name: file.name, status: "skipped", detail: "文件类型不支持或解析失败" };
+                });
+
+                setUploadProgress(statusMap);
+                showToast(`Uploaded ${data.uploaded} file(s) successfully`, "success");
                 loadDocuments();
                 loadStats();
+                setTimeout(() => setUploadProgress([]), 5200);
             } catch (error) {
                 console.error(error);
-                showToast("上传失败，请稍后再试", "error");
+                setUploadProgress(fileList.map(file => ({ name: file.name, status: "error", detail: "Upload failed, please retry" })));
+                showToast("Upload failed, please try again", "error");
             }
         };
 
         fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-        dropzone.addEventListener("dragover", (e) => {
-            e.preventDefault();
-            dropzone.setAttribute("aria-busy", "true");
-            dropzone.classList.add("dragover");
-        });
-        dropzone.addEventListener("dragleave", () => {
-            dropzone.setAttribute("aria-busy", "false");
-            dropzone.classList.remove("dragover");
-        });
+        dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); dropzone.setAttribute("aria-busy", "true"); });
+        dropzone.addEventListener("dragleave", () => { dropzone.classList.remove("dragover"); dropzone.setAttribute("aria-busy", "false"); });
         dropzone.addEventListener("drop", (e) => {
             e.preventDefault();
             dropzone.classList.remove("dragover");
             dropzone.setAttribute("aria-busy", "false");
             handleFiles(e.dataTransfer.files);
         });
+
         document.getElementById("demoUploadBtn").addEventListener("click", async () => {
             try {
                 const res = await fetch("/api/demo/seed", { method: "POST" });
                 if (!res.ok) throw new Error();
-                showToast("示例数据已导入", "success");
+                showToast("Demo data imported", "success");
                 loadDocuments();
                 loadStats();
             } catch (e) {
-                showToast("示例数据导入失败", "error");
+                showToast("Demo import failed", "error");
             }
         });
 
         document.getElementById("resetBtn").addEventListener("click", async () => {
-            if (!confirm("确认清空当前数据？该操作不可恢复")) return;
+            if (!confirm("Clear all current data? This action cannot be undone.")) return;
             try {
                 const res = await fetch("/api/demo/reset", { method: "POST" });
                 if (!res.ok) throw new Error();
-                showToast("数据已重置", "success");
+                showToast("Data reset complete", "success");
                 loadDocuments();
                 loadStats();
             } catch (e) {
-                showToast("重置失败", "error");
+                showToast("Reset failed", "error");
             }
         });
 
@@ -536,63 +712,127 @@
             document.querySelectorAll("button[data-doc]").forEach(button => {
                 button.addEventListener("click", async () => {
                     const id = button.getAttribute("data-doc");
-                    if (!confirm("确认删除该文档及其生成内容？")) return;
+                    if (!confirm("Delete this document and its generated content?")) return;
                     try {
                         const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
                         if (!res.ok) throw new Error();
-                        showToast("文档已删除", "success");
+                        showToast("Document deleted", "success");
                         loadDocuments();
                         loadStats();
                     } catch {
-                        showToast("删除失败，请稍后再试", "error");
+                        showToast("Delete failed", "error");
                     }
                 });
             });
         };
 
-        const renderSearchResults = (items, keyword) => {
-            const host = document.getElementById('searchResults');
-            host.innerHTML = '';
+        const renderSearchResults = (items = []) => {
+            searchResultsEl.innerHTML = "";
+            chunkPreviewEl.classList.remove("visible");
+            chunkPreviewEl.innerHTML = "";
+
             if (!items.length) {
-                host.innerHTML = '<div class="empty-state">未找到相关内容</div>';
+                searchResultsEl.innerHTML = '<div class="empty-state">未找到相关内容</div>';
                 return;
             }
+
             items.forEach(it => {
-                const el = document.createElement('div');
-                el.className = 'document-card';
-                const safeSnippet = (it.snippet || '').replace(new RegExp(keyword, 'ig'), m => `<mark>${m}</mark>`);
-                el.innerHTML = `
+                const card = document.createElement("div");
+                card.className = "document-card";
+                card.setAttribute("role", "listitem");
+
+                const highlights = (it.highlights && it.highlights.length) ? it.highlights : (currentKeyword ? [currentKeyword] : []);
+                const snippet = highlightContent(it.snippet || "", highlights);
+                const score = typeof it.relevance_score === "number" ? Math.max(0, it.relevance_score) : 0;
+
+                card.innerHTML = `
                     <header class="document-header">
                         <div>
-                            <h3 class="document-title">${it.title || it.filename}</h3>
+                            <h3 class="document-title">${sanitizeHtml(it.title || it.filename)}</h3>
+                            <div class="search-meta">
+                                <span class="score-chip">⚙️ 相关度 ${score.toFixed(2)}</span>
+                                ${it.chunk_index >= 0 ? `<span>片段 #${it.chunk_index + 1}</span>` : ""}
+                            </div>
                         </div>
                         <div class="button-group">
-                            <a class="action-btn secondary" href="/view/${it.document_id}" target="_blank" rel="noopener">
-                                <span>👁️</span> 在线查看
-                            </a>
+                            <a class="btn btn-outline" href="/view/${it.document_id}" target="_blank" rel="noopener"><span>👁️</span> 在线查看</a>
+                            ${it.chunk_id > 0 ? `<button class="btn btn-outline preview-btn" data-chunk="${it.chunk_id}" data-title="${sanitizeHtml(it.title || it.filename)}" data-score="${score.toFixed(2)}"><span>🧠</span> 预览片段</button>` : ""}
                         </div>
                     </header>
-                    <div style="color:#475569;line-height:1.6;">${safeSnippet}</div>
+                    <div style="color:#475569;line-height:1.6;">${snippet}</div>
                 `;
-                host.appendChild(el);
+
+                searchResultsEl.appendChild(card);
             });
+        };
+
+        const showChunkPreview = async (chunkId, fallbackTitle, score) => {
+            chunkPreviewEl.classList.add("visible");
+            chunkPreviewEl.setAttribute("aria-busy", "true");
+            chunkPreviewEl.innerHTML = '<p style="color:#64748b;">正在加载片段…</p>';
+
+            try {
+                const res = await fetch(`/api/chunks/${chunkId}`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                const chunk = data.chunk || {};
+                const highlights = currentKeyword ? [currentKeyword] : [];
+                const content = highlightContent(chunk.content || "", highlights);
+                const title = data.document_title || fallbackTitle;
+                const indexLabel = typeof chunk.chunk_index === "number" ? chunk.chunk_index + 1 : "-";
+
+                chunkPreviewEl.innerHTML = `
+                    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                        <div>
+                            <h3 style="font-size:1rem;font-weight:600;">${sanitizeHtml(title || "片段预览")}</h3>
+                            <p style="color:#64748b;font-size:0.85rem;">片段 #${indexLabel} · 相关度 ${score}</p>
+                        </div>
+                        <button class="btn btn-outline" data-action="close-preview"><span>✖️</span> 关闭</button>
+                    </header>
+                    <div style="margin-top:12px;line-height:1.7;color:#1f2937;white-space:pre-wrap;">${content}</div>
+                `;
+            } catch (error) {
+                console.error(error);
+                chunkPreviewEl.innerHTML = '<p style="color:#dc2626;">片段加载失败，请稍后重试。</p>';
+            } finally {
+                chunkPreviewEl.setAttribute("aria-busy", "false");
+            }
         };
 
         const doSearch = async () => {
             const keyword = document.getElementById('searchInput').value.trim();
-            if (!keyword) { showToast('请输入关键词','info'); return; }
+            if (!keyword) {
+                showToast('Please enter keywords', 'info');
+                return;
+            }
+            currentKeyword = keyword;
             try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(keyword)}&limit=20`);
+                const res = await fetch(`/api/search?q=${encodeURIComponent(keyword)}&top_k=10`);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
-                renderSearchResults(data, keyword);
-            } catch {
-                showToast('搜索失败','error');
+                renderSearchResults(data);
+            } catch (error) {
+                console.error(error);
+                showToast('Search failed', 'error');
             }
         };
 
         document.getElementById('searchBtn').addEventListener('click', doSearch);
-        document.getElementById('searchInput').addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
+        document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+        searchResultsEl.addEventListener('click', (event) => {
+            const btn = event.target.closest('.preview-btn');
+            if (!btn) return;
+            const chunkId = btn.getAttribute('data-chunk');
+            const title = btn.getAttribute('data-title');
+            const score = btn.getAttribute('data-score');
+            showChunkPreview(chunkId, title, score);
+        });
+        chunkPreviewEl.addEventListener('click', (event) => {
+            if (event.target.closest('[data-action="close-preview"]')) {
+                chunkPreviewEl.classList.remove('visible');
+                chunkPreviewEl.innerHTML = '';
+            }
+        });
 
         const renderDocuments = (docs) => {
             documentList.innerHTML = "";
@@ -608,20 +848,16 @@
                 docCard.innerHTML = `
                     <header class="document-header">
                         <div>
-                            <h3 class="document-title">${doc.title || doc.original_name}</h3>
-                            <p style="color:#64748b; font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
+                            <h3 class="document-title">${sanitizeHtml(doc.title || doc.original_name)}</h3>
+                            <p style="opacity:0.7;font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
                         </div>
                         <div class="button-group">
-                            <a class="action-btn secondary" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener">
-                                <span>📝</span> 查看 Markdown
-                            </a>
-                            <button class="secondary" data-doc="${doc.id}">
-                                <span>🗑</span> 删除
-                            </button>
+                            <a class="btn btn-outline" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener"><span>📝</span> 查看 Markdown</a>
+                            <button class="btn btn-outline" data-doc="${doc.id}"><span>🗑</span> 删除</button>
                         </div>
                     </header>
-                    <div class="tags" aria-label="文档标签">
-                        ${(doc.tags || "").split(",").filter(Boolean).slice(0, 6).map(tag => `<span class="tag">#${tag.trim()}</span>`).join('') || "<span style='color:#94a3b8;'>暂无标签</span>"}
+                    <div class="tag-list" aria-label="文档标签">
+                        ${(doc.tags || "").split(",").filter(Boolean).slice(0, 6).map(tag => `<span class="tag">#${sanitizeHtml(tag.trim())}</span>`).join('') || "<span style='opacity:0.6;'>暂无标签</span>"}
                     </div>
                 `;
                 documentList.appendChild(docCard);
@@ -637,8 +873,9 @@
                 totalDocsEl.textContent = data.total_documents;
                 totalSizeEl.textContent = formatBytes(data.total_size || 0);
                 recentUploadsEl.textContent = data.recent_uploads;
-            } catch {
-                showToast("统计信息加载失败", "error");
+            } catch (error) {
+                console.error(error);
+                showToast("Stats loading failed", "error");
             }
         };
 
@@ -648,8 +885,9 @@
                 if (!res.ok) throw new Error();
                 const docs = await res.json();
                 renderDocuments(docs);
-            } catch {
-                showToast("文档列表加载失败", "error");
+            } catch (error) {
+                console.error(error);
+                showToast("Document list loading failed", "error");
             }
         };
 
@@ -664,21 +902,19 @@
                     left: 50%;
                     bottom: 24px;
                     transform: translateX(-50%) translateY(20px);
-                    background: rgba(15, 23, 42, 0.9);
+                    background: rgba(15, 23, 42, 0.95);
                     color: white;
-                    padding: 16px 24px;
+                    padding: 14px 24px;
                     border-radius: 999px;
                     opacity: 0;
                     transition: all 0.3s ease;
                     z-index: 9999;
+                    font-weight: 500;
                 }
                 .toast-success { background: rgba(16, 185, 129, 0.95); }
                 .toast-error { background: rgba(239, 68, 68, 0.95); }
-                .toast-info { background: rgba(37, 99, 235, 0.95); }
-                .toast.visible {
-                    opacity: 1;
-                    transform: translateX(-50%) translateY(0);
-                }
+                .toast-info { background: rgba(59, 130, 246, 0.95); }
+                .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
             `;
             document.head.appendChild(style);
         };
