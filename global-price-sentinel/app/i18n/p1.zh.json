@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "Global Price Sentinel · 调度与告警配置",
+    "back": "← 返回作品集门户",
+    "intro": "配置价格监控的执行频率、代理池与告警渠道。所有变更即时生效，若修改 Cron 计划需重启调度器。",
+    "status": {
+      "success": "配置已保存",
+      "error": "操作失败：{error}",
+      "test": "测试请求已发送"
+    }
+  },
+  "scheduler": {
+    "title": "任务运行态看板",
+    "subtitle": "查看调度任务的最新执行情况与下一次计划运行时间，便于快速排障与回归。",
+    "refresh": "刷新状态",
+    "next": "下次运行",
+    "last": "最近一次执行",
+    "recent": "最近执行记录",
+    "empty": "暂无运行数据",
+    "table": {
+      "start": "开始时间",
+      "end": "结束时间",
+      "duration": "耗时",
+      "status": "状态",
+      "message": "消息"
+    }
+  },
+  "forms": {
+    "scheduler": {
+      "legend": "任务调度",
+      "mode": "调度模式",
+      "modeCron": "使用 Cron 表达式（默认每 12 小时）",
+      "modeInterval": "自定义间隔（分钟）",
+      "cron": "Cron 表达式",
+      "cronHelp": "5 段 Cron 表达式：分钟 小时 日 月 星期。",
+      "interval": "间隔（分钟）",
+      "intervalHelp": "间隔模式下有效，范围 5 - 1440 分钟。"
+    },
+    "proxy": {
+      "legend": "代理池设置",
+      "toggle": "启用代理池（用于分布式抓取与风控绕过）",
+      "server": "代理服务器",
+      "username": "用户名",
+      "password": "密码"
+    },
+    "alerts": {
+      "legend": "告警渠道",
+      "description": "请选择需要启用的渠道。可同时启用多种方式，所有渠道都会记录到告警日志。",
+      "email": "邮件告警",
+      "emailPlaceholder": "收件人邮箱，逗号分隔",
+      "emailTest": "测试邮件连通性",
+      "slack": "Slack Webhook",
+      "slackPlaceholder": "https://hooks.slack.com/...",
+      "slackTest": "测试 Slack 通知",
+      "webhook": "自定义 Webhook",
+      "webhookPlaceholder": "https://example.com/alert",
+      "webhookTest": "测试 Webhook"
+    },
+    "submit": "保存配置",
+    "submitHint": "保存后立即应用于手动监控，定时调度需重启调度器。",
+    "validation": {
+      "cronRequired": "Cron 表达式不能为空",
+      "intervalInvalid": "间隔需在 5 至 1440 分钟之间",
+      "emailInvalid": "邮箱格式不正确",
+      "urlInvalid": "URL 格式不正确"
+    }
+  },
+  "toast": {
+    "loading": "处理中...",
+    "saved": "配置已保存",
+    "tested": "测试请求已发送",
+    "failed": "操作失败"
+  }
+}
+

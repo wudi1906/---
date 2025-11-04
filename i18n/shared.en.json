@@ -1,0 +1,44 @@
+{
+  "lang": {
+    "toggle": "English",
+    "aria": "Switch language",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "shared": {
+    "labels": {
+      "pain": "Pain Insight",
+      "usp": "USP"
+    },
+    "status": {
+      "ready": "Ready"
+    }
+  },
+  "buttons": {
+    "loading": "Loading...",
+    "imported": "Imported",
+    "failed": "Failed",
+    "resetting": "Resetting...",
+    "cleared": "Cleared"
+  },
+  "alerts": {
+    "demoImported": "Demo data imported! Click \"Live Demo\" to see the results.",
+    "importFailed": "Import failed: {error}",
+    "resetSuccess": "Data reset complete.",
+    "resetFailed": "Reset failed: {error}",
+    "statsFailed": "Stats loading failed",
+    "docsFailed": "Document list loading failed",
+    "searchFailed": "Search failed",
+    "uploadFailed": "Upload failed, please try again"
+  },
+  "confirm": {
+    "reset": "Clear all current data? This action cannot be undone."
+  },
+  "health": {
+    "running": "Port {port} running",
+    "down": "Port {port} down",
+    "unknown": "Port {port} unknown"
+  }
+}

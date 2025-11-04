@@ -1,161 +1,129 @@
-# 作品集（6 项目）功能讲解与测试指南
+# Portfolio Test Playbook | 作品集测试指南
 
-> 目的：帮助你或任何评审者在 15–30 分钟内系统体验全部能力；也可作为你讲解时的脚本。
->
-> 前置：已运行 `.\\start-all.ps1`，`TEST_ALL.bat` 显示 6/6 [OK]；浏览器全屏 (F11)、缩放 100%。
-
----
-
-## 总览
-- 端口与角色：
-  - P1 Global Price Sentinel — 8101（同时提供主入口 Portal 与 API/页面）
-  - P2 Event Relay Hub — 8202
-  - P3 SaaS Northstar Dashboard — 8303
-  - P4 Doc Knowledge Forge — 8404
-  - P5 A11y Component Atlas（Storybook）— 8505
-  - P6 Insight Viz Studio — 8606
-- 首页（Portal）：`http://localhost:8101`，包含：
-  - 健康状态（6 绿点）
-  - 快速导航（6 个项目）
-  - 每卡片：USP 概要、指标卡、亮点清单、CTA（Live Demo / API / Import / Reset）
+> **Goal | 目的**: Help reviewers experience all six projects in 15–30 minutes with consistent scripts and bilingual cues.  /  在 15–30 分钟内用统一脚本体验全部六个项目，便于内外部评审。
+> **Preflight | 前置准备**: Run `.\\start-all.ps1`, verify `TEST_ALL.bat` 显示 6/6 [OK]，浏览器全屏 F11、缩放 100%。
 
 ---
 
-## P1 Global Price Sentinel（电商价格监控）
-- 技术：Python / FastAPI / Playwright / SQLite
-- 价值：多站点采集、阈值告警、对比报告（HTML/PDF）。
-
-### 快速体验（5 分钟）
-1. 打开 `http://localhost:8101` → 项目卡片 P1 → 点击 “Live Demo”。
-2. 另开标签页（端口仍 8101）：
-   - `http://localhost:8101/api/docs` 查看 API。
-   - `http://localhost:8101/monitor/settings` 查看调度/代理/告警配置界面（如有）。
-3. 回到 Portal → 点击 P1 “Import Demo”，2s 内提示成功。
-4. 访问 `http://localhost:8101/reports/latest.html` 查看最新比价报告（折线/表格）。
-
-### 功能点
-- YAML 目标配置、抓取任务调度、代理池、阈值告警（Email/Webhook）、历史对比报告生成。
-
-### 种子数据增强建议
-- 5 个产品 × 3 站点 × 30 天价格轨迹；3 条阈值告警样例；2 份 HTML 报告快照。
-- 位置：`global-price-sentinel/app/monitor.py` & `reporter.py`（新增 demo 生成函数）。
+## Portal Overview | 门户总览 (`http://localhost:8101`)
+- Toggle top-right language switch (`中文` / `English`); preference stored in URL/localStorage.  /  右上角语言切换器支持中文/英文并记忆偏好。
+- Project matrix cards display USP, metrics, highlights, CTA (Live Demo / API / Import / Reset).  /  卡片包含卖点、指标、亮点与 CTA。
+- Health bar应 6 个绿点：8101~8606；异常端口会弹出重试提示。  /  健康状态 6 个绿点，异常时显示提示。
+- `Import Demo`/`Reset Demo` buttons call seed/reset API；Portal 控制台同步写入日志。  /  导入/重置按钮调用后端，并在日志区显示结果。
 
 ---
 
-## P2 Event Relay Hub（Webhook 中枢/签名校验/重试与死信）
-- 技术：Python / FastAPI / HMAC / SQLite
-- 价值：统一接入 Stripe / GitHub / Slack 等事件，签名校验、条件路由、失败重试与 DLQ、可视化控制台。
+## P1 Global Price Sentinel — 电商价格监控 (Port 8101)
+- **Tech | 技术**: Python · FastAPI · Playwright · SQLite
+- **Value | 价值**: 多站点价格采集、阈值告警、HTML/PDF 报告。
 
-### 快速体验（5 分钟）
-1. Portal → P2 “Import Demo”。
-2. 打开 `http://localhost:8202`（落地页）→ 顶部进入：
-   - `http://localhost:8202/console/events` 事件控制台（应有多来源事件、状态、筛选）。
-   - `http://localhost:8202/console/signatures` 签名设置。
-3. `http://localhost:8202/api/docs` 查看 API。
+### Quick Tour | 快速体验 (~5 min)
+1. Portal → Card CTA `Import Demo` 导入样例任务。 / 导入示例数据。
+2. 打开 `http://localhost:8101/monitor/settings`，左右切换语言验证配置表单。  /  Switch between CN/EN on settings page.
+3. Inspect "任务运行态" 面板，修改调度/代理/告警参数并保存、触发 Email/Slack/Webhook 测试。 /  Edit scheduling & alert channels and trigger test buttons.
+4. 返回 Portal → `http://localhost:8101/reports/latest.html` 查看最新 HTML 报告。 /  Review the generated price report.
 
-### 种子数据增强建议
-- 200 条事件：3 个来源（Stripe/GitHub/Slack）、多状态（成功/重试/死信），并带延迟/错误码分布。
-- 增强 `tests/` 内验证用例，配合控制台过滤演示。
-
----
-
-## P3 SaaS Northstar Dashboard（SaaS 指标仪表盘）
-- 技术：Next.js / React / Tailwind / Chart.js
-- 价值：开箱即用的北极星指标（MRR、NRR、留存、NPS），模板化导入与导出。
-
-### 快速体验（5 分钟）
-1. Portal → P3 “Import Demo”。
-2. 打开 `http://localhost:8303`：应见 4 个指标卡、趋势图；
-3. `http://localhost:8303/import`：CSV 导入向导（选择 B2B/B2C/Ecom 模板）。
-4. `http://localhost:8303/api/health`：健康检查（已加 CORS 头）。
-
-### 种子数据增强建议
-- 12 个月 × 3 方案模板（B2B/B2C/Ecom）：MRR、ARR、NRR、活跃用户、留存、NPS；含 2 个对照分组。
-- 预置 3 份 CSV 示例，导入后即时渲染 4 张图与 1 个对比表。
+### Seed Suggestions | 种子增强
+- 5 Products × 3 Sites × 30 Days 历史价格 + 3 条告警样例 + 2 份 HTML 报告。 / 更多 SKU/站点/告警示例。
+- 实现位置：`global-price-sentinel/app/monitor.py` 与 `reporter.py`。 / Extend demo generation scripts.
 
 ---
 
-## P4 Doc Knowledge Forge（文档知识库/全文检索）
-- 技术：Python / FastAPI / SQLite FTS / PyMuPDF
-- 价值：批量上传 → Markdown 化 → 关键词/摘要 → 全文检索与高亮 → 在线浏览。
+## P2 Event Relay Hub — Webhook 中枢 (Port 8202)
+- **Tech | 技术**: Python · FastAPI · HMAC · SQLite
+- **Value | 价值**: 统一接入 Stripe/GitHub/Slack，自带签名校验、DLQ、重放与可视化。
 
-### 快速体验（5 分钟）
-1. Portal → P4 “Import Demo”。
-2. 打开 `http://localhost:8404`：顶部英雄区展示 USP、指标卡、三步工作流；底部导航按钮直接跳转到检索 / 上传 / 结果板块。
-3. 在“Full-Text + Semantic Search”卡片输入 `policy`、`OKR` 等关键词 → 观察相关度评分、片段预览。
-4. “Document Intake & Conversion” 区尝试导入/重置或查看上传进度；关注右侧“Knowledge Operations Console”的 API / Exports / Integrations。
-5. 滚动到“Recent Uploads”板块 → 查看标签、时间、大小，必要时删除或下载 Markdown。
+### Quick Tour | 快速体验 (~5 min)
+1. Portal → `Import Demo` 注入示例事件。 / Seed sample events.
+2. 打开 `http://localhost:8202` 切换语言，查看卖点卡片与 Endpoint 列表。 / Review localized landing page.
+3. 测试 `/api/docs`、`/console/events`、导入/重置弹窗（语言随切换更新）。
+4. Portal 健康指示需转为绿色；若灰色检查服务或 CORS。 / Ensure health dot turns green.
 
-### 种子数据增强建议
-- 20 份文档（政策/指南/FAQ/设计稿提取），每类 5 份；
-- 附带标签/作者/更新时间元数据；搜索权重与命中率演示；
-- Demo Seeds 可再补 3 条“知识运维 Insight”案例（如 Governance / Automation / Integration）。
+### Seed Suggestions | 种子增强
+- 200 events across Stripe/GitHub/Slack with success/retry/DLQ 状态与延迟分布。 / Enrich dataset for analytics.
+- 扩展 `tests/` 覆盖字段映射、重放流程。 / Add unit/integration tests.
 
 ---
 
-## P5 A11y Component Atlas（可访问性组件库/Storybook）
-- 技术：React / Radix UI / Storybook / Vitest
-- 价值：WCAG 2.1 AA 组件示例与交互测试，便于快速落地 Design System。
+## P3 SaaS Northstar Dashboard — SaaS 指标仪表盘 (Port 8303)
+- **Tech | 技术**: Next.js · React · Tailwind · Chart.js
+- **Value | 价值**: MRR/ARR/Churn/LTV 可视化，CSV 导入向导与自动报表。
 
-### 快速体验（3 分钟）
-1. 打开 `http://localhost:8505`（Storybook）。
-2. 选择 Button/Input/Modal/Tabs，切换暗色主题；
-3. 观察 toolbar 的可访问性检查（axe 插件如已启用）。
+### Quick Tour | 快速体验 (~5 min)
+1. Portal → `Import Demo` 加载 B2B SaaS 模板。 / Seed demo metrics.
+2. 打开 `http://localhost:8303?lang=en`，查看 KPI 卡片、趋势图、Language Switcher。 / Inspect localized dashboard.
+3. 访问 `/import`，按步骤完成 Template → Upload → Mapping → Preview；确认提示随语言变化。 / Walk through import wizard.
+4. 调用 `/api/docs` 与 `/api/datasets` 验证 API；Portal 健康指示需保持绿色。
 
-### 种子数据增强建议
-- 为每个组件补齐：键盘操作说明、屏读文本（aria-* 示例）、失败/边界状态。
-
----
-
-## P6 Insight Viz Studio（可视化报表工作室）
-- 技术：Python / FastAPI / ECharts / Pandas
-- 价值：从 CSV/JSON 快速生成品牌化图表与报告，支持模板、主题与定时导出。
-
-### 快速体验（5 分钟）
-1. Portal → P6 “Import Demo”。
-2. 打开 `http://localhost:8606`：英雄区有卖点列表、三张指标卡、四步工作流，按钮直达上传区/图表画廊/数据集控制台。
-3. 在 “Upload Data File” 卡片导入样例 CSV（或点击 Import Demo），随后 `loadDatasets()` 自动刷新表格。
-4. “Smart Chart Gallery” 展示双图表：收入增长 + 留存折线面积图、品类贡献环形图；可作为截图素材。
-5. “Dataset Console” 查看 Demo 文件列表；底部 “Use Cases & Templates” 了解场景话术。
-
-### 种子数据增强建议
-- 4 套图表模板（销售、运营、用户、财务），每套 3–4 张图；
-- 2 份周报/⽉报导出模板与定时脚本样例；
-- Demo Seeds 可增加更多 dataset（如 `sample_finance.csv`, `sample_marketing.csv`），刷新 Dataset Console 的丰富度。
+### Seed Suggestions | 种子增强
+- 12 个月 × B2B/B2C 模板 + CSV 示例 + Scheduled Export。 / Provide full-year datasets and export schedule.
 
 ---
 
-## 链接与交互流审计
-- 现状：所有 “Live Demo / API Docs / Import / Reset” 均在新标签页或当前卡片触发；不同端口是**独立服务**的体现，便于真实微服务/多技术栈演示。
-- 改进建议：
-  1) 为“Live Demo/Docs”保持 `target="_blank"`，避免用户离开 Portal；
-  2) 提供“回到首页”固定浮动按钮；
-  3) 选做：使用反向代理把 `/p1/*` `/p2/*` 聚合到 8101（Nginx/Traefik 或 Node 代理），形成“同域多子路径”。
+## P4 Doc Knowledge Forge — 文档知识库 (Port 8404)
+- **Tech | 技术**: FastAPI · SQLite FTS5 · PyMuPDF
+- **Value | 价值**: 批量导入 PDF/DOCX/TXT → Markdown → 全文检索/标签/导出。
+
+### Quick Tour | 快速体验 (~5 min)
+1. Portal → `Import Demo` 上传示例文档。 / Seed demo docs.
+2. 访问 `http://localhost:8404?lang=zh`，测试语言切换、搜索高亮、目录树。 / Validate localized experience.
+3. 在 “文档接入与转换” 导入/重置样例；在右侧控制台下载 Markdown/ZIP。 / Try upload/reset & export.
+4. 查看“知识运营控制台” API/Exports 快捷入口。 / Open API/Export shortcuts.
+
+### Seed Suggestions | 种子增强
+- 20+ 文档（策略/指南/FAQ/设计稿）+ 标签/作者/更新时间。 / Expand library variety.
+- 增加 “Insight” 案例说明向量检索/OCR 加值。 / Document optional AI upgrades.
 
 ---
 
-## 常见问题与排查
-- 绿点未亮：对应服务未起或 CORS（已为 P3 修复）。重启：`.\\stop-all.ps1` → `.\\start-all.ps1`。
-- 页面空白：未导入 Demo。先点 Import，再刷新页面。
-- 报表无数据：检查 seeds 是否写入（可看 DB 文件时间戳）。
+## P5 A11y Component Atlas — 可访问性组件库 (Port 8505)
+- **Tech | 技术**: React · Storybook 8 · Radix UI · Tailwind
+- **Value | 价值**: WCAG 2.1 AA 组件（Button/Input/Modal/Tabs/Menu）+ vitest-axe 检查。
+
+### Quick Tour | 快速体验 (~5 min)
+1. 运行 `npm run storybook` (默认 8505，端口占用自动升至 8506)。 / Launch Storybook locally.
+2. 使用工具栏 Language (🌐) 切换英文/中文；观察 Button/Menu/Modal/Tabs 文案联动。 / Verify globe toolbar toggles locales.
+3. 打开 Docs + Canvas 确认 `useI18n` 正常（无错误提示）。 / Ensure no provider errors.
+4. 如需运行测试：`npm test`（vitest-axe）确保无无障碍回归。 / Optional vitest run.
+
+### Seed Suggestions | 种子增强
+- 为更多组件补充示例及翻译，如 Input、Menu。 / Add extra localized stories.
+- 维护 `chromatic` / `lighthouse` 脚本确保视觉回归。 / Run visual regression pipeline.
 
 ---
 
-## GitHub 展示与观感
-- 可以公开展示本仓库；建议：
-  - 顶部 README 添加 “项目矩阵 + 一键启动 + 5 分钟视频” 三要素；
-  - 截图与视频仅呈现你的作品与功能，不出现第三方平台 Logo/链接；
-  - License 可用 MIT；提交记录与注释保持“个人署名、一致风格、无外部品牌”。
-- 观感预期：评审者可在 10 分钟内看到“从数据抓取/事件中枢/仪表盘/知识库/组件库/可视化”的**端到端交付能力**，证明技术深度与全栈落地力。
+## P6 Insight Viz Studio — 数据可视化工作室 (Port 8606)
+- **Tech | 技术**: FastAPI · Pandas · ECharts
+- **Value | 价值**: CSV/JSON/Excel → 智能图表推荐 → PNG/PDF 导出。
+
+### Quick Tour | 快速体验 (~5 min)
+1. Portal → `Import Demo` 导入销售/增长/营销数据集。 / Seed sample datasets.
+2. 打开 `http://localhost:8606?lang=en`，体验上传 CSV、拖拽编排、主题切换。 / Try upload + layout.
+3. 实测 PNG/PDF 导出按钮（确保 <2s 返回）；查看 Dataset Console 列表。 / Validate export speed & dataset list.
+4. 切换至 `?lang=zh` 验证落地页与提示语。 / Check localized strings.
+
+### Seed Suggestions | 种子增强
+- 增补营销/财务/用户维度模板 + weekly/monthly 模板。 / Add more templates & report layouts。
 
 ---
 
-## 下一步落地（建议按优先级）
-1) 种子数据增强（P1/P2/P3/P4/P6），让图表/控制台“开箱即亮眼”。
-2) 统一返回按钮与顶部浮动导航，进一步提升导览效率。
-3) 选做：把多端口经反向代理聚合为 8101 子路径，获得“单域项目”的浏览体验。
-4) 为 P5 增补更多 A11y 场景与测试示例。
+## Link & Flow Audit | 链接与交互审计
+- 所有 Live Demo / Docs / API 链接均应打开对应端口；检查 404 或跨域。 / Verify each CTA resolves correctly.
+- 控制台导入/重置按钮执行后需提示成功/失败。 / Ensure toast messages show success/error.
+- Portal 快速导航需一眼看到 6 项目；若屏幕较小可折叠滚动条截图。 / Confirm all cards visible for hero screenshot.
 
 ---
 
-*最后更新：{{today}}*
+## Presentation Tips | 展示建议
+- **Screenshots | 截图建议**: Portal Hero、每项目核心看板、语言切换前后对比、Storybook Canvas。 / Capture portal, key dashboards, language toggle, Storybook.
+- **Video Script | 视频脚本**: 录制 Portal → P1/P3/P4/P6 快速操作流程（导入/切换语言/导出）。 / Record sequential walkthrough focusing on import/export and localization.
+- **Data Reset | 数据重置**: 展示 `Reset Demo` 后再次 `Import Demo`，证明流程稳定。 / Show reset + re-import stability.
+
+---
+
+## Appendix | 附录
+- `start-all.ps1` / `stop-all.ps1` / `TEST_ALL.bat` — 环境启动、停止、健康检查脚本。 / One-click ops scripts.
+- `screenshots/shotlist.md` — 详细截图/录屏脚本。 / Detailed capture checklist.
+- `PORTFOLIO_TEST_GUIDE.zh.md` 保留此双语版本即可取代旧版中文脚本。 / This bilingual playbook supersedes previous notes.
+
+**Last Updated | 最近更新**：2025-11-03

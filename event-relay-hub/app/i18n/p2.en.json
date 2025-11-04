@@ -1,0 +1,53 @@
+{
+  "lang": {
+    "toggle": "English",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "hero": {
+    "title": "📡 Event Relay Hub",
+    "subtitle": "Unified Webhook Management — Receive, verify, route, and replay webhooks from Stripe, GitHub, Slack, and custom sources. Dead-letter queue + rate limiting included.",
+    "cta": {
+      "docs": "📘 API Docs",
+      "console": "📝 Events Console",
+      "import": "🧪 Import Demo",
+      "reset": "🔄 Reset Demo"
+    }
+  },
+  "features": [
+    {
+      "title": "🔌 Multi-Source Integration",
+      "desc": "GitHub, Stripe, Slack webhooks with signature verification out of the box."
+    },
+    {
+      "title": "🔐 Signature Verification",
+      "desc": "HMAC-SHA256 validation ensures events are authentic and secure."
+    },
+    {
+      "title": "🔄 Event Replay & DLQ",
+      "desc": "Retry failed events, inspect dead letters, batch replay for recovery."
+    },
+    {
+      "title": "📊 Visual Console",
+      "desc": "Monitor events, configure signatures, manage DLQ in real-time."
+    }
+  ],
+  "endpoints": {
+    "title": "Webhook Endpoints",
+    "items": [
+      "POST /webhook/github — Receive GitHub events",
+      "POST /webhook/stripe — Receive Stripe events",
+      "POST /webhook/custom — Receive custom webhooks"
+    ]
+  },
+  "alerts": {
+    "importSuccess": "✅ Demo data imported! Visit /api/events to see sample events.",
+    "importFailed": "❌ Import failed: {error}",
+    "resetConfirm": "Clear all demo data?",
+    "resetSuccess": "✅ Demo data cleared!",
+    "resetFailed": "❌ Reset failed: {error}"
+  }
+}
+

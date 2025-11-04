@@ -1,0 +1,118 @@
+{
+  "lang": {
+    "toggle": "English",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "hero": {
+    "status": "⚡ Service Online · FastAPI v{{version}}",
+    "title": "Doc Knowledge Forge",
+    "description": "Turn documents into searchable knowledge — batch upload PDF/DOCX/TXT, auto-convert to Markdown, full-text + semantic search, keyword extraction, online viewer."
+  },
+  "heroPoints": [
+    "Intake: Multi-file drag & drop, OCR-friendly parsing, metadata extraction.",
+    "Intelligence: Auto keywords, summaries, table-of-contents, chunking for vector search.",
+    "Delivery: Instant search, Markdown reader, API endpoints, export automation."
+  ],
+  "heroActions": {
+    "projects": {
+      "label": "Explore Projects",
+      "aria": "Scroll to project listings"
+    },
+    "packages": {
+      "label": "Delivery Packages",
+      "aria": "Review package details"
+    },
+    "workflow": {
+      "label": "Knowledge Workflow",
+      "aria": "View collaboration workflow"
+    }
+  },
+  "metrics": {
+    "docs": {
+      "label": "Documents indexed",
+      "value": "--",
+      "hint": "Total Docs"
+    },
+    "size": {
+      "label": "Knowledge footprint",
+      "value": "--",
+      "hint": "Storage"
+    },
+    "fresh": {
+      "label": "Fresh uploads",
+      "value": "--",
+      "hint": "Recent 24h"
+    }
+  },
+  "timeline": {
+    "title": "Workflow · From raw documents to knowledge asset",
+    "steps": [
+      "Profile: OCR / metadata / version tracking / language detection",
+      "Chunk & Vectorize: Smart chunking, embeddings, keyword & summary extraction",
+      "Search & Deliver: Full-text + semantic search, Markdown viewer, API + export automation"
+    ]
+  },
+  "panels": {
+    "search": {
+      "title": "🔎 Full-Text + Semantic Search",
+      "description": "Enter keywords to search across titles, content, and highlights. Results include relevance scores and chunk previews.",
+      "placeholder": "e.g. onboarding policy, OKR template",
+      "button": "Search",
+      "empty": "No matching content",
+      "loading": "Loading chunk...",
+      "previewHeader": "Snippet #{index} · Relevance {score}",
+      "closePreview": "Close"
+    },
+    "upload": {
+      "title": "🧾 Document Intake & Conversion",
+      "description": "Upload multiple documents; we convert them to Markdown, extract metadata, and generate chunks ready for RAG.",
+      "dropHint": "Drag & drop files here, or choose from your device",
+      "supports": "Supported: .pdf · .docx · .doc · .txt · .md · .html",
+      "choose": "Choose Files",
+      "import": "Import Demo",
+      "reset": "Reset Data"
+    },
+    "console": {
+      "title": "🚀 Knowledge Operations Console",
+      "description": "Monitor ingestion stats, access API, download exports, and embed the knowledge base into RAG applications.",
+      "cards": [
+        "Roles: Knowledge managers upload, analysts curate tags, developers consume APIs。",
+        "Integrations: Zapier · Notion · Slack notifications · RAG pipelines (LangChain / LlamaIndex)。",
+        "Governance: Version control, tag taxonomy, retention policies, delete-on-demand。"
+      ],
+      "buttons": {
+        "docs": "📘 API Docs",
+        "raw": "📄 Raw Documents JSON",
+        "exports": "🗂 Markdown Exports"
+      }
+    },
+    "documents": {
+      "title": "📚 Recent Uploads & Knowledge Assets",
+      "hint": "Sorted by most recent · limit 12",
+      "empty": "No documents yet. Upload files or import demo data to explore.",
+      "tagsEmpty": "No tags",
+      "viewMarkdown": "📝 View Markdown",
+      "delete": "Delete"
+    }
+  },
+  "upload": {
+    "status": {
+      "processing": "Uploading and parsing documents...",
+      "uploaded": "Uploaded {count} file(s) successfully",
+      "failed": "Upload failed, please try again"
+    },
+    "progress": {
+      "processing": "Uploading, parsing, and generating embeddings...",
+      "success": "Processed",
+      "error": "Failed",
+      "skipped": "Skipped"
+    },
+    "confirmReset": "Clear all current data? This action cannot be undone.",
+    "resetSuccess": "Data reset complete",
+    "resetFailed": "Reset failed"
+  }
+}
+

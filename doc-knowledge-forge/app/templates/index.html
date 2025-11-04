@@ -1,107 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-default-lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doc Knowledge Forge — Turn Documents into Searchable Knowledge</title>
+    <title>Doc Knowledge Forge</title>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            color-scheme: light dark;
-            --bg: linear-gradient(135deg, #312e81 0%, #1d4ed8 40%, #7c3aed 100%);
-            --glass: rgba(15, 23, 42, 0.55);
-            --glass-light: rgba(255, 255, 255, 0.12);
-            --panel: rgba(248, 250, 252, 0.96);
-            --panel-dark: rgba(17, 24, 39, 0.78);
-            --border: rgba(148, 163, 184, 0.2);
-            --shadow: 0 28px 60px -24px rgba(15, 23, 42, 0.6);
-            --primary: #2563eb;
-            --accent: #F97316;
+            --bg-top: #f5f8ff;
+            --bg-bottom: #edf2ff;
+            --page-max: 1260px;
+            --surface: #ffffff;
+            --surface-alt: #f1f5fd;
+            --border: rgba(148, 163, 184, 0.18);
+            --border-strong: rgba(99, 102, 241, 0.25);
+            --shadow: 0 28px 60px -32px rgba(15, 23, 42, 0.25);
+            --shadow-soft: 0 14px 32px -20px rgba(59, 130, 246, 0.35);
+            --text-strong: #162447;
+            --text-body: #334155;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --accent: #f97316;
             --success: #10b981;
-            --text-dark: #0f172a;
-            --text-light: #f8fafc;
+            --radius-lg: 28px;
+            --radius-md: 22px;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: "Inter", "Source Han Sans", "思源黑体", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--bg);
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 65%, #e0e7ff 100%);
             min-height: 100vh;
-            padding: clamp(28px, 6vw, 56px) clamp(18px, 7vw, 80px);
-            color: var(--text-light);
+            padding: clamp(32px, 6vw, 72px) clamp(18px, 5.5vw, 64px);
+            color: var(--text-body);
         }
-
-        .page {
-            max-width: 1280px;
-            margin: 0 auto;
+        .lang-switcher {
+            position: fixed;
+            top: clamp(16px, 4vw, 32px);
+            right: clamp(16px, 4vw, 32px);
             display: flex;
             flex-direction: column;
-            gap: clamp(32px, 6vw, 56px);
+            align-items: flex-end;
+            gap: 8px;
+            z-index: 100;
         }
-
-        .hero {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: clamp(24px, 4vw, 48px);
-        }
-
-        .hero-card {
-            background: rgba(15, 23, 42, 0.35);
-            border-radius: 28px;
-            padding: clamp(28px, 5vw, 48px);
-            backdrop-filter: blur(18px);
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            box-shadow: var(--shadow);
-        }
-
-        .hero h1 {
-            font-size: clamp(2.6rem, 6vw, 3.6rem);
-            font-weight: 700;
-            line-height: 1.1;
-            margin-bottom: 18px;
-        }
-
-        .hero p.lead {
-            font-size: clamp(1.05rem, 2.4vw, 1.35rem);
-            opacity: 0.92;
-            line-height: 1.7;
-            margin-bottom: 24px;
-        }
-
-        .status-chip {
+        .lang-toggle {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 999px;
-            background: rgba(16, 185, 129, 0.2);
-            color: #bbf7d0;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(255, 255, 255, 0.75);
+            color: var(--text-strong);
             font-weight: 600;
-            margin-bottom: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-
+        .lang-toggle:hover,
+        .lang-toggle:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+            outline: none;
+        }
+        .lang-options {
+            display: none;
+            flex-direction: column;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(18px);
+            overflow: hidden;
+        }
+        .lang-options.open { display: flex; }
+        .lang-option {
+            padding: 10px 16px;
+            color: var(--text-body);
+            border: none;
+            background: transparent;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .lang-option:hover,
+        .lang-option:focus-visible,
+        .lang-option.active {
+            background: rgba(59, 130, 246, 0.16);
+            outline: none;
+        }
+        .page {
+            max-width: var(--page-max);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(32px, 5vw, 52px);
+        }
+        .hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: clamp(24px, 3.5vw, 44px);
+        }
+        .hero-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: clamp(28px, 4.5vw, 46px);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(18px);
+        }
+        .hero-card h1 {
+            font-size: clamp(2.6rem, 6vw, 3.6rem);
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            color: var(--text-strong);
+        }
+        .hero-card p.lead {
+            font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+            color: var(--text-body);
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
         .hero-points {
             list-style: none;
             display: grid;
-            gap: 14px;
+            gap: 12px;
             margin-bottom: 28px;
             font-size: 0.98rem;
             line-height: 1.6;
+            counter-reset: hero;
         }
-
-        .hero-points li span {
-            font-weight: 600;
-            color: #dbeafe;
+        .hero-points li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: var(--surface-alt);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            color: var(--text-muted);
+            position: relative;
         }
-
+        .hero-points li::before {
+            counter-increment: hero;
+            content: counter(hero, decimal-leading-zero);
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.85rem;
+            min-width: 32px;
+        }
         .hero-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
         }
-
         .btn {
             display: inline-flex;
             align-items: center;
@@ -110,163 +164,126 @@
             border-radius: 999px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.98rem;
+            font-size: 0.95rem;
             border: 2px solid transparent;
             transition: all 0.25s ease;
             cursor: pointer;
         }
-
         .btn-primary {
-            background: linear-gradient(135deg, #60a5fa, #2563eb);
-            color: white;
-            box-shadow: 0 20px 35px -20px rgba(37, 99, 235, 0.85);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #ffffff;
+            box-shadow: var(--shadow-soft);
         }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 24px 40px -18px rgba(37, 99, 235, 0.9);
-        }
-
         .btn-outline {
-            background: rgba(255, 255, 255, 0.08);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.35);
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--primary-dark);
+            border-color: rgba(59, 130, 246, 0.25);
         }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
         .btn:focus-visible {
             outline: none;
             box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.45);
             transform: translateY(-2px);
         }
-
-        .hero-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
         .hero-metrics {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 16px;
         }
-
         .metric-card {
             padding: 18px;
             border-radius: 20px;
-            background: rgba(30, 64, 175, 0.35);
-            border: 1px solid rgba(129, 140, 248, 0.4);
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.22);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
-
         .metric-label {
-            font-size: 0.85rem;
-            text-transform: uppercase;
+            font-size: 0.78rem;
             letter-spacing: 0.08em;
-            opacity: 0.7;
+            text-transform: uppercase;
+            color: var(--text-muted);
         }
-
         .metric-value {
-            font-size: 1.8rem;
+            font-size: 1.7rem;
             font-weight: 700;
+            color: var(--text-strong);
         }
-
         .timeline {
-            background: rgba(15, 23, 42, 0.38);
-            border-radius: 22px;
-            padding: 24px;
-            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: 26px;
+            border: 1px solid var(--border);
+            display: grid;
+            gap: 16px;
+            box-shadow: var(--shadow);
         }
-
-        .timeline h3 {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            font-weight: 600;
-        }
-
         .timeline-list {
             list-style: none;
+            counter-reset: timeline;
             display: grid;
             gap: 14px;
         }
-
         .timeline-item {
             display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 12px;
+            grid-template-columns: 48px 1fr;
             align-items: start;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 18px;
+            background: var(--surface-alt);
+            border: 1px solid rgba(148, 163, 184, 0.25);
         }
-
         .timeline-step {
-            height: 36px;
-            width: 36px;
-            border-radius: 12px;
-            background: rgba(59, 130, 246, 0.25);
-            display: grid;
-            place-items: center;
-            font-weight: 600;
+            counter-increment: timeline;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: rgba(59, 130, 246, 0.12);
+            color: var(--primary-dark);
+            font-weight: 700;
+            font-size: 1rem;
         }
-
-        .timeline-text strong {
-            display: block;
-            margin-bottom: 4px;
-        }
-
         .main-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: clamp(20px, 3vw, 32px);
         }
-
         .panel {
-            background: var(--panel);
-            color: var(--text-dark);
-            border-radius: 24px;
-            padding: clamp(24px, 4vw, 40px);
+            background: var(--surface);
+            color: var(--text-body);
+            border-radius: var(--radius-lg);
+            padding: clamp(24px, 4vw, 38px);
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-
-        @media (prefers-color-scheme: dark) {
-            .panel {
-                background: var(--panel-dark);
-                color: var(--text-light);
-                border-color: rgba(148, 163, 184, 0.25);
+        .panel h2 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 12px; color: var(--text-strong); }
+        .panel p { font-size: 0.98rem; line-height: 1.7; color: var(--text-muted); }
+        .panel .button-group,
+        .panel .upload-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .panel .button-group .btn,
+        .panel .upload-actions .btn {
+            min-width: 168px;
+            justify-content: center;
+        }
+        @media (max-width: 720px) {
+            .panel .button-group .btn,
+            .panel .upload-actions .btn {
+                flex: 1 1 100%;
             }
         }
 
-        .panel h2 {
-            font-size: 1.6rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .panel p {
-            font-size: 0.98rem;
-            line-height: 1.7;
-            color: rgba(15, 23, 42, 0.68);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .panel p { color: rgba(226, 232, 240, 0.78); }
-        }
-
-        .input-group {
-            display: flex;
-            gap: 12px;
-        }
-
+        .input-group { display: flex; gap: 12px; }
         .input-group input {
             flex: 1;
             padding: 14px 16px;
@@ -274,652 +291,620 @@
             border: 1px solid rgba(148, 163, 184, 0.35);
             font-size: 1rem;
         }
-
         .upload-dropzone {
-            border: 2px dashed rgba(37, 99, 235, 0.35);
-            border-radius: 18px;
-            padding: clamp(36px, 5vw, 56px);
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: clamp(36px, 5vw, 54px);
             text-align: center;
             transition: all 0.3s ease;
-            background: rgba(37, 99, 235, 0.06);
+            background: rgba(59, 130, 246, 0.08);
         }
-
-        .upload-dropzone:hover,
         .upload-dropzone.dragover {
-            border-color: var(--primary);
-            background: rgba(37, 99, 235, 0.12);
+            border-color: var(--primary-dark);
+            background: rgba(59, 130, 246, 0.16);
         }
-
-        .upload-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .button-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
         .upload-progress {
             display: none;
-            background: rgba(37, 99, 235, 0.08);
+            background: rgba(59, 130, 246, 0.06);
             border-radius: 18px;
             padding: 20px;
-            border: 1px solid rgba(37, 99, 235, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.2);
         }
-
         .upload-progress.visible { display: block; }
+        .progress-item { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid rgba(148, 163, 184, 0.15); }
 
-        .progress-item {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-        }
-
-        .progress-status { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
-        .progress-status.processing { color: #1d4ed8; }
-        .progress-status.success { color: #047857; }
-        .progress-status.error { color: #dc2626; }
-        .progress-status.skipped { color: #ca8a04; }
-
-        .insight-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-        }
-
-        .insight-card {
-            background: rgba(37, 99, 235, 0.08);
-            border-radius: 16px;
-            padding: 16px;
-            border: 1px solid rgba(37, 99, 235, 0.15);
-        }
-
-        .documents-section {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .documents {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .document-card {
-            background: rgba(248, 250, 252, 0.9);
-            border-radius: 18px;
-            padding: 20px;
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .document-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            align-items: flex-start;
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .tag {
-            padding: 4px 10px;
-            background: rgba(37, 99, 235, 0.12);
-            border-radius: 999px;
-            font-size: 0.85rem;
-            color: #1d4ed8;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(15, 23, 42, 0.6);
-        }
-
-        .empty-state-icon { font-size: 3rem; margin-bottom: 18px; }
-
-        footer {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            color: rgba(226, 232, 240, 0.75);
-            font-size: 0.9rem;
-            padding-top: 12px;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            .tag { background: rgba(96, 165, 250, 0.22); color: #bfdbfe; }
-            .document-card { background: rgba(17, 24, 39, 0.65); border-color: rgba(148, 163, 184, 0.22); }
-            .insight-card { background: rgba(59, 130, 246, 0.12); border-color: rgba(96, 165, 250, 0.25); }
-            .empty-state { color: rgba(226, 232, 240, 0.65); }
-        }
+        .documents-section { display: flex; flex-direction: column; gap: 20px; }
+        .documents { display: flex; flex-direction: column; gap: 16px; }
+        .document-card { background: var(--surface); border-radius: 18px; padding: 22px; border: 1px solid rgba(148, 163, 184, 0.18); display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { padding: 6px 12px; background: rgba(59, 130, 246, 0.12); border-radius: 999px; font-size: 0.85rem; color: var(--primary-dark); }
+        footer { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; color: var(--text-muted); font-size: 0.9rem; }
 
         .search-results { display: grid; gap: 14px; }
-        .search-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.85rem; color: #475569; }
-        .score-chip { background: rgba(37, 99, 235, 0.12); color: #1d4ed8; padding: 4px 10px; border-radius: 999px; }
-        .chunk-preview { display: none; background: rgba(37, 99, 235, 0.08); border-radius: 18px; padding: 20px; border: 1px solid rgba(37, 99, 235, 0.16); }
+        .chunk-preview { display: none; background: rgba(59, 130, 246, 0.08); border-radius: 18px; padding: 20px; border: 1px solid rgba(59, 130, 246, 0.18); }
         .chunk-preview.visible { display: block; }
     </style>
 </head>
 <body>
+    <div class="lang-switcher">
+        <button id="langToggle" class="lang-toggle" type="button" aria-expanded="false">
+            <span>🌐</span><span data-i18n="lang.toggle">English</span>
+        </button>
+        <div id="langOptions" class="lang-options" role="menu">
+            <button class="lang-option" data-lang="en" role="menuitemradio" aria-checked="true">English</button>
+            <button class="lang-option" data-lang="zh" role="menuitemradio" aria-checked="false">中文</button>
+        </div>
+    </div>
+
     <div class="page">
         <div class="hero">
             <div class="hero-card">
-                <div class="status-chip">⚡ Service Online · FastAPI v{{ request.app.version }}</div>
-                <h1>Doc Knowledge Forge</h1>
-                <p class="lead">Batch upload PDF / DOCX / TXT / Markdown, convert into unified knowledge base with full-text search, semantic tags, and Markdown exports — ready for multilingual teams.</p>
-                <ul class="hero-points">
-                    <li><span>01 · Intake：</span> Multi-file drag & drop, OCR-friendly parsing, metadata extraction。</li>
-                    <li><span>02 · Intelligence：</span> Auto keywords · summaries · table-of-contents · chunking for vector search。</li>
-                    <li><span>03 · Delivery：</span> Instant search, Markdown reader, API endpoints, export pipelines。</li>
-                </ul>
+                <div class="status-chip" id="statusChip">⚡ Service Online · FastAPI v{{ version }}</div>
+                <h1 id="heroTitle">Doc Knowledge Forge</h1>
+                <p class="lead" id="heroDescription">Turn documents into searchable knowledge — Batch upload PDF/DOCX/TXT, auto-convert to Markdown, full-text search (English/Chinese), keyword extraction, online viewer. WCAG 2.1 AA compliant.</p>
+                <ul class="hero-points" id="heroPoints"></ul>
                 <div class="hero-actions">
-                    <a class="btn btn-primary" href="#search-panel">🔍 立即体验检索</a>
-                    <a class="btn btn-outline" href="#upload-panel">📂 上传文件</a>
-                    <a class="btn btn-outline" href="#documents-section">📚 查看解析结果</a>
+                    <a href="#projects" class="btn btn-primary" id="actionProjects">Explore Projects</a>
+                    <a href="#packages" class="btn btn-outline" id="actionPackages">Delivery Packages</a>
+                    <a href="#documents-section" class="btn btn-outline" id="actionWorkflow">Knowledge Workflow</a>
                 </div>
             </div>
-            <div class="hero-panel">
-                <div class="hero-metrics">
-                    <div class="metric-card">
-                        <span class="metric-label">Documents indexed</span>
-                        <span class="metric-value" id="totalDocs">--</span>
-                        <span style="font-size:0.85rem;opacity:0.75;">Total Docs</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-label">Knowledge footprint</span>
-                        <span class="metric-value" id="totalSize">--</span>
-                        <span style="font-size:0.85rem;opacity:0.75;">Storage</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="metric-label">Fresh uploads</span>
-                        <span class="metric-value" id="recentUploads">--</span>
-                        <span style="font-size:0.85rem;opacity:0.75;">Recent 24h</span>
-                    </div>
-                </div>
+            <div class="hero-card">
+                <div class="hero-metrics" id="metrics"></div>
                 <div class="timeline">
-                    <h3>Workflow · 从原始文档到知识资产</h3>
-                    <ol class="timeline-list">
-                        <li class="timeline-item">
-                            <div class="timeline-step">1</div>
-                            <div class="timeline-text"><strong>Ingest & Enrich</strong>OCR / metadata / version tracking / language detection。</div>
-                        </li>
-                        <li class="timeline-item">
-                            <div class="timeline-step">2</div>
-                            <div class="timeline-text"><strong>Chunk & Vectorize</strong>Smart chunking, embeddings, keyword & summary extraction。</div>
-                        </li>
-                        <li class="timeline-item">
-                            <div class="timeline-step">3</div>
-                            <div class="timeline-text"><strong>Search & Deliver</strong>Full-text + semantic search, Markdown viewer, API + export automation。</div>
-                        </li>
-                    </ol>
+                    <h3 id="timelineTitle">Workflow · 从原始文档到知识资产</h3>
+                    <ol id="timelineList" class="timeline-list"></ol>
                 </div>
             </div>
         </div>
 
         <div class="main-grid">
-            <section class="panel" id="search-panel">
+            <section class="panel" id="searchPanel">
                 <h2>🔎 Full-Text + Semantic Search</h2>
-                <p>Enter keywords to search across titles, content, and extracted highlights. Highlights will appear instantly with relevance score and chunk preview.</p>
+                <p id="searchDescription">Enter keywords to search across titles and content. Press Enter to search.</p>
                 <div class="input-group">
-                    <input id="searchInput" type="text" placeholder="e.g. onboarding policy, OKR template" aria-label="Search keywords">
-                    <button id="searchBtn" class="btn btn-primary"><span>🔍</span> Search</button>
+                    <input id="searchInput" type="text" placeholder="e.g. onboarding policy" aria-label="Search keywords">
+                    <button id="searchBtn" class="btn btn-primary">Search</button>
                 </div>
                 <div id="searchResults" class="search-results" role="list" aria-live="polite"></div>
                 <aside id="chunkPreview" class="chunk-preview" aria-live="polite"></aside>
             </section>
 
-            <section class="panel" id="upload-panel">
+            <section class="panel" id="uploadPanel">
                 <h2>🧾 Document Intake & Conversion</h2>
-                <p>Upload up to 10 files per batch; we convert them into Markdown, extract metadata, generate semantic tags, and store clean chunks for downstream RAG.</p>
+                <p id="uploadDescription">Batch upload PDF, DOCX, TXT, Markdown — auto-convert to unified Markdown and extract metadata.</p>
                 <div id="dropzone" class="upload-dropzone" role="region" aria-label="Upload documents">
                     <div style="font-size:3.5rem;margin-bottom:16px;">📎</div>
-                    <p style="margin-bottom:10px;">Drag & drop files here, or choose from your device</p>
-                    <p style="opacity:0.75;font-size:0.92rem;">Supported: .pdf · .docx · .doc · .txt · .md · .html</p>
+                    <p id="dropHint" style="margin-bottom:10px;">Drag & drop files here, or choose from your device</p>
+                    <p id="dropSupports" style="opacity:0.75;font-size:0.92rem;">Supported: .pdf · .docx · .doc · .txt · .md · .html</p>
                     <input id="fileInput" type="file" multiple accept=".pdf,.docx,.doc,.txt,.md,.html" hidden>
                     <div class="upload-actions">
-                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📤 Choose Files</button>
-                        <button class="btn btn-outline" id="demoUploadBtn">🧪 Import Demo</button>
-                        <button class="btn btn-outline" id="resetBtn">♻️ Reset Data</button>
+                        <button id="chooseBtn" class="btn btn-primary" type="button">Choose Files</button>
+                        <button id="demoUploadBtn" class="btn btn-outline" type="button">Import Demo</button>
+                        <button id="resetBtn" class="btn btn-outline" type="button">Reset Data</button>
                     </div>
                 </div>
                 <div id="uploadProgress" class="upload-progress" aria-live="polite"></div>
             </section>
 
-            <section class="panel">
+            <section class="panel" id="consolePanel">
                 <h2>🚀 Knowledge Operations Console</h2>
-                <p>Monitor ingestion stats, access API, download exports, and embed the knowledge base into RAG applications or internal portals.</p>
+                <p id="consoleDescription">Monitor ingestion stats, access API, download exports, and embed the knowledge base into RAG applications.</p>
                 <div class="button-group">
-                    <a class="btn btn-primary" href="/api/docs" target="_blank" rel="noopener">📘 API Docs</a>
-                    <a class="btn btn-outline" href="/api/documents" target="_blank" rel="noopener">📄 Raw Documents JSON</a>
-                    <a class="btn btn-outline" href="/outputs" target="_blank" rel="noopener">🗂 Markdown Exports</a>
+                    <a id="btnApiDocs" class="btn btn-primary" href="/api/docs" target="_blank" rel="noopener">📘 API Docs</a>
+                    <a id="btnRawDocs" class="btn btn-outline" href="/api/documents" target="_blank" rel="noopener">📄 Raw Documents JSON</a>
+                    <a id="btnExports" class="btn btn-outline" href="/outputs" target="_blank" rel="noopener">🗂 Markdown Exports</a>
                 </div>
-                <div class="insight-grid">
-                    <div class="insight-card">
-                        <strong>Roles</strong>
-                        <p>Knowledge managers upload sources, analysts curate tags, developers consume APIs。</p>
-                    </div>
-                    <div class="insight-card">
-                        <strong>Integrations</strong>
-                        <p>Zapier · Notion · Slack notifications · RAG pipelines (LangChain / LlamaIndex)。</p>
-                    </div>
-                    <div class="insight-card">
-                        <strong>Governance</strong>
-                        <p>Versioned outputs, tag taxonomy, retention policies, delete-on-demand。</p>
-                    </div>
-                </div>
+                <div class="insight-grid" id="consoleCards"></div>
             </section>
         </div>
 
         <section class="panel documents-section" id="documents-section" aria-labelledby="documentsTitle">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
-                <h2 id="documentsTitle">📚 Recent Uploads & Knowledge Assets</h2>
-                <div style="display:flex;gap:12px;">
-                    <span style="font-size:0.9rem;opacity:0.7;">Sorted by most recent · limit 12</span>
-                </div>
+                <h2 id="documentsTitle">📚 Recent Uploads</h2>
+                <span class="text-xs text-slate-400" id="documentsHint">Sorted by most recent · limit 12</span>
             </div>
             <div id="documentList" class="documents" aria-live="polite">
                 <div class="empty-state" id="emptyState">
                     <div class="empty-state-icon">🔍</div>
-                    <p>No documents yet. Upload files or import demo data to explore the full experience.</p>
+                    <p id="emptyStateText">No documents yet. Upload files or import demo data to explore the full experience.</p>
                 </div>
             </div>
         </section>
 
         <footer>
-            <p>Doc Knowledge Forge · Desktop-first · WCAG 2.1 AA · Material Design 3 × Apple HIG</p>
-            <p>Includes ingestion API, search API, Markdown renderer, governance tooling, and export pipelines.</p>
+            <p id="footerLine1">Doc Knowledge Forge · Desktop-first · WCAG 2.1 AA · Material Design 3 × Apple HIG</p>
+            <p id="footerLine2">Includes ingestion API, search API, Markdown renderer, governance tooling, and export pipelines.</p>
         </footer>
     </div>
 
     <script>
-        const fileInput = document.getElementById("fileInput");
-        const dropzone = document.getElementById("dropzone");
-        const documentList = document.getElementById("documentList");
-        const emptyState = document.getElementById("emptyState");
-        const totalDocsEl = document.getElementById("totalDocs");
-        const totalSizeEl = document.getElementById("totalSize");
-        const recentUploadsEl = document.getElementById("recentUploads");
-        const uploadProgressEl = document.getElementById("uploadProgress");
-        const searchResultsEl = document.getElementById("searchResults");
-        const chunkPreviewEl = document.getElementById("chunkPreview");
+        (function () {
+            const LANG_STORAGE_KEY = 'portfolio-lang';
+            const SUPPORTED_LANGS = ['en', 'zh'];
+            const defaultLang = document.documentElement.dataset.defaultLang || 'en';
+            let currentLang = defaultLang;
+            let translations = {};
+            const cache = new Map();
 
-        let currentKeyword = "";
+            const langToggle = document.getElementById('langToggle');
+            const langOptions = document.getElementById('langOptions');
 
-        const formatBytes = (bytes) => {
-            if (!bytes) return "0 B";
-            const k = 1024;
-            const sizes = ["B", "KB", "MB", "GB", "TB"];
-            const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-        };
-
-        const showToast = (message, type = "info") => {
-            const toast = document.createElement("div");
-            toast.className = `toast toast-${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            requestAnimationFrame(() => toast.classList.add("visible"));
-            setTimeout(() => {
-                toast.classList.remove("visible");
-                setTimeout(() => toast.remove(), 320);
-            }, 3200);
-        };
-
-        const escapeRegExp = (string = "") => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const sanitizeHtml = (text = "") => text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        const highlightContent = (content, highlights) => {
-            let safe = sanitizeHtml(content || "");
-            (highlights || []).forEach(word => {
-                if (!word || !word.trim()) return;
-                const pattern = new RegExp(escapeRegExp(word.trim()), "gi");
-                safe = safe.replace(pattern, match => `<mark>${match}</mark>`);
-            });
-            return safe;
-        };
-
-        const statusIcons = { processing: "⏳", success: "✅", error: "❌", skipped: "⚠️", partial: "ℹ️" };
-        const statusLabels = { processing: "处理中", success: "已完成", error: "失败", skipped: "已跳过", partial: "部分完成" };
-
-        const setUploadProgress = (items = []) => {
-            if (!items.length) {
-                uploadProgressEl.classList.remove("visible");
-                uploadProgressEl.innerHTML = "";
-                return;
+            async function fetchJson(url) {
+                const response = await fetch(url, { cache: 'no-cache' });
+                if (!response.ok) throw new Error(`Failed to load ${url}`);
+                return response.json();
             }
-            uploadProgressEl.classList.add("visible");
-            uploadProgressEl.innerHTML = items.map(item => `
-                <div class="progress-item">
-                    <div>
-                        <p class="progress-name">${sanitizeHtml(item.name)}</p>
-                        <p style="opacity:0.7;font-size:0.9rem;">${sanitizeHtml(item.detail || "")}</p>
+
+            async function loadTranslations(lang) {
+                if (cache.has(lang)) {
+                    translations = cache.get(lang);
+                    currentLang = lang;
+                    return;
+                }
+                const data = await fetchJson(`/i18n/p4.${lang}.json`);
+                cache.set(lang, data);
+                translations = data;
+                currentLang = lang;
+            }
+
+            function t(path, fallback = '') {
+                return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), translations) ?? fallback;
+            }
+
+            function setText(id, key) {
+                const el = document.getElementById(id);
+                if (el) el.textContent = t(key, el.textContent);
+            }
+
+            function renderList(containerId, itemsKey) {
+                const container = document.getElementById(containerId);
+                const items = t(itemsKey, []);
+                if (!container || !Array.isArray(items)) return;
+                container.innerHTML = items.map(item => `<li>${item}</li>`).join('');
+            }
+
+            function renderMetrics() {
+                const metrics = t('metrics', {});
+                const container = document.getElementById('metrics');
+                if (!container) return;
+                container.innerHTML = '';
+                Object.entries(metrics).forEach(([key, value]) => {
+                    const card = document.createElement('div');
+                    card.className = 'metric-card';
+                    card.innerHTML = `
+                        <span class="metric-label">${value.label || ''}</span>
+                        <span class="metric-value" id="metric-${key}">${value.value || '--'}</span>
+                        <span class="metric-desc">${value.hint || ''}</span>`;
+                    container.appendChild(card);
+                });
+            }
+
+            function renderConsoleCards() {
+                const cards = t('panels.console.cards', []);
+                const container = document.getElementById('consoleCards');
+                if (!container) return;
+                container.innerHTML = cards.map(text => `<div class="insight-card">${text}</div>`).join('');
+            }
+
+            function applyTranslations() {
+                setText('statusChip', 'hero.status');
+                setText('heroTitle', 'hero.title');
+                setText('heroDescription', 'hero.description');
+                renderList('heroPoints', 'heroPoints');
+
+                document.getElementById('actionProjects').textContent = t('heroActions.projects.label', 'Explore Projects');
+                document.getElementById('actionProjects').setAttribute('aria-label', t('heroActions.projects.aria', 'Scroll to project listings'));
+                document.getElementById('actionPackages').textContent = t('heroActions.packages.label', 'Delivery Packages');
+                document.getElementById('actionPackages').setAttribute('aria-label', t('heroActions.packages.aria', 'Review package details'));
+                document.getElementById('actionWorkflow').textContent = t('heroActions.workflow.label', 'Knowledge Workflow');
+                document.getElementById('actionWorkflow').setAttribute('aria-label', t('heroActions.workflow.aria', 'View collaboration workflow'));
+
+                renderMetrics();
+                setText('timelineTitle', 'timeline.title');
+                const timelineList = document.getElementById('timelineList');
+                const steps = t('timeline.steps', []);
+                if (timelineList && Array.isArray(steps)) {
+                    timelineList.innerHTML = steps.map((step, index) => `
+                        <li class="timeline-item">
+                            <div class="timeline-step">${index + 1}</div>
+                            <div>${step}</div>
+                        </li>`).join('');
+                }
+
+                setText('searchPanel', 'panels.search.title');
+                setText('searchDescription', 'panels.search.description');
+                document.getElementById('searchInput').setAttribute('placeholder', t('panels.search.placeholder', 'Type keywords...'));
+                document.getElementById('searchBtn').textContent = t('panels.search.button', 'Search');
+
+                setText('uploadPanel', 'panels.upload.title');
+                setText('uploadDescription', 'panels.upload.description');
+                setText('dropHint', 'panels.upload.dropHint');
+                setText('dropSupports', 'panels.upload.supports');
+                document.getElementById('chooseBtn').textContent = t('panels.upload.choose', 'Choose Files');
+                document.getElementById('demoUploadBtn').textContent = t('panels.upload.import', 'Import Demo');
+                document.getElementById('resetBtn').textContent = t('panels.upload.reset', 'Reset Data');
+
+                setText('consolePanel', 'panels.console.title');
+                setText('consoleDescription', 'panels.console.description');
+                document.getElementById('btnApiDocs').textContent = t('panels.console.buttons.docs', '📘 API Docs');
+                document.getElementById('btnRawDocs').textContent = t('panels.console.buttons.raw', '📄 Raw Documents JSON');
+                document.getElementById('btnExports').textContent = t('panels.console.buttons.exports', '🗂 Markdown Exports');
+                renderConsoleCards();
+
+                setText('documentsTitle', 'panels.documents.title');
+                setText('documentsHint', 'panels.documents.hint');
+                setText('emptyStateText', 'panels.documents.empty');
+                setText('footerLine1', 'footer.line1');
+                setText('footerLine2', 'footer.line2');
+
+                const label = t('lang.toggle', 'English');
+                langToggle.querySelector('span[data-i18n="lang.toggle"]').textContent = label;
+                langOptions.querySelectorAll('.lang-option').forEach(btn => {
+                    const lang = btn.dataset.lang;
+                    btn.textContent = t(`lang.options.${lang}`, btn.textContent);
+                    const isActive = lang === currentLang;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                });
+            }
+
+            async function changeLanguage(lang, persist = true) {
+                const target = SUPPORTED_LANGS.includes(lang) ? lang : 'en';
+                await loadTranslations(target);
+                applyTranslations();
+                currentLang = target;
+                document.documentElement.setAttribute('lang', target === 'zh' ? 'zh-CN' : 'en');
+                if (persist) {
+                    localStorage.setItem(LANG_STORAGE_KEY, target);
+                    document.cookie = `portfolio_lang=${target}; path=/; max-age=${60 * 60 * 24 * 365}`;
+                }
+            }
+
+            function detectInitialLanguage() {
+                const stored = localStorage.getItem(LANG_STORAGE_KEY);
+                if (stored && SUPPORTED_LANGS.includes(stored)) return stored;
+                if (SUPPORTED_LANGS.includes(defaultLang)) return defaultLang;
+                const nav = (navigator.language || navigator.languages?.[0] || 'en').toLowerCase();
+                return nav.startsWith('zh') ? 'zh' : 'en';
+            }
+
+            const initialLang = detectInitialLanguage();
+            changeLanguage(initialLang, false).catch(console.error);
+
+            langToggle.addEventListener('click', () => {
+                const isOpen = langOptions.classList.toggle('open');
+                langToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+            langOptions.addEventListener('click', (event) => {
+                if (event.target.matches('.lang-option')) {
+                    langOptions.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                    changeLanguage(event.target.dataset.lang).catch(console.error);
+                }
+            });
+            document.addEventListener('click', (event) => {
+                if (!langOptions.contains(event.target) && event.target !== langToggle) {
+                    langOptions.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === LANG_STORAGE_KEY && event.newValue && event.newValue !== currentLang) {
+                    changeLanguage(event.newValue, false).catch(console.error);
+                }
+            });
+
+            // 以下保留原有上传/检索逻辑
+            const fileInput = document.getElementById("fileInput");
+            const dropzone = document.getElementById("dropzone");
+            const documentList = document.getElementById("documentList");
+            const emptyState = document.getElementById("emptyState");
+            const uploadProgressEl = document.getElementById("uploadProgress");
+            const searchResultsEl = document.getElementById("searchResults");
+            const chunkPreviewEl = document.getElementById("chunkPreview");
+            let currentKeyword = "";
+
+            const formatBytes = (bytes) => {
+                if (!bytes) return "0 B";
+                const k = 1024;
+                const sizes = ["B", "KB", "MB", "GB", "TB"];
+                const i = Math.min(sizes.length - 1, Math.floor(Math.log(bytes) / Math.log(k)));
+                return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+            };
+
+            const escapeRegExp = (string = "") => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const sanitizeHtml = (text = "") => text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            const highlightContent = (content, highlights) => {
+                let safe = sanitizeHtml(content || "");
+                (highlights || []).forEach(word => {
+                    if (!word || !word.trim()) return;
+                    const pattern = new RegExp(escapeRegExp(word.trim()), "gi");
+                    safe = safe.replace(pattern, match => `<mark>${match}</mark>`);
+                });
+                return safe;
+            };
+
+            const statusIcons = {
+                processing: "⏳",
+                success: "✅",
+                error: "❌",
+                skipped: "⚠️"
+            };
+
+            const statusLabels = {
+                processing: t('upload.progress.processing', 'Processing'),
+                success: t('upload.progress.success', 'Success'),
+                error: t('upload.progress.error', 'Failed'),
+                skipped: t('upload.progress.skipped', 'Skipped')
+            };
+
+            function setUploadProgress(items = []) {
+                if (!items.length) {
+                    uploadProgressEl.classList.remove("visible");
+                    uploadProgressEl.innerHTML = "";
+                    return;
+                }
+                uploadProgressEl.classList.add("visible");
+                uploadProgressEl.innerHTML = items.map(item => `
+                    <div class="progress-item">
+                        <div>
+                            <p class="progress-name">${sanitizeHtml(item.name)}</p>
+                            <p style="opacity:0.7;font-size:0.9rem;">${sanitizeHtml(item.detail || "")}</p>
+                        </div>
+                        <span class="progress-status ${item.status}">
+                            <span>${statusIcons[item.status] || "•"}</span>
+                            <span>${statusLabels[item.status] || item.status}</span>
+                        </span>
                     </div>
-                    <span class="progress-status ${item.status}">
-                        <span>${statusIcons[item.status] || "•"}</span>
-                        <span>${statusLabels[item.status] || item.status}</span>
-                    </span>
-                </div>
-            `).join("");
-        };
+                `).join("");
+            }
 
-        const handleFiles = async (files) => {
-            if (!files.length) return;
-            const fileList = Array.from(files).slice(0, 10);
-            const formData = new FormData();
-            fileList.forEach((file) => formData.append("files", file));
+            async function handleFiles(files) {
+                if (!files.length) return;
+                const fileList = Array.from(files).slice(0, 10);
+                const formData = new FormData();
+                fileList.forEach(file => formData.append("files", file));
 
-            setUploadProgress(fileList.map(file => ({
-                name: file.name,
-                status: "processing",
-                detail: "上传中，正在解析并生成向量…",
-            })));
+                setUploadProgress(fileList.map(file => ({
+                    name: file.name,
+                    status: "processing",
+                    detail: t('upload.progress.processing', 'Uploading, parsing, and generating embeddings...')
+                })));
 
-            try {
-                showToast("Uploading and parsing documents…", "info");
-                const res = await fetch("/api/docs/upload", { method: "POST", body: formData });
-                if (!res.ok) throw new Error("Upload failed");
-                const data = await res.json();
-                const details = data.details || [];
-
-                const statusMap = fileList.map(file => {
-                    const info = details.find(item => item.original_name === file.name || item.stored_name === file.name || (item.original_name && item.original_name.endsWith(file.name)));
-                    if (info) {
-                        const tagPreview = Array.isArray(info.tags) ? info.tags.slice(0, 3).join(", ") : (info.tags || "");
-                        const chunked = Number(info.chunked) || 0;
-                        const rawStatus = (info.status || (chunked > 0 ? "success" : "skipped")).toLowerCase();
-                        const status = rawStatus === "failed" ? "error" : rawStatus;
-                        let message = info.message || info.error;
-                        if (!message) {
-                            if (chunked > 0) {
-                                message = `已生成 ${chunked} 个分块${tagPreview ? ` · 关键词：${tagPreview}` : ""}`;
-                            } else if (status === "partial") {
-                                message = "上传成功，但未生成分块";
-                            } else if (status === "skipped") {
-                                message = "文件类型不支持或解析失败";
+                try {
+                    const res = await fetch("/api/docs/upload", { method: "POST", body: formData });
+                    if (!res.ok) throw new Error("Upload failed");
+                    const data = await res.json();
+                    const details = data.details || [];
+                    const statusMap = fileList.map(file => {
+                        const info = details.find(item => item.original_name === file.name || item.stored_name === file.name || (item.original_name && item.original_name.endsWith(file.name)));
+                        if (info) {
+                            const chunked = Number(info.chunked) || 0;
+                            const rawStatus = (info.status || (chunked > 0 ? "success" : "skipped")).toLowerCase();
+                            const status = rawStatus === "failed" ? "error" : rawStatus;
+                            let message = info.message || info.error;
+                            if (!message) {
+                                if (chunked > 0) {
+                                    message = `${t('upload.progress.success', 'Processed')} · ${chunked} chunks`;
+                                } else if (status === "skipped") {
+                                    message = t('upload.progress.skipped', 'Skipped');
+                                }
                             }
+                            return {
+                                name: file.name,
+                                status,
+                                detail: message || t('upload.progress.success', 'Processed')
+                            };
                         }
-                        return { name: file.name, status, detail: message || "处理完成" };
-                    }
-                    return { name: file.name, status: "skipped", detail: "文件类型不支持或解析失败" };
-                });
-
-                setUploadProgress(statusMap);
-                showToast(`Uploaded ${data.uploaded} file(s) successfully`, "success");
-                loadDocuments();
-                loadStats();
-                setTimeout(() => setUploadProgress([]), 5200);
-            } catch (error) {
-                console.error(error);
-                setUploadProgress(fileList.map(file => ({ name: file.name, status: "error", detail: "Upload failed, please retry" })));
-                showToast("Upload failed, please try again", "error");
+                        return {
+                            name: file.name,
+                            status: "skipped",
+                            detail: t('upload.progress.skipped', 'Skipped')
+                        };
+                    });
+                    setUploadProgress(statusMap);
+                    loadDocuments();
+                    loadStats();
+                    setTimeout(() => setUploadProgress([]), 5200);
+                } catch (error) {
+                    console.error(error);
+                    setUploadProgress(fileList.map(file => ({ name: file.name, status: "error", detail: t('upload.status.failed', 'Upload failed, please try again') })));
+                }
             }
-        };
 
-        fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-        dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); dropzone.setAttribute("aria-busy", "true"); });
-        dropzone.addEventListener("dragleave", () => { dropzone.classList.remove("dragover"); dropzone.setAttribute("aria-busy", "false"); });
-        dropzone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            dropzone.classList.remove("dragover");
-            dropzone.setAttribute("aria-busy", "false");
-            handleFiles(e.dataTransfer.files);
-        });
+            fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
+            dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("dragover"); });
+            dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+            dropzone.addEventListener("drop", (e) => { e.preventDefault(); dropzone.classList.remove("dragover"); handleFiles(e.dataTransfer.files); });
+            document.getElementById('chooseBtn').addEventListener('click', () => fileInput.click());
 
-        document.getElementById("demoUploadBtn").addEventListener("click", async () => {
-            try {
-                const res = await fetch("/api/demo/seed", { method: "POST" });
-                if (!res.ok) throw new Error();
-                showToast("Demo data imported", "success");
-                loadDocuments();
-                loadStats();
-            } catch (e) {
-                showToast("Demo import failed", "error");
-            }
-        });
-
-        document.getElementById("resetBtn").addEventListener("click", async () => {
-            if (!confirm("Clear all current data? This action cannot be undone.")) return;
-            try {
-                const res = await fetch("/api/demo/reset", { method: "POST" });
-                if (!res.ok) throw new Error();
-                showToast("Data reset complete", "success");
-                loadDocuments();
-                loadStats();
-            } catch (e) {
-                showToast("Reset failed", "error");
-            }
-        });
-
-        const addDeleteHandlers = () => {
-            document.querySelectorAll("button[data-doc]").forEach(button => {
-                button.addEventListener("click", async () => {
-                    const id = button.getAttribute("data-doc");
-                    if (!confirm("Delete this document and its generated content?")) return;
-                    try {
-                        const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
-                        if (!res.ok) throw new Error();
-                        showToast("Document deleted", "success");
-                        loadDocuments();
-                        loadStats();
-                    } catch {
-                        showToast("Delete failed", "error");
-                    }
-                });
+            document.getElementById("demoUploadBtn").addEventListener("click", async () => {
+                try {
+                    const res = await fetch("/api/demo/seed", { method: "POST" });
+                    if (!res.ok) throw new Error();
+                    loadDocuments();
+                    loadStats();
+                    alert(t('upload.status.uploaded', 'Uploaded demo data'));
+                } catch (e) {
+                    alert(t('upload.status.failed', 'Upload failed, please try again'));
+                }
             });
-        };
 
-        const renderSearchResults = (items = []) => {
-            searchResultsEl.innerHTML = "";
-            chunkPreviewEl.classList.remove("visible");
-            chunkPreviewEl.innerHTML = "";
+            document.getElementById("resetBtn").addEventListener("click", async () => {
+                if (!confirm(t('upload.confirmReset', 'Clear all current data? This action cannot be undone.'))) return;
+                try {
+                    const res = await fetch("/api/demo/reset", { method: "POST" });
+                    if (!res.ok) throw new Error();
+                    loadDocuments();
+                    loadStats();
+                    alert(t('upload.resetSuccess', 'Data reset complete'));
+                } catch (e) {
+                    alert(t('upload.resetFailed', 'Reset failed'));
+                }
+            });
 
-            if (!items.length) {
-                searchResultsEl.innerHTML = '<div class="empty-state">未找到相关内容</div>';
-                return;
+            async function loadStats() {
+                try {
+                    const res = await fetch("/api/stats");
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    document.getElementById('metric-docs').textContent = data.total_documents;
+                    document.getElementById('metric-size').textContent = formatBytes(data.total_size || 0);
+                    document.getElementById('metric-fresh').textContent = data.recent_uploads;
+                } catch (error) {
+                    console.error(error);
+                }
             }
 
-            items.forEach(it => {
-                const card = document.createElement("div");
-                card.className = "document-card";
-                card.setAttribute("role", "listitem");
+            async function loadDocuments() {
+                try {
+                    const res = await fetch("/api/documents?limit=12");
+                    if (!res.ok) throw new Error();
+                    const docs = await res.json();
+                    renderDocuments(docs);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
 
-                const highlights = (it.highlights && it.highlights.length) ? it.highlights : (currentKeyword ? [currentKeyword] : []);
-                const snippet = highlightContent(it.snippet || "", highlights);
-                const score = typeof it.relevance_score === "number" ? Math.max(0, it.relevance_score) : 0;
-
-                card.innerHTML = `
-                    <header class="document-header">
-                        <div>
-                            <h3 class="document-title">${sanitizeHtml(it.title || it.filename)}</h3>
-                            <div class="search-meta">
-                                <span class="score-chip">⚙️ 相关度 ${score.toFixed(2)}</span>
-                                ${it.chunk_index >= 0 ? `<span>片段 #${it.chunk_index + 1}</span>` : ""}
+            function renderDocuments(docs) {
+                if (!docs.length) {
+                    emptyState.style.display = 'block';
+                    documentList.querySelectorAll('.document-card').forEach(card => card.remove());
+                    return;
+                }
+                emptyState.style.display = 'none';
+                documentList.innerHTML = '';
+                docs.forEach(doc => {
+                    const docCard = document.createElement('article');
+                    docCard.className = 'document-card';
+                    docCard.innerHTML = `
+                        <header class="document-header">
+                            <div>
+                                <h3 class="document-title">${sanitizeHtml(doc.title || doc.original_name)}</h3>
+                                <p style="opacity:0.7;font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
                             </div>
-                        </div>
-                        <div class="button-group">
-                            <a class="btn btn-outline" href="/view/${it.document_id}" target="_blank" rel="noopener"><span>👁️</span> 在线查看</a>
-                            ${it.chunk_id > 0 ? `<button class="btn btn-outline preview-btn" data-chunk="${it.chunk_id}" data-title="${sanitizeHtml(it.title || it.filename)}" data-score="${score.toFixed(2)}"><span>🧠</span> 预览片段</button>` : ""}
-                        </div>
-                    </header>
-                    <div style="color:#475569;line-height:1.6;">${snippet}</div>
-                `;
+                            <div class="button-group">
+                                <a class="btn btn-outline" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener">${t('panels.documents.viewMarkdown', 'View Markdown')}</a>
+                                <button class="btn btn-outline" data-doc="${doc.id}">${t('panels.documents.delete', 'Delete')}</button>
+                            </div>
+                        </header>
+                        <div class="tag-list">${(doc.tags || '').split(',').filter(Boolean).slice(0,6).map(tag => `<span class="tag">#${sanitizeHtml(tag.trim())}</span>`).join('') || `<span style='opacity:0.6;'>${t('panels.documents.tagsEmpty', 'No tags')}</span>`}</div>
+                    `;
+                    documentList.appendChild(docCard);
+                });
+                document.querySelectorAll('button[data-doc]').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if (!confirm(t('upload.confirmReset', 'Clear all current data? This action cannot be undone.'))) return;
+                        const id = btn.dataset.doc;
+                        try {
+                            const res = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+                            if (!res.ok) throw new Error();
+                            loadDocuments();
+                            loadStats();
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    });
+                });
+            }
 
-                searchResultsEl.appendChild(card);
+            async function doSearch() {
+                const keyword = document.getElementById('searchInput').value.trim();
+                if (!keyword) return alert(t('panels.search.empty', 'No matching content'));
+                currentKeyword = keyword;
+                try {
+                    const res = await fetch(`/api/search?q=${encodeURIComponent(keyword)}&top_k=10`);
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    renderSearchResults(data);
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+
+            document.getElementById('searchBtn').addEventListener('click', doSearch);
+            document.getElementById('searchInput').addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') doSearch();
             });
-        };
 
-        const showChunkPreview = async (chunkId, fallbackTitle, score) => {
-            chunkPreviewEl.classList.add("visible");
-            chunkPreviewEl.setAttribute("aria-busy", "true");
-            chunkPreviewEl.innerHTML = '<p style="color:#64748b;">正在加载片段…</p>';
-
-            try {
-                const res = await fetch(`/api/chunks/${chunkId}`);
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-                const chunk = data.chunk || {};
-                const highlights = currentKeyword ? [currentKeyword] : [];
-                const content = highlightContent(chunk.content || "", highlights);
-                const title = data.document_title || fallbackTitle;
-                const indexLabel = typeof chunk.chunk_index === "number" ? chunk.chunk_index + 1 : "-";
-
-                chunkPreviewEl.innerHTML = `
-                    <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-                        <div>
-                            <h3 style="font-size:1rem;font-weight:600;">${sanitizeHtml(title || "片段预览")}</h3>
-                            <p style="color:#64748b;font-size:0.85rem;">片段 #${indexLabel} · 相关度 ${score}</p>
-                        </div>
-                        <button class="btn btn-outline" data-action="close-preview"><span>✖️</span> 关闭</button>
-                    </header>
-                    <div style="margin-top:12px;line-height:1.7;color:#1f2937;white-space:pre-wrap;">${content}</div>
-                `;
-            } catch (error) {
-                console.error(error);
-                chunkPreviewEl.innerHTML = '<p style="color:#dc2626;">片段加载失败，请稍后重试。</p>';
-            } finally {
-                chunkPreviewEl.setAttribute("aria-busy", "false");
-            }
-        };
-
-        const doSearch = async () => {
-            const keyword = document.getElementById('searchInput').value.trim();
-            if (!keyword) {
-                showToast('Please enter keywords', 'info');
-                return;
-            }
-            currentKeyword = keyword;
-            try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(keyword)}&top_k=10`);
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-                renderSearchResults(data);
-            } catch (error) {
-                console.error(error);
-                showToast('Search failed', 'error');
-            }
-        };
-
-        document.getElementById('searchBtn').addEventListener('click', doSearch);
-        document.getElementById('searchInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
-        searchResultsEl.addEventListener('click', (event) => {
-            const btn = event.target.closest('.preview-btn');
-            if (!btn) return;
-            const chunkId = btn.getAttribute('data-chunk');
-            const title = btn.getAttribute('data-title');
-            const score = btn.getAttribute('data-score');
-            showChunkPreview(chunkId, title, score);
-        });
-        chunkPreviewEl.addEventListener('click', (event) => {
-            if (event.target.closest('[data-action="close-preview"]')) {
+            function renderSearchResults(items = []) {
+                searchResultsEl.innerHTML = '';
                 chunkPreviewEl.classList.remove('visible');
                 chunkPreviewEl.innerHTML = '';
-            }
-        });
-
-        const renderDocuments = (docs) => {
-            documentList.innerHTML = "";
-            if (!docs.length) {
-                documentList.appendChild(emptyState);
-                emptyState.hidden = false;
-                return;
-            }
-            emptyState.hidden = true;
-            docs.forEach(doc => {
-                const docCard = document.createElement("article");
-                docCard.className = "document-card";
-                docCard.innerHTML = `
-                    <header class="document-header">
-                        <div>
-                            <h3 class="document-title">${sanitizeHtml(doc.title || doc.original_name)}</h3>
-                            <p style="opacity:0.7;font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
-                        </div>
-                        <div class="button-group">
-                            <a class="btn btn-outline" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener"><span>📝</span> 查看 Markdown</a>
-                            <button class="btn btn-outline" data-doc="${doc.id}"><span>🗑</span> 删除</button>
-                        </div>
-                    </header>
-                    <div class="tag-list" aria-label="文档标签">
-                        ${(doc.tags || "").split(",").filter(Boolean).slice(0, 6).map(tag => `<span class="tag">#${sanitizeHtml(tag.trim())}</span>`).join('') || "<span style='opacity:0.6;'>暂无标签</span>"}
-                    </div>
-                `;
-                documentList.appendChild(docCard);
-            });
-            addDeleteHandlers();
-        };
-
-        const loadStats = async () => {
-            try {
-                const res = await fetch("/api/stats");
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-                totalDocsEl.textContent = data.total_documents;
-                totalSizeEl.textContent = formatBytes(data.total_size || 0);
-                recentUploadsEl.textContent = data.recent_uploads;
-            } catch (error) {
-                console.error(error);
-                showToast("Stats loading failed", "error");
-            }
-        };
-
-        const loadDocuments = async () => {
-            try {
-                const res = await fetch("/api/documents?limit=12");
-                if (!res.ok) throw new Error();
-                const docs = await res.json();
-                renderDocuments(docs);
-            } catch (error) {
-                console.error(error);
-                showToast("Document list loading failed", "error");
-            }
-        };
-
-        loadDocuments();
-        loadStats();
-
-        const addToastStyles = () => {
-            const style = document.createElement("style");
-            style.innerHTML = `
-                .toast {
-                    position: fixed;
-                    left: 50%;
-                    bottom: 24px;
-                    transform: translateX(-50%) translateY(20px);
-                    background: rgba(15, 23, 42, 0.95);
-                    color: white;
-                    padding: 14px 24px;
-                    border-radius: 999px;
-                    opacity: 0;
-                    transition: all 0.3s ease;
-                    z-index: 9999;
-                    font-weight: 500;
+                if (!items.length) {
+                    searchResultsEl.innerHTML = `<div class="empty-state">${t('panels.search.empty', 'No matching content')}</div>`;
+                    return;
                 }
-                .toast-success { background: rgba(16, 185, 129, 0.95); }
-                .toast-error { background: rgba(239, 68, 68, 0.95); }
-                .toast-info { background: rgba(59, 130, 246, 0.95); }
-                .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
-            `;
-            document.head.appendChild(style);
-        };
+                items.forEach(it => {
+                    const card = document.createElement('div');
+                    card.className = 'document-card';
+                    const highlights = (it.highlights && it.highlights.length) ? it.highlights : (currentKeyword ? [currentKeyword] : []);
+                    const snippet = highlightContent(it.snippet || '', highlights);
+                    const score = typeof it.relevance_score === 'number' ? Math.max(0, it.relevance_score) : 0;
+                    card.innerHTML = `
+                        <header class="document-header">
+                            <div>
+                                <h3 class="document-title">${sanitizeHtml(it.title || it.filename)}</h3>
+                                <div class="search-meta">
+                                    <span class="score-chip">⚙️ ${t('panels.search.previewHeader', 'Snippet #{index} · Relevance {score}').replace('{index}', (it.chunk_index ?? 0) + 1).replace('{score}', score.toFixed(2))}</span>
+                                </div>
+                            </div>
+                            <div class="button-group">
+                                <a class="btn btn-outline" href="/view/${it.document_id}" target="_blank" rel="noopener">👁️ ${t('panels.documents.viewMarkdown', 'View Markdown')}</a>
+                                ${it.chunk_id > 0 ? `<button class="btn btn-outline preview-btn" data-chunk="${it.chunk_id}" data-score="${score.toFixed(2)}">🧠 ${t('panels.search.closePreview', 'Preview')}</button>` : ''}
+                            </div>
+                        </header>
+                        <div style="color:#475569;line-height:1.6;">${snippet}</div>`;
+                    searchResultsEl.appendChild(card);
+                });
+            }
 
-        addToastStyles();
+            searchResultsEl.addEventListener('click', async (event) => {
+                const btn = event.target.closest('.preview-btn');
+                if (!btn) return;
+                chunkPreviewEl.classList.add('visible');
+                chunkPreviewEl.innerHTML = `<p style="color:#64748b;">${t('panels.search.loading', 'Loading chunk...')}</p>`;
+                try {
+                    const res = await fetch(`/api/chunks/${btn.dataset.chunk}`);
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+                    const chunk = data.chunk || {};
+                    const highlights = currentKeyword ? [currentKeyword] : [];
+                    const content = highlightContent(chunk.content || '', highlights);
+                    const title = data.document_title || 'Preview';
+                    const indexLabel = typeof chunk.chunk_index === 'number' ? chunk.chunk_index + 1 : '-';
+                    chunkPreviewEl.innerHTML = `
+                        <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                            <div>
+                                <h3 style="font-size:1rem;font-weight:600;">${sanitizeHtml(title)}</h3>
+                                <p style="color:#64748b;font-size:0.85rem;">${t('panels.search.previewHeader', 'Snippet #{index} · Relevance {score}').replace('{index}', indexLabel).replace('{score}', btn.dataset.score)}</p>
+                            </div>
+                            <button class="btn btn-outline" data-action="close-preview">✖️ ${t('panels.search.closePreview', 'Close')}</button>
+                        </header>
+                        <div style="margin-top:12px;line-height:1.7;color:#1f2937;white-space:pre-wrap;">${content}</div>`;
+                } catch (error) {
+                    console.error(error);
+                    chunkPreviewEl.innerHTML = '<p style="color:#dc2626;">加载失败。</p>';
+                }
+            });
+
+            chunkPreviewEl.addEventListener('click', (event) => {
+                if (event.target.closest('[data-action="close-preview"]')) {
+                    chunkPreviewEl.classList.remove('visible');
+                    chunkPreviewEl.innerHTML = '';
+                }
+            });
+
+            loadDocuments();
+            loadStats();
+        })();
     </script>
 </body>
 </html>

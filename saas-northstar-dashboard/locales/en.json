@@ -1,0 +1,223 @@
+{
+  "lang": {
+    "toggle": "English",
+    "aria": "Language selector",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "export": {
+    "png": "Export PNG",
+    "pngWorking": "Exporting…",
+    "pngAria": "Export chart as PNG",
+    "pdf": "Export PDF",
+    "pdfWorking": "Generating…",
+    "pdfAria": "Export chart as PDF",
+    "popupBlocked": "Please allow pop-ups to export PDF.",
+    "failed": "Export failed. Please try again.",
+    "failedPdf": "Failed to export PDF. Please try again."
+  },
+  "dashboard": {
+    "title": "SaaS Northstar Dashboard",
+    "subtitle": "Configure KPI templates, import multiple CSV files, and export investor-ready visual reports. WCAG 2.1 AA compliant and keyboard friendly.",
+    "lastImported": "Last import: {{timestamp}}",
+    "controls": {
+      "templateLabel": "KPI Template",
+      "timeRangeLabel": "Time Range",
+      "groupAria": "Template and range controls",
+      "timeRanges": {
+        "30d": "Last 30 Days",
+        "90d": "Last 90 Days",
+        "1y": "Last 12 Months"
+      }
+    },
+    "template": {
+      "sceneLabel": "Best for:"
+    },
+    "sections": {
+      "metrics": "Core Metrics",
+      "charts": "Trend Charts",
+      "dataset": "Dataset Summary"
+    },
+    "emptyMetrics": "No data imported yet. Go to the Import Wizard to upload CSV files.",
+    "dataset": {
+      "rows": "Rows: {{count}}",
+      "latestMonth": "Latest month: {{value}}"
+    },
+    "cta": {
+      "title": "Need to import new KPI data from CSV?",
+      "subtitle": "The wizard supports multiple CSV files, field mapping, and automatic dashboard refresh.",
+      "button": "📥 Open Import Wizard"
+    }
+  },
+  "templates": {
+    "b2b-saas": {
+      "name": "B2B SaaS Northstar",
+      "category": "B2B / Enterprise",
+      "description": "Track recurring revenue, churn, and lifetime value for subscription-based B2B products.",
+      "recommendedFor": "Enterprise-focused SaaS teams that need monthly and annual revenue insights.",
+      "datasets": {
+        "subscriptions": {
+          "label": "Subscription Revenue",
+          "description": "Each row represents a subscription or renewal record."
+        },
+        "churn": {
+          "label": "Churned Customers",
+          "description": "Records for customers that churned, used to calculate churn and LTV."
+        },
+        "acquisition": {
+          "label": "Acquisition Spend",
+          "description": "Channel spend and new customers for CAC calculations."
+        }
+      }
+    },
+    "b2c-product": {
+      "name": "B2C Growth Dashboard",
+      "category": "B2C / Product-led",
+      "description": "Focus on user growth, conversion, and acquisition cost for consumer products.",
+      "recommendedFor": "Consumer apps or storefronts that need unified growth and revenue tracking.",
+      "datasets": {
+        "subscriptions": {
+          "label": "Revenue / Orders",
+          "description": "Each row represents an order or subscription."
+        },
+        "acquisition": {
+          "label": "Acquisition Channels",
+          "description": "Spend and performance per acquisition channel."
+        }
+      }
+    }
+  },
+  "datasets": {
+    "labels": {
+      "subscriptions": "Subscriptions",
+      "churn": "Churn",
+      "acquisition": "Acquisition"
+    },
+    "optional": "(Optional)",
+    "notUploaded": "(Not uploaded)"
+  },
+  "metrics": {
+    "definitions": {
+      "mrr": {
+        "title": "Monthly Recurring Revenue",
+        "subtitle": "MRR"
+      },
+      "arr": {
+        "title": "Annual Recurring Revenue",
+        "subtitle": "ARR"
+      },
+      "churnRate": {
+        "title": "Customer Churn Rate",
+        "subtitle": "Churn Rate"
+      },
+      "ltv": {
+        "title": "Customer Lifetime Value",
+        "subtitle": "LTV"
+      },
+      "activeCustomers": {
+        "title": "Active Customers",
+        "subtitle": "Active"
+      },
+      "conversionRate": {
+        "title": "Conversion Rate",
+        "subtitle": "Conversion"
+      },
+      "averageOrderValue": {
+        "title": "Average Order Value",
+        "subtitle": "AOV"
+      },
+      "cac": {
+        "title": "Customer Acquisition Cost",
+        "subtitle": "CAC"
+      }
+    },
+    "change": {
+      "up": "Increase of {{value}}%",
+      "down": "Decrease of {{value}}%"
+    }
+  },
+  "charts": {
+    "revenueTrend": "MRR Trend",
+    "acquisitionTrend": "Acquisition vs Churn",
+    "revenueByMonth": "Monthly Revenue Trend",
+    "channelPerformance": "Channel Performance"
+  },
+  "import": {
+    "title": "CSV Import Wizard",
+    "subtitle": "Import multiple datasets, map fields, preview KPIs, and apply them to the dashboard. Data stays in browser memory for safety.",
+    "steps": {
+      "template": {
+        "title": "Choose KPI Template",
+        "description": "Select the preset metrics that match your business."
+      },
+      "upload": {
+        "title": "Upload CSV Data",
+        "description": "Drag and drop multiple data sources."
+      },
+      "mapping": {
+        "title": "Field Mapping & Cleaning",
+        "description": "Map CSV columns to template fields with auto suggestions."
+      },
+      "review": {
+        "title": "Preview & Import",
+        "description": "Review KPIs and charts, then apply to the dashboard."
+      }
+    },
+    "stepLabel": "Step {{index}}",
+    "dataset": {
+      "hint": "Tip: CSV files must contain a header row; column order is flexible.",
+      "next": "Next: Field Mapping",
+      "loaded": "Loaded {{rows}} rows · {{columns}} columns",
+      "sampleToggle": "View sample"
+    },
+    "mapping": {
+      "hint": "Fields with identical names are mapped automatically. Adjust manually if needed.",
+      "preview": "Preview KPIs",
+      "previewWorking": "Calculating…",
+      "selectColumn": "Select CSV column"
+    },
+    "review": {
+      "intro": "Data parsed successfully. Review the KPIs and charts, then apply them to the dashboard.",
+      "summaryTitle": "Import Summary",
+      "success": "✅ Data applied to dashboard. Return to the main view to confirm the latest KPIs.",
+      "redo": "Apply Again",
+      "apply": "Apply to Dashboard",
+      "applyWorking": "Applying…",
+      "back": "Go Back",
+      "exportCsv": "Export CSV",
+      "exportCsvWorking": "Exporting CSV…",
+      "exportExcel": "Export Excel",
+      "exportExcelWorking": "Exporting Excel…",
+      "viewDashboard": "View Dashboard",
+      "warningTitle": "⚠️ The following items were skipped and will not affect the import:",
+      "warningOverflow": "… Showing the first {{count}} warnings. Check the export for full details.",
+      "warningRow": "Row {{row}}",
+      "warningField": "({{field}})",
+      "downloadStarted": "{{type}} export started."
+    },
+    "preview": {
+      "title": "Data Preview",
+      "subtitle": "Shows up to {{count}} rows. All rows are included in calculations.",
+      "empty": "No preview data yet. Upload CSV files first.",
+      "tabAria": "Dataset switcher",
+      "range": "Showing {{from}}-{{to}} of {{total}}",
+      "prev": "Prev",
+      "next": "Next",
+      "page": "Page {{current}} / {{total}}"
+    },
+    "errors": {
+      "oversize": "File {{name}} exceeds the 10MB limit. Please split and try again.",
+      "parse": "Failed to parse {{name}}: {{message}}",
+      "import": "Import failed. Please try again later.",
+      "export": "{{type}} export failed. Please try again later.",
+      "generic": "Operation failed. Please try again."
+    }
+  }
+}
+

@@ -1,105 +1,62 @@
-# Event Relay Hub — Unified Webhook Management Platform
+# Event Relay Hub | 事件中枢平台
 
-> **Target Audience**: SaaS platforms, payment/logistics aggregation services, technical teams needing unified multi-source Webhook management
->
-> **Core Value**: Multi-source integration + signature verification + forwarding queue + event replay — one-stop solution for stability and observability
+## Pain | 客户痛点
+- Third-party Webhooks (GitHub/Stripe/Notion/custom) use inconsistent payloads and signature algorithms, making maintenance fragile.  /  第三方 Webhook（GitHub、Stripe、Notion、自定义服务）格式与签名算法各异，导致维护成本高、易出错。
+- Missing visibility: no dashboards, retries, or DLQ reports; support teams cannot locate failures quickly.  /  缺少可视化、重试与 DLQ 报告，支持团队难以及时定位失败事件。
+- Replaying or forwarding events requires ad-hoc scripts, risking duplicates or data loss.  /  事件重放/转发依赖临时脚本，容易出现重复或丢失。
 
-[中文版本 Chinese Version](./README.md)
+## Solution | 解决方案
+- Unified intake supporting GitHub / Stripe / Slack / custom sources with signature templates and visual toggles.  /  支持多源接入并内置签名模板，可视化启停管理。
+- Event persistence (SQLite/PostgreSQL), idempotent handling, exponential backoff, DLQ, search, replay, batch forwarding.  /  事件持久化、幂等处理、指数退避、DLQ、检索与批量重放/转发。
+- Operational console + REST APIs showing success rate, latency, error breakdown, and Prometheus metrics.  /  控制台 + API 同步呈现成功率、延迟、错误类型，并输出 Prometheus 指标。
+- Field mapping & workflows push events to internal services, message queues, or external vendors.  /  字段映射与编排可将事件推送至内部服务、消息队列或第三方平台。
 
----
+## Deliverables | 交付清单
+- **Live Demo | 在线演示**: `http://localhost:8202`（附示例事件，一键导入）。
+- **Operations Console | 运维控制台**: `/console/events` 过滤/分页/批量重放；`/console/signatures` 管理签名模板。
+- **Docs & APIs | 文档与接口**: Swagger (`/api/docs`)、Postman 集合、部署指南、告警策略、环境变量模板。
+- **Reports | 智能报表**: 成功率/延迟统计、DLQ 审计、Prometheus + Grafana 集成手册。
+- **Source & Docker | 源码与 Docker**: FastAPI 后端、队列/转发模块、Tailwind 仪表盘、Docker Compose。
 
-## 1. Pain Points
-
-- **Messy third-party callback formats**: GitHub / Stripe / Notion / custom services have different formats — code hard to maintain
-- **Cumbersome signature verification & retry**: Different algorithms, failure hard to track, often missed or duplicated events
-- **Lack of visualization & audit**: No logs or alerts, operations/support can't quickly locate issues
-
-## 2. Solution & Value
-
-- One-stop integration for GitHub / Stripe / Slack / custom sources with built-in signature templates, visual enable/disable
-- Event persistence (SQLite / PostgreSQL), support search, replay, dead-letter queue (DLQ), rate limiting
-- Dashboard + API dual mode, visualize success rate, latency, error types, support report export
-- Field mapping & forwarding orchestration, seamlessly push events to internal services or third-party vendors
-
-## 3. Deliverables
-
-- 🖥️ **Live Demo**: `http://localhost:8202` (with sample events, one-click import)
-- 📦 **Source Code & Docker Templates**: FastAPI backend, queue/forwarding modules, Tailwind dashboard
-- 📕 **Documentation Suite**: Deployment guide, signature config, alert strategy, environment variable examples
-- 🧪 **API / Postman**: `http://localhost:8202/api/docs` and `postman/event_relay_hub.postman_collection.json` (includes "DLQ replay loop" scenario: replay failed → enter DLQ → batch retry → clear)
-- 🛠️ **Operations Console**: `http://localhost:8202/console/events` supports filtering, pagination, multi-select batch replay/delete/clear DLQ; `/console/signatures` manages signature templates
-- 📈 **Operations Report Templates**: Success rate and latency stats, DLQ audit, Prometheus/Grafana integration guide
-
-## 4. Timeline & Process
-
-1. **Requirements Clarification (Day 0)**: Confirm event sources, signature algorithms, forwarding targets, SLA, deployment environment
-2. **PoC Demo (Day 3-5)**: Deliver demo (with sample events/dashboard), coordinate signature and alert integration
-3. **Feature Completion (Day 6-12)**: Connect real sources, configure retry/rate limiting, deploy test/production
-4. **Acceptance & Handover (Day 12+)**: Deliver source code, logging solution, emergency plan, joint acceptance
-
-## 5. SLA & Quality Assurance
-
-- **Response Commitment**: <1 hour reply, 24h project kickoff meeting
-- **Accessibility**: Dashboard complies with WCAG 2.1 AA, supports keyboard navigation, dark mode, RTL
-- **Performance & Reliability**: Idempotent processing + exponential backoff retry + DLQ, structured logging and metrics
-- **Security & Compliance**: Strict signature validation, credentials in `.env`, can deploy in your VPC
-- **Post-Delivery Support**: 7~30 days remote support and operations coaching based on package tier
-
-## 6. KPI & Outcomes
-
-- Go live with 3 key sources in 1 week, target forwarding success rate ≥99.9%
-- Average event latency <300ms, error location time reduced by 80%
-- Support 100k+ events daily throughput with complete audit trail
-
-## 7. FAQ
-
-**Q1: Support internal network / dedicated line sources?**  
-A: Yes. Can deploy in your VPC / Kubernetes, Premium package can assist with internal network tunneling or proxy configuration.
-
-**Q2: Can do field mapping or filtering?**  
-A: Standard tier supports JSONPath/regex filtering; Premium offers custom scripting and multi-target orchestration.
-
-**Q3: How to ensure events are not lost or duplicated?**  
-A: Default idempotent validation, retry strategy, DLQ enabled, with audit logs; optional RabbitMQ/Kafka enhancement.
-
-## 8. Why Choose Me?
-
-✅ **Fast Response**: <1 hour reply, clear milestones, transparent progress  
-✅ **Platform Protection**: Fiverr/Upwork transaction guarantee, escrow payment  
-✅ **Best Practices**: WCAG 2.1 AA, structured logging, comprehensive testing  
-✅ **Proven Delivery**: 19/19 tests passing, production-ready with Docker support
-
-## 9. Next Steps
-
-- 🔵 [Upwork — Hire Me](https://www.upwork.com/fl/yourname)
-- 🟢 [Fiverr — View Packages](https://www.fiverr.com/yourname)
-- 📧 [Email — Book Demo](mailto:you@example.com?subject=Event%20Relay%20Hub%20Consultation)
-- 🚀 [Local Demo — Try Now](http://localhost:8202)
-
-> "Let the event hub manage messy Webhooks, so your team can focus on business iteration."
-
----
-
-## Quick Start
-
+**Quick Start | 快速开始**
 ```bash
 cd event-relay-hub
-.\start.ps1    # Windows
-# or
-./start.sh     # Linux/Mac
+./start.ps1   # Windows
+# 或
+./start.sh    # Linux / Mac
 ```
+10 秒后访问 `http://localhost:8202`；控制台提供示例事件导入/重置按钮。
 
-Visit `http://localhost:8202` after 10 seconds.
+## Timeline | 交付周期
+1. **Discovery (Day 0)** — Confirm event sources, signature schemes, forwarding targets, SLA, deployment scope.  /  确认事件来源、签名算法、转发目标、SLA 与部署范围。
+2. **PoC Demo (Day 3-5)** — Showcase dashboard, alert pipeline, DLQ replay loop with sample data.  /  PoC 演示仪表盘、告警链路与 DLQ 重放。
+3. **Hardening (Day 6-12)** — Connect production sources, configure retry/rate limit, finalize logging & metrics.  /  接入真实源、配置重试/限流，完善日志与监控。
+4. **Launch & Training (Day 12+)** — Deliver source, runbooks, emergency plan, and joint acceptance.  /  提交源码、运维手册、应急预案，协助验收上线。
 
-## Tech Stack
+## SLA | 服务保障
+- <1 hour response, kickoff within 24h.  /  首次响应 <1 小时，24 小时内启动项目。
+- WCAG 2.1 AA dashboard, keyboard accessible, dark mode, RTL-friendly.  /  符合 WCAG 2.1 AA，支持键盘、暗色与 RTL。
+- Idempotent pipeline with retry/backoff, DLQ, structured logging, Prometheus metrics.  /  幂等处理、重试退避、DLQ、结构化日志与 Prometheus 指标。
+- Credentials isolated in `.env`, deployable in VPC/Kubernetes, optional private network tunnel support.  /  凭据独立 `.env`，支持 VPC/K8s 部署，可选内网穿透支持。
 
-- **Backend**: Python 3.10+, FastAPI, SQLAlchemy
-- **Database**: SQLite / PostgreSQL
-- **Queue**: In-memory (Redis/RabbitMQ ready)
-- **Testing**: pytest (19/19 passing)
-- **Deployment**: Docker, Docker Compose
+## KPI | 成功指标
+- Go live with 3 core sources within 1 week; forwarding success rate ≥99.9%.  /  1 周内上线 3 个核心来源，转发成功率 ≥99.9%。
+- Average event latency <300ms; troubleshooting time reduced by 80%.  /  平均事件延迟 <300ms，故障定位时间缩短 80%。
+- Sustain 100k+ events/day with full audit trail.  /  单日支撑 10 万级事件并保持完整审计。
 
----
+## FAQ | 常见问题
+- **Support private network sources? / 支持内网或专线来源吗？**  \
+  Yes—Premium package assists with VPC/K8s deployment and network tunneling.  /  是，进阶套餐可协助 VPC/K8s 部署与内网穿透。
+- **Field mapping & filtering? / 支持字段映射与过滤吗？**  \
+  Standard tier provides JSONPath/regex; Premium enables custom scripting & multi-target orchestration.  /  Standard 支持 JSONPath/正则过滤，Premium 提供自定义脚本与多目标编排。
+- **Prevent duplication or loss? / 如何避免重复或丢失？**  \
+  Built-in idempotency keys, retry, DLQ, and audit logs; optional RabbitMQ/Kafka integration.  /  内置幂等键、重试、DLQ 与审计日志，可选 RabbitMQ/Kafka 增强。
 
-**Last Updated**: 2025-11-03
+## CTA | 立即行动
+- 📧 [Book a Demo](mailto:you@example.com?subject=Event%20Relay%20Hub%20Consultation) / 邮件预约演示
+- 🗂 [Portal Overview](http://localhost:8101) / 门户导航与实时状态
+- 📑 [Test Playbook](../PORTFOLIO_TEST_GUIDE.zh.md) / 验证剧本（中英对照）
+- 🚀 [Local Demo](http://localhost:8202) / 本地体验入口
+
+**Last Updated | 最近更新**：2025-11-03
 

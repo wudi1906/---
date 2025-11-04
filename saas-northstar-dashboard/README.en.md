@@ -1,103 +1,60 @@
-# SaaS Northstar Dashboard — SaaS Metrics Dashboard Solution
+# SaaS Northstar Dashboard | SaaS 北极星指标看板
 
-> **Target Audience**: SaaS founders, growth teams, operations/financial analysts
->
-> **Core Value**: Import data in 5 minutes, visualize MRR/ARR/Churn/LTV 24/7, support team collaboration and report export
+## Pain | 客户痛点
+- Metrics scattered across Stripe/Paddle/CRM/finance sheets; stakeholders cannot align on a single source of truth.  /  指标散落在 Stripe、Paddle、CRM、财务表格中，团队难以统一视角。
+- Building custom dashboards requires heavy investment in charts, permissions, accessibility, and maintenance.  /  自建看板需投入大量可视化、权限、可访问性与维护成本。
+- Weekly/monthly KPI reports are compiled manually, leading to slow response and human error.  /  周/月报靠人工整合，效率低且易出错。
 
-[中文版本 Chinese Version](./README.md)
+## Solution | 解决方案
+- Built-in B2B SaaS & B2C Growth templates with configurable field mapping; import CSV/JSON in minutes.  /  内置 B2B/B2C KPI 模板与字段映射，几分钟内导入 CSV/JSON。
+- Multi-step wizard (template → upload → mapping → preview) auto-calculates MRR/ARR/Churn/LTV/CAC.  /  多步导入向导自动计算 MRR/ARR/Churn/LTV/CAC。
+- Accessibility-first Next.js app with light/dark themes, chart presets, PNG/PDF export, and collaboration notes.  /  基于 Next.js 的可访问性体验，支持明暗主题、图表预设、PNG/PDF 导出与协作备注。
+- Data validation, anomaly detection, and scheduled exports keep weekly reports accurate and automate investor decks.  /  数据校验与异常提醒确保周报准确，可定时导出投资人材料。
 
----
+## Deliverables | 交付清单
+- **Live Demo | 在线演示**: `http://localhost:8303` 支持 KPI 模板切换与示例数据。
+- **Import Wizard | 导入中心**: `/import` 多 CSV 上传、自动字段匹配、预览确认。
+- **Docs & APIs | 文档与接口**: Swagger (`/api/templates`, `/api/import`, `/api/exports`)、Postman 流程、指标字典、导出流程指南。
+- **Source & Deployment | 源码与部署**: Next.js 14 + Tailwind + Zustand、Docker/Vercel 配置、CI 建议。
 
-## 1. Pain Points
-
-- **Metrics scattered** across Stripe / Paddle / CRM / finance spreadsheets — hard to aggregate for decision-making
-- **Building custom dashboards** requires continuous maintenance of visualization, permissions, accessibility — high investment
-- **Weekly/monthly KPI reports** need manual compilation — inefficient and error-prone
-
-## 2. Solution & Value
-
-- Built-in B2B SaaS / B2C Growth KPI templates, support custom field mapping and extensions
-- Multi-CSV import wizard (template selection → upload → field mapping → preview), real-time calculation of MRR/ARR/Churn/CAC/LTV
-- Accessibility-first, light/dark dual themes, charts with built-in color standards and PNG/PDF export (print-friendly)
-- Data validation and exception alerts, avoid metric distortion from null values/currency errors; support channel acquisition and churn comparison analysis
-
-## 3. Deliverables
-
-- 🖥️ **Live Demo**: `http://localhost:8303` (with sample data and KPI template switching)
-- 📥 **Multi-Step Import Center**: `http://localhost:8303/import`, supports multi-CSV upload, auto-match fields, preview validation
-- 📦 **Source Code & Deployment Scripts**: Next.js 14, Tailwind, Zustand state library, Docker/Vercel config
-- 📕 **Documentation**: Deployment guide, metrics dictionary, export process, KPI template guide, field mapping manual
-- 🧪 **API / Postman**: `http://localhost:8303/api/templates`, `/api/import`, `/api/exports` endpoints and `postman/saas_northstar_dashboard.postman_collection.json` (includes import→validation→export loop scenario)
-
-## 4. Timeline & Process
-
-1. **Requirements Clarification (Day 0)**: Confirm metric scope, currency, data source formats, collaboration roles, deployment method
-2. **PoC Demo (Day 2-4)**: Provide demo (with sample data), confirm metrics and visualization templates
-3. **Feature Completion (Day 5-10)**: Connect real data, configure export/weekly reports, complete deployment
-4. **Acceptance & Handover (Day 10+)**: Verify KPIs, deliver operation manual/training recordings, provide rollback plan
-
-## 5. SLA & Quality Assurance
-
-- **Response Commitment**: <1 hour reply, 24h kickoff meeting, 7~30 days support based on package tier
-- **Accessibility**: Dashboard complies with WCAG 2.1 AA, supports keyboard navigation, screen readers, RTL layout
-- **Performance**: Built-in structured logging, slow query tracking, metric validation; export speed <1s (standard data volume)
-- **Security**: Deploy on Vercel/Render/Docker, manage secrets in `.env.local`, provide security hardening recommendations
-
-## 6. KPI & Outcomes
-
-- Deliver online dashboard in 3 days, show key metrics in first meeting
-- Metric accuracy ≥99%, report generation time reduced from hours to minutes
-- Team collaboration efficiency improved 2×, stable investor/board reporting cycle
-
-## 7. FAQ
-
-**Q1: Only CSV data sources supported?**  
-A: Basic/Standard default CSV; Premium can connect Stripe/Paddle/Chargebee/custom APIs for scheduled sync.
-
-**Q2: How do team members collaborate?**  
-A: Standard tier provides multi-user role management; Premium supports SSO, permission hierarchy, and multi-tenancy.
-
-**Q3: How to ensure data security?**  
-A: Can deploy in customer cloud environment, sensitive info saved in `.env.local`, provide access control and security audit recommendations.
-
-## 8. Why Choose Me?
-
-✅ **Fast Response**: <1 hour reply, clear milestones, transparent progress  
-✅ **Platform Protection**: Fiverr/Upwork transaction guarantee, escrow payment  
-✅ **Best Practices**: Next.js 14, Chart.js, better-sqlite3, comprehensive testing  
-✅ **Proven Delivery**: Production-ready with Docker and Vercel deployment configs
-
-## 9. Next Steps
-
-- 🔵 [Upwork — Hire Me](https://www.upwork.com/fl/yourname)
-- 🟢 [Fiverr — View Packages](https://www.fiverr.com/yourname)
-- 📧 [Email — Book Demo](mailto:you@example.com?subject=SaaS%20Northstar%20Dashboard%20Consultation)
-- 🚀 [Local Demo — Try Now](http://localhost:8303)
-
-> "Build your SaaS Northstar metrics dashboard — from data to insights in just one step."
-
----
-
-## Quick Start
-
+**Quick Start | 快速开始**
 ```bash
 cd saas-northstar-dashboard
 npm install
 npm run dev
 ```
+10 秒后访问 `http://localhost:8303`，导入示例模板即可体验完整流程。
 
-Visit `http://localhost:8303` after 10 seconds.
+## Timeline | 交付周期
+1. **Discovery (Day 0)** — Confirm metric scope, currency, data source formats, collaboration workflow.  /  确认指标范围、币种、数据源格式与协作流程。
+2. **PoC Demo (Day 2-4)** — Provide sample dashboard with seeded data, review KPI layout and storytelling.  /  交付示例看板，审查 KPI 结构与叙事。
+3. **Hardening (Day 5-10)** — Connect production data, set up scheduled exports, polish charts and accessibility.  /  接入真实数据，配置定时导出，优化图表与可访问性。
+4. **Launch & Training (Day 10+)** — Deliver source, operations handbook, training video, rollback plan.  /  提交源码与运维手册，录制培训，提供回滚方案。
 
-## Tech Stack
+## SLA | 服务保障
+- <1 hour response, kickoff within 24h, 7/14/30 day support by package tier.  /  首次响应 <1 小时，24 小时内 Kick-off，并提供 7/14/30 天远程支持。
+- WCAG 2.1 AA compliant UI, keyboard navigation, screen reader labels, RTL support.  /  UI 符合 WCAG 2.1 AA，支持键盘、读屏、RTL。
+- Structured logging, slow query tracing, automated tests, export speed <1s (standard volume).  /  结构化日志、慢查询排查、自动化测试，标准数据量导出 <1 秒。
+- Secrets isolated in `.env.local`, Docker + Vercel templates with security hardening checklist.  /  凭据集中 `.env.local`，提供 Docker/Vercel 配置与安全加固清单。
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Styling**: Tailwind CSS
-- **Charts**: Chart.js
-- **State**: Zustand
-- **Database**: better-sqlite3
-- **Deployment**: Vercel, Docker
+## KPI | 成功指标
+- Deliver live dashboard within 3 days; showcase key KPIs in first stakeholder meeting.  /  3 天内交付在线看板，于首次会议展示核心指标。
+- Metric accuracy ≥99%; report generation time reduced from hours to minutes.  /  指标准确率 ≥99%，周报生成从数小时缩短至分钟级。
+- 2× collaboration efficiency, predictable investor/board reporting cadence.  /  协同效率提升 2 倍，投资人/董事会汇报节奏稳定。
 
----
+## FAQ | 常见问题
+- **Only CSV supported? / 是否仅支持 CSV？**  \
+  Basic/Standard ship with CSV; Premium connects Stripe/Paddle/Chargebee/custom APIs for scheduled sync.  /  Basic/Standard 支持 CSV，Premium 可对接 Stripe/Paddle/Chargebee/API 定时同步。
+- **Team collaboration? / 团队如何协作？**  \
+  Standard adds role management; Premium enables SSO, permission hierarchy, multi-tenancy.  /  Standard 提供角色管理，Premium 支持 SSO、权限分级与多租户。
+- **Data security? / 数据安全如何保障？**  \
+  Deploy in customer cloud, secrets in `.env.local`, optional SOC2-ready hardening checklist.  /  可部署在客户云环境，凭据保存在 `.env.local`，提供安全加固建议。
 
-**Last Updated**: 2025-11-03
+## CTA | 立即行动
+- 📧 [Book a Demo](mailto:you@example.com?subject=SaaS%20Northstar%20Dashboard%20Consultation) / 邮件预约演示
+- 🗂 [Portal Overview](http://localhost:8101) / 门户导航与实时状态
+- 📑 [Test Playbook](../PORTFOLIO_TEST_GUIDE.zh.md) / 验证剧本（中英对照）
+- 🚀 [Local Demo](http://localhost:8303) / 本地体验入口
+
+**Last Updated | 最近更新**：2025-11-03
 

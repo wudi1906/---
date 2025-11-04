@@ -1,86 +1,60 @@
-# SaaS Northstar Dashboard · SaaS 指标看板解决方案
+# SaaS Northstar Dashboard | SaaS 北极星指标看板
 
-[English Version](./README.en.md) | 中文版本
+## Pain | 客户痛点
+- Metrics scattered across Stripe/Paddle/CRM/finance sheets; stakeholders cannot align on a single source of truth.  /  指标散落在 Stripe、Paddle、CRM、财务表格中，团队难以统一视角。
+- Building custom dashboards requires heavy investment in charts, permissions, accessibility, and maintenance.  /  自建看板需投入大量可视化、权限、可访问性与维护成本。
+- Weekly/monthly KPI reports are compiled manually, leading to slow response and human error.  /  周/月报靠人工整合，效率低且易出错。
 
-> **适用对象**：SaaS 创业者、增长团队、运营/财务分析师
->
-> **核心卖点**：5 分钟导入数据，全天候可视化 MRR/ARR/Churn/LTV，支持团队协作与报告导出。
+## Solution | 解决方案
+- Built-in B2B SaaS & B2C Growth templates with configurable field mapping; import CSV/JSON in minutes.  /  内置 B2B/B2C KPI 模板与字段映射，几分钟内导入 CSV/JSON。
+- Multi-step wizard (template → upload → mapping → preview) auto-calculates MRR/ARR/Churn/LTV/CAC.  /  多步导入向导自动计算 MRR/ARR/Churn/LTV/CAC。
+- Accessibility-first Next.js app with light/dark themes, chart presets, PNG/PDF export, and collaboration notes.  /  基于 Next.js 的可访问性体验，支持明暗主题、图表预设、PNG/PDF 导出与协作备注。
+- Data validation, anomaly detection, and scheduled exports keep weekly reports accurate and automate investor decks.  /  数据校验与异常提醒确保周报准确，可定时导出投资人材料。
 
----
+## Deliverables | 交付清单
+- **Live Demo | 在线演示**: `http://localhost:8303` 支持 KPI 模板切换与示例数据。
+- **Import Wizard | 导入中心**: `/import` 多 CSV 上传、自动字段匹配、预览确认。
+- **Docs & APIs | 文档与接口**: Swagger (`/api/templates`, `/api/import`, `/api/exports`)、Postman 流程、指标字典、导出流程指南。
+- **Source & Deployment | 源码与部署**: Next.js 14 + Tailwind + Zustand、Docker/Vercel 配置、CI 建议。
 
-## 1. 背景与痛点 · Background & Pain
-- 指标散落在 Stripe / Paddle / CRM / 财务表格，决策时难以聚合。
-- 自建看板需要持续维护可视化、权限、可访问性，投入高。
-- 每周/月 KPI 报告需手动整理，低效且易出错。
+**Quick Start | 快速开始**
+```bash
+cd saas-northstar-dashboard
+npm install
+npm run dev
+```
+10 秒后访问 `http://localhost:8303`，导入示例模板即可体验完整流程。
 
-## 2. 解决方案 · Solution & Value
-- 内置 B2B SaaS / B2C Growth 两套 KPI 模板，支持自定义字段映射与扩展。
-- 多 CSV 导入向导（模板选择 → 上传 → 字段映射 → 预览），实时计算 MRR/ARR/Churn/CAC/LTV。
-- 可访问性优先、暗色/浅色双主题，图表内置配色规范与导出 PNG / PDF（打印友好）。
-- 数据校验与异常提示，避免因空值/币种错误导致指标失真；支持渠道获客与流失对比分析。
+## Timeline | 交付周期
+1. **Discovery (Day 0)** — Confirm metric scope, currency, data source formats, collaboration workflow.  /  确认指标范围、币种、数据源格式与协作流程。
+2. **PoC Demo (Day 2-4)** — Provide sample dashboard with seeded data, review KPI layout and storytelling.  /  交付示例看板，审查 KPI 结构与叙事。
+3. **Hardening (Day 5-10)** — Connect production data, set up scheduled exports, polish charts and accessibility.  /  接入真实数据，配置定时导出，优化图表与可访问性。
+4. **Launch & Training (Day 10+)** — Deliver source, operations handbook, training video, rollback plan.  /  提交源码与运维手册，录制培训，提供回滚方案。
 
-## 3. 交付清单 · Deliverables
-- 🖥️ **Live Demo**：`http://localhost:8303`（含示例数据与 KPI 模板切换）。
-- 📥 **多步导入中心**：`http://localhost:8303/import`，支持多 CSV 上传、自动匹配字段、预览校验。
-- 📦 **源代码与部署脚本**：Next.js 14、Tailwind、Zustand 状态库、Docker/Vercel 配置。
-- 📕 **使用文档**：部署指南、指标字典、导出流程、KPI 模板说明、字段映射手册。
-- 🧪 **API / Postman**：`http://localhost:8303/api/templates`、`/api/import`、`/api/exports` 等接口及 `postman/saas_northstar_dashboard.postman_collection.json`（含导入→校验→导出闭环场景）。
+## SLA | 服务保障
+- <1 hour response, kickoff within 24h, 7/14/30 day support by package tier.  /  首次响应 <1 小时，24 小时内 Kick-off，并提供 7/14/30 天远程支持。
+- WCAG 2.1 AA compliant UI, keyboard navigation, screen reader labels, RTL support.  /  UI 符合 WCAG 2.1 AA，支持键盘、读屏、RTL。
+- Structured logging, slow query tracing, automated tests, export speed <1s (standard volume).  /  结构化日志、慢查询排查、自动化测试，标准数据量导出 <1 秒。
+- Secrets isolated in `.env.local`, Docker + Vercel templates with security hardening checklist.  /  凭据集中 `.env.local`，提供 Docker/Vercel 配置与安全加固清单。
 
-## 4. 实施流程与周期 · Process & Timeline
-1. **需求澄清（Day 0）**：确认指标范围、币种、数据源格式、协作角色、部署方式。
-2. **PoC 演示（Day 2-4）**：提供 Demo（含示例数据），确认指标与可视化模板。
-3. **功能完善（Day 5-10）**：接入真实数据、配置导出/周报、完成部署。
-4. **验收交接（Day 10+）**：核对 KPI、交付操作手册/培训录屏、提供回滚方案。
+## KPI | 成功指标
+- Deliver live dashboard within 3 days; showcase key KPIs in first stakeholder meeting.  /  3 天内交付在线看板，于首次会议展示核心指标。
+- Metric accuracy ≥99%; report generation time reduced from hours to minutes.  /  指标准确率 ≥99%，周报生成从数小时缩短至分钟级。
+- 2× collaboration efficiency, predictable investor/board reporting cadence.  /  协同效率提升 2 倍，投资人/董事会汇报节奏稳定。
 
-## 5. SLA 与质量保证 · SLA & Quality
-- < 1 小时响应，24h 内安排 Kick-off，按套餐提供 7~30 天支持。
-- 仪表盘符合 WCAG 2.1 AA，支持键盘导航、屏幕阅读器、RTL 布局。
-- 内置结构化日志、慢查询追踪、指标校验；导出速度 < 1s（标准数据量）。
-- 部署可选 Vercel/Render/Docker，本地 `.env.local` 管理密钥，提供安全加固建议。
+## FAQ | 常见问题
+- **Only CSV supported? / 是否仅支持 CSV？**  \
+  Basic/Standard ship with CSV; Premium connects Stripe/Paddle/Chargebee/custom APIs for scheduled sync.  /  Basic/Standard 支持 CSV，Premium 可对接 Stripe/Paddle/Chargebee/API 定时同步。
+- **Team collaboration? / 团队如何协作？**  \
+  Standard adds role management; Premium enables SSO, permission hierarchy, multi-tenancy.  /  Standard 提供角色管理，Premium 支持 SSO、权限分级与多租户。
+- **Data security? / 数据安全如何保障？**  \
+  Deploy in customer cloud, secrets in `.env.local`, optional SOC2-ready hardening checklist.  /  可部署在客户云环境，凭据保存在 `.env.local`，提供安全加固建议。
 
-## 6. KPI / 成功指标占位 · KPI & Outcomes
-- 3 天内交付在线看板，首轮会议即展示关键指标。
-- 指标准确率 ≥ 99%，报告生成时间从小时级缩短到分钟级。
-- 团队协作效率提升 2×，投资人/董事会汇报周期稳定。
+## CTA | 立即行动
+- 📧 [Book a Demo](mailto:you@example.com?subject=SaaS%20Northstar%20Dashboard%20Consultation) / 邮件预约演示
+- 🗂 [Portal Overview](http://localhost:8101) / 门户导航与实时状态
+- 📑 [Test Playbook](../PORTFOLIO_TEST_GUIDE.zh.md) / 验证剧本（中英对照）
+- 🚀 [Local Demo](http://localhost:8303) / 本地体验入口
 
-## 7. 常见问题 · FAQ
-**Q1：数据源只支持 CSV 吗？**  
-A：Basic/Standard 默认 CSV；Premium 可对接 Stripe/Paddle/Chargebee/自定义 API，实现定时同步。
-
-**Q2：团队成员如何协作？**  
-A：Standard 起提供多用户角色管理；Premium 支持 SSO、权限分级与多租户。
-
-**Q3：如何保障数据安全？**  
-A：可部署在客户云环境，敏感信息保存在 `.env.local`，提供访问控制与安全审计建议。
-
-## 8. CTA · 下一步行动
-- 🔵 [Upwork · 立即咨询](https://www.upwork.com/fl/yourname)
-- 🟢 [Fiverr · 套餐下单](https://www.fiverr.com/yourname)
-- 📧 [Email · 预约演示](mailto:you@example.com?subject=SaaS%20Northstar%20Dashboard%20Consultation)
-- 🚀 [本地 Demo · 立即体验](http://localhost:8303)
-
-> “打造属于你的 SaaS 北极星指标看板，从数据到洞察只需一步。”
-
----
-
-## 9. KPI 模板与导入流程指南
-- **模板选择**：B2B SaaS 聚焦 MRR/ARR/Churn/LTV，B2C 面向订单/获客；可在首页下拉快速切换。
-- **导入步骤**：模板 → 上传 CSV → 字段映射 → KPI/图表预览；所有步骤具备键盘导航与语义化反馈。
-- **字段映射**：系统自动匹配同名列，可手动调整；支持查看示例 CSV，避免格式错误。
-- **图表导出**：每个图表支持 PNG 下载与 PDF（浏览器打印）导出，便于周报/投资人分享。
-- **API**：`GET /api/templates` 返回可用 KPI 模板及字段要求，便于自建脚本或外部工具对接。
-
-## 10. 本地启动与测试 · Local Setup
-- **安装依赖**：在 `saas-northstar-dashboard` 目录执行 `npm install`（依赖 `better-sqlite3`，需 Node.js ≥ 18）。
-- **开发启动**：`npm run dev`，默认监听 `http://localhost:8303`。
-- **运行测试**：`npm test`（Vitest，将校验导入计算逻辑与导出流程）。
-- **数据库位置**：导入记录保存在 `data/dashboard.db`，可删除该文件以重置环境。
-- **Postman 场景**：导入集合 `postman/saas_northstar_dashboard.postman_collection.json`，顺序执行“导入样例数据 → 查询最新导入 → 导出 CSV/Excel”即可验证全链路。
-
-## 11. 故障排查 · Troubleshooting
-- **导入返回 400**：检查必填数据集是否遗漏或未映射字段（接口将返回对应提示）。
-- **警告较多**：API 仅跳过格式错误的行，下载导出文件可查看完整告警并修正源数据。
-- **导出 404**：需先成功调用 `POST /api/import`；若多次导入，可使用 `GET /api/import/latest` 确认最新记录时间。
-- **better-sqlite3 编译失败**：确保本地具备 Node.js 预编译二进制（Windows x64）或在具备构建工具链的环境下安装。
-- **前端未刷新 KPI**：导入成功后仪表盘会自动更新，如仍展示旧数据，可执行浏览器硬刷新或再次调用导入接口。
+**Last Updated | 最近更新**：2025-11-03
 

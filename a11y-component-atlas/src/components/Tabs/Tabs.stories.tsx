@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsProps } from "./Tabs";
+import { useI18n } from "@/i18n";
 
 const meta: Meta<typeof Tabs> = {
   title: "Tabs",
@@ -38,6 +39,11 @@ type Story = StoryObj<typeof Tabs>;
 function BasicStoryComponent(args: TabsProps) {
   const [current, setCurrent] = useState(args.value ?? args.defaultValue ?? "overview");
   const controlled = args.value !== undefined;
+  const { t } = useI18n();
+  const pricingItems = useMemo(
+    () => t("tabs.basic.plan.items").split("\n").filter(Boolean),
+    [t]
+  );
   return (
     <Tabs
       {...args}
@@ -50,29 +56,25 @@ function BasicStoryComponent(args: TabsProps) {
       className="w-[420px]"
     >
       <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="plan">Pricing Plan</TabsTrigger>
-        <TabsTrigger value="usage">Usage</TabsTrigger>
+        <TabsTrigger value="overview">{t("tabs.basic.overview.label")}</TabsTrigger>
+        <TabsTrigger value="plan">{t("tabs.basic.plan.label", t("tabs.basic.plan.heading"))}</TabsTrigger>
+        <TabsTrigger value="usage">{t("tabs.basic.usage.label")}</TabsTrigger>
       </TabsList>
       <TabsContent value="overview">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Overview</h3>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Provide a quick summary of product or feature. Keep content concise and actionable.
-        </p>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{t("tabs.basic.overview.heading")}</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{t("tabs.basic.overview.body")}</p>
       </TabsContent>
       <TabsContent value="plan">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Pricing</h3>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{t("tabs.basic.plan.heading")}</h3>
         <ul className="mt-2 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-          <li>Starter – $29/mo</li>
-          <li>Growth – $79/mo</li>
-          <li>Enterprise – Contact us</li>
+          {pricingItems.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
         </ul>
       </TabsContent>
       <TabsContent value="usage">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Usage</h3>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Analytics and retention metrics appear here. Use tabs to separate logical sections of data.
-        </p>
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{t("tabs.basic.usage.heading")}</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{t("tabs.basic.usage.body")}</p>
       </TabsContent>
     </Tabs>
   );
@@ -86,45 +88,53 @@ export const Basic: Story = {
 };
 
 export const DefaultValue: Story = {
-  render: () => (
-    <Tabs defaultValue="reports" className="w-[420px]">
-      <TabsList>
-        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-        <TabsTrigger value="reports">Reports</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-      </TabsList>
-      <TabsContent value="dashboard">
-        <p className="text-sm text-slate-600 dark:text-slate-300">Current month metrics at a glance.</p>
-      </TabsContent>
-      <TabsContent value="reports">
-        <p className="text-sm text-slate-600 dark:text-slate-300">Generate weekly and monthly PDF reports.</p>
-      </TabsContent>
-      <TabsContent value="notifications">
-        <p className="text-sm text-slate-600 dark:text-slate-300">Manage email and in-app notification preferences.</p>
-      </TabsContent>
-    </Tabs>
-  ),
+  render: () => {
+    const { t } = useI18n();
+    return (
+      <Tabs defaultValue="reports" className="w-[420px]">
+        <TabsList>
+          <TabsTrigger value="dashboard">{t("tabs.default.dashboard.label")}</TabsTrigger>
+          <TabsTrigger value="reports">{t("tabs.default.reports.label")}</TabsTrigger>
+          <TabsTrigger value="notifications">{t("tabs.default.notifications.label")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="dashboard">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.default.dashboard.body")}</p>
+        </TabsContent>
+        <TabsContent value="reports">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.default.reports.body")}</p>
+        </TabsContent>
+        <TabsContent value="notifications">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.default.notifications.body")}</p>
+        </TabsContent>
+      </Tabs>
+    );
+  },
 };
 
 export const WithDisabledTab: Story = {
-  render: () => (
-    <Tabs defaultValue="details" className="w-[420px]">
-      <TabsList>
-        <TabsTrigger value="details">Details</TabsTrigger>
-        <TabsTrigger value="insights">Insights</TabsTrigger>
-        <TabsTrigger value="history" disabled>
-          History (coming soon)
-        </TabsTrigger>
-      </TabsList>
-      <TabsContent value="details">
-        <p className="text-sm text-slate-600 dark:text-slate-300">General information about the selected record.</p>
-      </TabsContent>
-      <TabsContent value="insights">
-        <p className="text-sm text-slate-600 dark:text-slate-300">Derived insights and recommended actions.</p>
-      </TabsContent>
-      <TabsContent value="history">
-        <p className="text-sm text-slate-600 dark:text-slate-300">Audit logs will be available soon.</p>
-      </TabsContent>
-    </Tabs>
-  ),
+  render: () => {
+    const { t } = useI18n();
+    return (
+      <Tabs defaultValue="details" className="w-[420px]">
+        <TabsList>
+          <TabsTrigger value="details">{t("tabs.disabled.details.label")}</TabsTrigger>
+          <TabsTrigger value="insights">{t("tabs.disabled.insights.label")}</TabsTrigger>
+          <TabsTrigger value="history" disabled>
+            {[t("tabs.disabled.history.label"), t("tabs.disabled.history.suffix")]
+              .filter((part) => part && part.length > 0)
+              .join(" ")}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="details">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.disabled.details.body")}</p>
+        </TabsContent>
+        <TabsContent value="insights">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.disabled.insights.body")}</p>
+        </TabsContent>
+        <TabsContent value="history">
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t("tabs.disabled.history.body")}</p>
+        </TabsContent>
+      </Tabs>
+    );
+  },
 };

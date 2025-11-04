@@ -1,0 +1,119 @@
+{
+  "button": {
+    "labels": {
+      "primary": "Primary Button",
+      "secondary": "Secondary Button",
+      "danger": "Delete",
+      "outline": "Outline Button",
+      "small": "Small Button",
+      "large": "Large Button",
+      "disabled": "Disabled Button"
+    }
+  },
+  "menu": {
+    "trigger": "Menu",
+    "items": {
+      "new": "New File",
+      "open": "Open…",
+      "save": "Save",
+      "export": "Export"
+    },
+    "selectedCount": "Selected count: {{count}}"
+  },
+  "modal": {
+    "trigger": "Open modal",
+    "common": {
+      "cancel": "Cancel",
+      "accept": "Accept",
+      "decline": "Decline",
+      "close": "Close",
+      "sendInvite": "Send invite"
+    },
+    "invite": {
+      "title": "Invite teammates",
+      "description": "Share access to analytics with your colleagues.",
+      "body": "Add teammates to collaborate on your dashboards. Invited users will receive an email with access instructions.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "name@example.com",
+      "roleLabel": "Role",
+      "roles": {
+        "viewer": "Viewer",
+        "editor": "Editor",
+        "admin": "Admin"
+      }
+    },
+    "terms": {
+      "title": "Terms of service",
+      "description": "Review and accept the updated policy.",
+      "paragraphs": [
+        "Our updated policy outlines how we process data, the safeguards we maintain, and the responsibilities for workspace administrators.",
+        "Please take a moment to review the terms carefully. Accepting will enable new collaboration features rolling out this quarter.",
+        "If you have questions about compliance or privacy, contact support before accepting to ensure alignment with your internal policies."
+      ]
+    },
+    "sizes": {
+      "title": "Modal ({{size}})",
+      "description": "Each size changes the maximum width while keeping padding and typography consistent.",
+      "openButton": "Open {{size}} modal",
+      "sizes": {
+        "sm": "small",
+        "md": "medium",
+        "lg": "large"
+      },
+      "body": "Choose the size that best matches your content density. Smaller dialogs increase focus, larger ones are suited for forms or tables."
+    }
+  },
+  "tabs": {
+    "basic": {
+      "overview": {
+        "label": "Overview",
+        "heading": "Overview",
+        "body": "Provide a quick summary of product or feature. Keep content concise and actionable."
+      },
+      "plan": {
+        "label": "Pricing Plan",
+        "heading": "Pricing",
+        "items": [
+          "Starter — $29/mo",
+          "Growth — $79/mo",
+          "Enterprise — Contact us"
+        ]
+      },
+      "usage": {
+        "label": "Usage",
+        "heading": "Usage",
+        "body": "Analytics and retention metrics appear here. Use tabs to separate logical sections of data."
+      }
+    },
+    "default": {
+      "dashboard": {
+        "label": "Dashboard",
+        "body": "Current month metrics at a glance."
+      },
+      "reports": {
+        "label": "Reports",
+        "body": "Generate weekly and monthly PDF reports."
+      },
+      "notifications": {
+        "label": "Notifications",
+        "body": "Manage email and in-app notification preferences."
+      }
+    },
+    "disabled": {
+      "details": {
+        "label": "Details",
+        "body": "General information about the selected record."
+      },
+      "insights": {
+        "label": "Insights",
+        "body": "Derived insights and recommended actions."
+      },
+      "history": {
+        "label": "History",
+        "body": "Audit logs will be available soon.",
+        "suffix": "(coming soon)"
+      }
+    }
+  }
+}
+

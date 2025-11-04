@@ -1,0 +1,118 @@
+{
+  "lang": {
+    "toggle": "中文",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "hero": {
+    "status": "⚡ 服务在线 · FastAPI v{{version}}",
+    "title": "Doc Knowledge Forge",
+    "description": "将文档转化为可检索知识——批量上传 PDF/DOCX/TXT，自动转 Markdown，支持全文 + 语义检索、关键词提取与在线阅读。"
+  },
+  "heroPoints": [
+    "文档接入：多文件拖拽、OCR 友好解析、元数据提取。",
+    "智能加工：自动关键词、摘要、目录、向量分块。",
+    "知识交付：即查即用、Markdown 阅读器、API + 导出自动化。"
+  ],
+  "heroActions": {
+    "projects": {
+      "label": "浏览项目",
+      "aria": "跳转到项目列表"
+    },
+    "packages": {
+      "label": "交付套餐",
+      "aria": "查看交付套餐详情"
+    },
+    "workflow": {
+      "label": "知识工作流",
+      "aria": "查看协作流程"
+    }
+  },
+  "metrics": {
+    "docs": {
+      "label": "已索引文档",
+      "value": "--",
+      "hint": "文档总数"
+    },
+    "size": {
+      "label": "知识体量",
+      "value": "--",
+      "hint": "存储用量"
+    },
+    "fresh": {
+      "label": "24h 新增",
+      "value": "--",
+      "hint": "过去 24 小时"
+    }
+  },
+  "timeline": {
+    "title": "工作流 · 从原始文档到知识资产",
+    "steps": [
+      "Profile：OCR / 元数据 / 版本追踪 / 语言检测",
+      "Chunk & Vectorize：智能分块、嵌入向量、关键词/摘要提取",
+      "Search & Deliver：全文+语义检索、Markdown 阅读器、API 导出自动化"
+    ]
+  },
+  "panels": {
+    "search": {
+      "title": "🔎 全文 + 语义检索",
+      "description": "输入关键词即可检索标题、正文与高亮片段，显示相关度评分与片段预览。",
+      "placeholder": "例如：入职流程、OKR 模板",
+      "button": "搜索",
+      "empty": "未找到相关内容",
+      "loading": "正在加载片段...",
+      "previewHeader": "片段 #{index} · 相关度 {score}",
+      "closePreview": "关闭"
+    },
+    "upload": {
+      "title": "🧾 文档接入与转换",
+      "description": "支持批量上传，统一转 Markdown，抽取元数据并生成 RAG 分块。",
+      "dropHint": "拖拽文件到此处，或点击下方按钮选择文件",
+      "supports": "支持：.pdf · .docx · .doc · .txt · .md · .html",
+      "choose": "选择文件",
+      "import": "导入示例",
+      "reset": "重置数据"
+    },
+    "console": {
+      "title": "🚀 知识运营控制台",
+      "description": "监控接入统计、访问 API、下载导出，并嵌入至 RAG 应用。",
+      "cards": [
+        "角色分工：知识管理员上传、分析师维护标签、开发者消费 API。",
+        "集成场景：Zapier · Notion · Slack 通知 · RAG 流程 (LangChain / LlamaIndex)。",
+        "治理策略：版本管理、标签体系、保留策略、随时删除。"
+      ],
+      "buttons": {
+        "docs": "📘 API 文档",
+        "raw": "📄 原始文档 JSON",
+        "exports": "🗂 Markdown 导出"
+      }
+    },
+    "documents": {
+      "title": "📚 最近上传与知识资产",
+      "hint": "按时间倒序展示，最多 12 条",
+      "empty": "暂无文档，上传文件或导入示例后即可体验。",
+      "tagsEmpty": "暂无标签",
+      "viewMarkdown": "📝 查看 Markdown",
+      "delete": "删除"
+    }
+  },
+  "upload": {
+    "status": {
+      "processing": "正在上传并解析文档...",
+      "uploaded": "已成功上传 {count} 个文件",
+      "failed": "上传失败，请重试"
+    },
+    "progress": {
+      "processing": "上传中，解析并生成向量...",
+      "success": "已完成",
+      "error": "失败",
+      "skipped": "已跳过"
+    },
+    "confirmReset": "确定清空当前数据吗？此操作不可恢复。",
+    "resetSuccess": "数据已清空",
+    "resetFailed": "清空失败"
+  }
+}
+

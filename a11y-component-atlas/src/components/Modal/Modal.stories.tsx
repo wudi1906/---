@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Modal, ModalProps } from "./Modal";
+import { useI18n } from "@/i18n";
 
 const meta: Meta<typeof Modal> = {
   title: "Modal",
@@ -40,8 +41,9 @@ export default meta;
 
 type Story = StoryObj<typeof Modal>;
 
-const Template = (args: Omit<ModalProps, "open" | "onOpenChange">) => {
+const Template = ({ triggerLabel, ...modalProps }: Omit<ModalProps, "open" | "onOpenChange"> & { triggerLabel?: string }) => {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       <button
@@ -49,10 +51,10 @@ const Template = (args: Omit<ModalProps, "open" | "onOpenChange">) => {
         className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
         onClick={() => setOpen(true)}
       >
-        Open modal
+        {triggerLabel ?? t("modal.trigger")}
       </button>
       <Modal
-        {...args}
+        {...modalProps}
         open={open}
         onOpenChange={(next) => {
           setOpen(next);
@@ -63,79 +65,98 @@ const Template = (args: Omit<ModalProps, "open" | "onOpenChange">) => {
 };
 
 export const Basic: Story = {
-  render: () => (
-    <Template
-      title="Invite teammates"
-      description="Share access to analytics with your colleagues."
-      footer={
-        <div className="flex gap-2">
-          <button className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            Cancel
-          </button>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            Send invite
-          </button>
-        </div>
-      }
-    >
-      <p className="text-sm text-slate-600 dark:text-slate-300">
-        Add teammates to collaborate on your dashboards. Invited users will receive an email with access
-        instructions.
-      </p>
-      <form className="mt-4 space-y-3">
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          Email
-          <input
-            type="email"
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-            placeholder="name@example.com"
-          />
-        </label>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          Role
-          <select className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            <option>Viewer</option>
-            <option>Editor</option>
-            <option>Admin</option>
-          </select>
-        </label>
-      </form>
-    </Template>
-  ),
+  render: () => {
+    const { t } = useI18n();
+    const roleOptions = useMemo(
+      () => (["viewer", "editor", "admin"] as const).map((role) => ({
+        value: role,
+        label: t(`modal.invite.roles.${role}`),
+      })),
+      [t]
+    );
+
+    return (
+      <Template
+        title={t("modal.invite.title")}
+        description={t("modal.invite.description")}
+        footer={
+          <div className="flex gap-2">
+            <button className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              {t("modal.common.cancel")}
+            </button>
+            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              {t("modal.common.sendInvite")}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm text-slate-600 dark:text-slate-300">{t("modal.invite.body")}</p>
+        <form className="mt-4 space-y-3">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {t("modal.invite.emailLabel")}
+            <input
+              type="email"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              placeholder={t("modal.invite.emailPlaceholder")}
+            />
+          </label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            {t("modal.invite.roleLabel")}
+            <select className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              {roleOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </form>
+      </Template>
+    );
+  },
 };
 
 export const WithLongContent: Story = {
-  render: () => (
-    <Template
-      title="Terms of service"
-      description="Review and accept the updated policy."
-      footer={
-        <div className="flex gap-2">
-          <button className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            Decline
-          </button>
-          <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-            Accept
-          </button>
+  render: () => {
+    const { t } = useI18n();
+    const paragraphs = useMemo(
+      () => t("modal.terms.paragraphs").split("\n").filter(Boolean),
+      [t]
+    );
+
+    return (
+      <Template
+        title={t("modal.terms.title")}
+        description={t("modal.terms.description")}
+        footer={
+          <div className="flex gap-2">
+            <button className="rounded-lg bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              {t("modal.common.decline")}
+            </button>
+            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+              {t("modal.common.accept")}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
+          {paragraphs.map((paragraph, index) => (
+            <p key={index}>{paragraph}</p>
+          ))}
         </div>
-      }
-    >
-      <div className="space-y-3 text-sm text-slate-600 dark:text-slate-300">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <p key={index}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus
-            ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent
-            mauris. Fusce nec tellus sed augue semper porta.
-          </p>
-        ))}
-      </div>
-    </Template>
-  ),
+      </Template>
+    );
+  },
 };
 
 export const Sizes: Story = {
   render: () => {
     const [openSize, setOpenSize] = useState<"sm" | "md" | "lg" | null>(null);
+    const { t } = useI18n();
+    const labelFor = useCallback(
+      (size: "sm" | "md" | "lg") => t(`modal.sizes.sizes.${size}`),
+      [t]
+    );
     return (
       <div className="flex gap-3">
         {(["sm", "md", "lg"] as const).map((size) => (
@@ -145,7 +166,7 @@ export const Sizes: Story = {
             onClick={() => setOpenSize(size)}
             className="rounded-lg bg-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
           >
-            Open {size} modal
+            {t("modal.sizes.openButton", undefined, { size: labelFor(size) })}
           </button>
         ))}
         {openSize ? (
@@ -157,22 +178,19 @@ export const Sizes: Story = {
               }
             }}
             size={openSize}
-            title={`Modal (${openSize})`}
-            description="Each size changes the maximum width while keeping padding and typography consistent."
+            title={t("modal.sizes.title", undefined, { size: labelFor(openSize) })}
+            description={t("modal.sizes.description")}
             footer={
               <button
                 type="button"
                 onClick={() => setOpenSize(null)}
                 className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
-                Close
+                {t("modal.common.close")}
               </button>
             }
           >
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Choose the size that best matches your content density. Smaller dialogs increase focus, larger ones are
-              suited for forms or tables.
-            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{t("modal.sizes.body")}</p>
           </Modal>
         ) : null}
       </div>

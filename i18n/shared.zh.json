@@ -1,0 +1,44 @@
+{
+  "lang": {
+    "toggle": "中文",
+    "aria": "切换语言",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "shared": {
+    "labels": {
+      "pain": "痛点洞察",
+      "usp": "核心卖点"
+    },
+    "status": {
+      "ready": "就绪"
+    }
+  },
+  "buttons": {
+    "loading": "加载中...",
+    "imported": "导入成功",
+    "failed": "导入失败",
+    "resetting": "清理中...",
+    "cleared": "已清理"
+  },
+  "alerts": {
+    "demoImported": "✅ 示例数据已导入，点击“Live Demo”查看效果。",
+    "importFailed": "导入失败：{error}",
+    "resetSuccess": "数据已清空。",
+    "resetFailed": "清空失败：{error}",
+    "statsFailed": "统计数据加载失败",
+    "docsFailed": "文档列表加载失败",
+    "searchFailed": "搜索失败",
+    "uploadFailed": "上传失败，请重试"
+  },
+  "confirm": {
+    "reset": "确定清空当前数据吗？此操作不可恢复。"
+  },
+  "health": {
+    "running": "端口 {port} 正常运行",
+    "down": "端口 {port} 已停止",
+    "unknown": "端口 {port} 状态未知"
+  }
+}

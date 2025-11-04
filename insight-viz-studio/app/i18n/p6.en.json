@@ -1,0 +1,83 @@
+{
+  "lang": {
+    "toggle": "English",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "hero": {
+    "eyebrow": "SaaS Visualization Studio",
+    "title": "📈 Insight Viz Studio",
+    "subtitle": "Turn raw CSV / JSON / Excel into investor-ready dashboards within minutes. Smart chart recommendations, brand themes, storytelling layouts, and export automation.",
+    "points": [
+      "Auto Ingest: upload 50MB+ CSV/JSON/Excel, infer schema, flag anomalies, verify data quality.",
+      "Smart Recommend: chart wizard suggests line/bar/pie/funnel with metrics & dimensions pre-filled.",
+      "Compose & Deliver: drag layout, apply brand themes, annotate insights, export PNG/PDF, schedule reports."
+    ],
+    "cta": {
+      "upload": "Upload Data",
+      "charts": "View Dashboards",
+      "datasets": "Dataset Console"
+    }
+  },
+  "metrics": [
+    { "label": "Chart Templates", "value": "24+", "hint": "Line · Bar · Area · Pie · Funnel · Combo" },
+    { "label": "Export Formats", "value": "PNG / PDF", "hint": "Brand-safe typography + watermark" },
+    { "label": "Processing SLA", "value": "< 5 min", "hint": "100k rows CSV → chart-ready options" }
+  ],
+  "workflow": {
+    "title": "Workflow · From data upload to deliverable report",
+    "steps": [
+      "Profile: schema inference, KPI suggestions, anomaly alerts",
+      "Recommend: chart wizard based on metrics & dimensions",
+      "Compose: drag layout, themes, annotations",
+      "Deliver: export PNG/PDF or schedule recurring reports"
+    ]
+  },
+  "upload": {
+    "title": "📂 Upload Data File",
+    "description": "Drag CSV/JSON/Excel here; we profile data, infer schema, and prep chart options.",
+    "supports": "Supports CSV · JSON · XLSX · XLS — up to 10 files per session.",
+    "choose": "Choose File",
+    "import": "Import Demo",
+    "reset": "Reset Demo",
+    "docs": "📘 API Docs",
+    "datasets": "📁 View Datasets JSON"
+  },
+  "charts": {
+    "title": "🧠 Smart Chart Gallery",
+    "description": "Sample dashboards generated from demo data. Use these as screenshot material.",
+    "primary": "Revenue Growth & Cohort Retention",
+    "secondary": "Category Contribution & Goal Tracking"
+  },
+  "datasets": {
+    "title": "📁 Dataset Console",
+    "description": "Uploaded files appear here with size and upload time. Use /api/datasets programmatically.",
+    "table": {
+      "filename": "Filename",
+      "size": "Size",
+      "uploaded": "Uploaded"
+    },
+    "empty": "No datasets yet. Import demo or upload your own."
+  },
+  "scenarios": {
+    "title": "Use Cases"
+  },
+  "usecases": [
+    "Executive KPI Hub: combine revenue, ARR, churn, CAC payback, pipeline in one deck",
+    "Marketing & Campaign: channel attribution, cohort retention, funnel drop-offs",
+    "Product Analytics: feature adoption, MAU/WAU, release impact, NPS sentiment",
+    "Financial Planning: forecast vs actual, expense breakdown, margin analysis"
+  ],
+  "alerts": {
+    "importSuccess": "✅ Demo data imported! Visit /api/datasets to see sample files.",
+    "importFailed": "❌ Import failed: {error}",
+    "resetConfirm": "Clear all demo data?",
+    "resetSuccess": "✅ Demo data cleared!",
+    "resetFailed": "❌ Reset failed: {error}",
+    "uploadSuccess": "File uploaded successfully! Rows: {rows}, Columns: {columns}",
+    "uploadFailed": "Upload failed: {error}"
+  }
+}
+

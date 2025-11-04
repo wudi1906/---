@@ -92,8 +92,14 @@ app.add_middleware(
 # 静态文件
 try:
     app.mount("/static", StaticFiles(directory="frontend"), name="static")
-except:
-    pass  # frontend 目录可能不存在
+except Exception:  # frontend 目录可能不存在
+    pass
+
+app.mount(
+    "/i18n",
+    StaticFiles(directory=str(Path(__file__).resolve().parent / "i18n")),
+    name="i18n",
+)
 
 
 def parse_iso_datetime(value: Optional[str]) -> Optional[datetime]:
@@ -125,163 +131,304 @@ if _slowapi_available:
         }
 
 
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Root - English landing page for international buyers"""
-    return """
+def _detect_language(request: Request) -> str:
+    cookie_lang = request.cookies.get("portfolio_lang")
+    if cookie_lang and cookie_lang in {"en", "zh"}:
+        return cookie_lang
+    header_lang = (request.headers.get("Accept-Language") or "").lower()
+    if header_lang.startswith("zh"):
+        return "zh"
+    return "en"
+
+
+def _render_home(lang: str) -> str:
+    data_path = Path(__file__).resolve().parent / "i18n" / f"p2.{lang}.json"
+    fallback_path = Path(__file__).resolve().parent / "i18n" / "p2.en.json"
+    try:
+        data = json.loads(data_path.read_text(encoding="utf-8"))
+    except Exception:
+        data = json.loads(fallback_path.read_text(encoding="utf-8"))
+
+    features_html = ''.join(
+        f"""<div class='feature-card'><h3>{item['title']}</h3><p>{item['desc']}</p></div>"""
+        for item in data['features']
+    )
+    endpoints_html = ''.join(f"<code>{line}</code>" for line in data['endpoints']['items'])
+
+    return f"""
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="{lang}">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Event Relay Hub — Unified Webhook Management</title>
+        <title>Event Relay Hub</title>
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
                 min-height: 100vh;
                 padding: 40px 20px;
                 color: white;
-            }
-            .container { max-width: 1000px; margin: 0 auto; }
-            .hero { text-align: center; margin-bottom: 60px; }
-            h1 { font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-            .subtitle { font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.95; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-            .features {
+            }}
+            .container {{ max-width: 1000px; margin: 0 auto; }}
+            .lang-switcher {{
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 6px;
+            }}
+            .lang-toggle {{
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 16px;
+                border-radius: 999px;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                background: rgba(15, 23, 42, 0.6);
+                color: #e2e8f0;
+                font-weight: 600;
+                cursor: pointer;
+            }}
+            .lang-options {{
+                display: none;
+                flex-direction: column;
+                border-radius: 14px;
+                border: 1px solid rgba(148, 163, 184, 0.35);
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(16px);
+                overflow: hidden;
+            }}
+            .lang-options.open {{ display: flex; }}
+            .lang-option {{
+                padding: 10px 16px;
+                color: #e2e8f0;
+                font-size: 0.9rem;
+                text-align: left;
+                border: none;
+                background: transparent;
+                cursor: pointer;
+            }}
+            .lang-option:hover,
+            .lang-option:focus-visible,
+            .lang-option.active {{
+                background: rgba(96, 165, 250, 0.35);
+                outline: none;
+            }}
+            .hero {{ text-align: center; margin-bottom: 60px; }}
+            h1 {{ font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }}
+            .subtitle {{ font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.95; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.6; }}
+            .features {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
                 gap: 20px;
                 margin: 40px 0;
-            }
-            .feature-card {
-                background: rgba(255,255,255,0.15);
+            }}
+            .feature-card {{
+                background: rgba(255,255,255,0.18);
                 padding: 24px;
-                border-radius: 12px;
-                backdrop-filter: blur(10px);
-                border: 1px solid rgba(255,255,255,0.2);
-            }
-            .feature-card h3 { margin-bottom: 8px; font-size: 1.1rem; }
-            .feature-card p { opacity: 0.9; font-size: 0.95rem; line-height: 1.5; }
-            .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 40px 0; }
-            .btn {
+                border-radius: 14px;
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255,255,255,0.25);
+            }}
+            .cta-buttons {{ display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin: 40px 0; }}
+            .btn {{
                 padding: 14px 32px;
-                background: white;
-                color: #667eea;
+                background: rgba(255,255,255,0.15);
+                color: white;
                 text-decoration: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 font-weight: 600;
                 transition: all 0.2s;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                border: none;
-                cursor: pointer;
+                border: 1px solid rgba(255,255,255,0.3);
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
-            }
-            .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-            .btn-secondary {
-                background: rgba(255,255,255,0.2);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.4);
-            }
-            .btn-secondary:hover { background: rgba(255,255,255,0.3); }
-            .endpoints {
-                background: rgba(255,255,255,0.1);
+            }}
+            .btn:hover {{ transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }}
+            .endpoints {{
+                background: rgba(255,255,255,0.12);
                 padding: 32px;
-                border-radius: 12px;
-                backdrop-filter: blur(10px);
+                border-radius: 14px;
+                backdrop-filter: blur(12px);
                 margin-top: 40px;
-            }
-            .endpoints h3 { margin-bottom: 16px; font-size: 1.3rem; }
-            .endpoints code {
+            }}
+            .endpoints h3 {{ margin-bottom: 16px; font-size: 1.3rem; }}
+            .endpoints code {{
                 display: block;
-                background: rgba(0,0,0,0.3);
+                background: rgba(0,0,0,0.25);
                 padding: 10px 16px;
-                border-radius: 6px;
+                border-radius: 8px;
                 margin: 10px 0;
                 font-family: 'Courier New', monospace;
                 font-size: 0.95rem;
-            }
+            }}
         </style>
     </head>
     <body>
-        <div class="container">
-            <div class="hero">
-                <h1>📡 Event Relay Hub</h1>
-                <p class="subtitle">
-                    Unified Webhook Management — Receive, verify, route, and replay webhooks from Stripe, GitHub, Slack, and custom sources. Dead-letter queue + rate limiting included.
-                </p>
-            </div>
-
-            <div class="features">
-                <div class="feature-card">
-                    <h3>🔌 Multi-Source Integration</h3>
-                    <p>GitHub, Stripe, Slack webhooks with signature verification out of the box.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🔐 Signature Verification</h3>
-                    <p>HMAC-SHA256 validation ensures events are authentic and secure.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🔄 Event Replay & DLQ</h3>
-                    <p>Retry failed events, inspect dead letters, batch replay for recovery.</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📊 Visual Console</h3>
-                    <p>Monitor events, configure signatures, manage DLQ in real-time.</p>
-                </div>
-            </div>
-
-            <div class="cta-buttons">
-                <a href="/api/docs" class="btn">📘 API Docs</a>
-                <a href="/console/events" class="btn">📝 Events Console</a>
-                <button onclick="seedDemo()" class="btn btn-secondary">🧪 Import Demo</button>
-                <button onclick="resetDemo()" class="btn btn-secondary">🔄 Reset Demo</button>
-            </div>
-            
-            <div class="endpoints">
-                <h3>Webhook Endpoints</h3>
-                <code>POST /webhook/github — Receive GitHub events</code>
-                <code>POST /webhook/stripe — Receive Stripe events</code>
-                <code>POST /webhook/custom — Receive custom webhooks</code>
+        <div class="lang-switcher" role="navigation" aria-label="Language selector">
+            <button id="langToggle" class="lang-toggle" type="button" aria-expanded="false">
+                <span>🌐</span><span data-i18n="lang.toggle">{data['lang']['toggle']}</span>
+            </button>
+            <div id="langOptions" class="lang-options" role="menu">
+                <button class="lang-option" data-lang="en" role="menuitemradio" aria-checked="{str(lang=='en').lower()}">{data['lang']['options']['en']}</button>
+                <button class="lang-option" data-lang="zh" role="menuitemradio" aria-checked="{str(lang=='zh').lower()}">{data['lang']['options']['zh']}</button>
             </div>
         </div>
-
+        <div class="container">
+            <div class="hero">
+                <h1 data-i18n="hero.title">{data['hero']['title']}</h1>
+                <p class="subtitle" data-i18n="hero.subtitle">{data['hero']['subtitle']}</p>
+            </div>
+            <div class="features" id="features">{features_html}</div>
+            <div class="cta-buttons">
+                <a href="/api/docs" class="btn" data-i18n="hero.cta.docs">{data['hero']['cta']['docs']}</a>
+                <a href="/console/events" class="btn" data-i18n="hero.cta.console">{data['hero']['cta']['console']}</a>
+                <button onclick="seedDemo()" class="btn" data-i18n="hero.cta.import">{data['hero']['cta']['import']}</button>
+                <button onclick="resetDemo()" class="btn" data-i18n="hero.cta.reset">{data['hero']['cta']['reset']}</button>
+            </div>
+            <div class="endpoints">
+                <h3 data-i18n="endpoints.title">{data['endpoints']['title']}</h3>
+                {endpoints_html}
+            </div>
+        </div>
         <script>
-            async function seedDemo() {
-                try {
-                    const res = await fetch('/api/demo/seed', { method: 'POST' });
-                    const data = await res.json();
-                    if (data.success) {
-                        alert('✅ Demo data imported! Visit /api/events to see sample events.');
-                    } else {
-                        alert('❌ Import failed: ' + (data.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    alert('❌ Import failed: ' + error.message);
-                }
-            }
+            const LANG_STORAGE_KEY = 'portfolio-lang';
+            const SUPPORTED_LANGS = ['en', 'zh'];
+            let currentLang = '{lang}';
 
-            async function resetDemo() {
-                if (!confirm('Clear all demo data?')) return;
-                try {
-                    const res = await fetch('/api/demo/reset', { method: 'POST' });
+            async function fetchTranslations(lang) {{
+                const res = await fetch(`/i18n/p2.${{lang}}.json`, {{ cache: 'no-cache' }});
+                if (!res.ok) throw new Error('Failed to fetch translations');
+                return res.json();
+            }}
+
+            const ALERT_TEXT = {{
+                importSuccess: "{data['alerts']['importSuccess']}",
+                importFailed: "{data['alerts']['importFailed']}",
+                resetSuccess: "{data['alerts']['resetSuccess']}",
+                resetFailed: "{data['alerts']['resetFailed']}"
+            }};
+
+            function applyTranslations(data) {{
+                document.querySelector('[data-i18n="hero.title"]').textContent = data.hero.title;
+                document.querySelector('[data-i18n="hero.subtitle"]').textContent = data.hero.subtitle;
+                document.querySelector('[data-i18n="hero.cta.docs"]').textContent = data.hero.cta.docs;
+                document.querySelector('[data-i18n="hero.cta.console"]').textContent = data.hero.cta.console;
+                document.querySelector('[data-i18n="hero.cta.import"]').textContent = data.hero.cta.import;
+                document.querySelector('[data-i18n="hero.cta.reset"]').textContent = data.hero.cta.reset;
+                document.querySelector('[data-i18n="endpoints.title"]').textContent = data.endpoints.title;
+                const features = document.getElementById('features');
+                features.innerHTML = data.features.map(item => `<div class="feature-card"><h3>${{item.title}}</h3><p>${{item.desc}}</p></div>`).join('');
+                const endpoints = data.endpoints.items.map(line => `<code>${{line}}</code>`).join('');
+                document.querySelector('.endpoints').innerHTML = `<h3 data-i18n="endpoints.title">${{data.endpoints.title}}</h3>${{endpoints}}`;
+                updateLangButtons(data);
+            }}
+
+            function updateLangButtons(data) {{
+                document.querySelector('[data-i18n="lang.toggle"]').textContent = data.lang.toggle;
+                document.querySelectorAll('#langOptions .lang-option').forEach(btn => {{
+                    const lang = btn.getAttribute('data-lang');
+                    btn.textContent = data.lang.options[lang];
+                    const isActive = lang === currentLang;
+                    btn.classList.toggle('active', isActive);
+                    btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                }});
+            }}
+
+            async function changeLanguage(lang) {{
+                if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
+                const data = await fetchTranslations(lang);
+                currentLang = lang;
+                localStorage.setItem(LANG_STORAGE_KEY, lang);
+                document.cookie = `portfolio_lang=${{lang}}; path=/; max-age=${{60*60*24*365}}`;
+                document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh-CN' : 'en');
+                applyTranslations(data);
+            }}
+
+            const savedLang = localStorage.getItem(LANG_STORAGE_KEY);
+            const initialLang = savedLang && SUPPORTED_LANGS.includes(savedLang) ? savedLang : '{lang}';
+            if (initialLang !== currentLang) {{
+                changeLanguage(initialLang);
+            }} else {{
+                fetchTranslations(currentLang).then(applyTranslations).catch(console.error);
+            }}
+
+            const langToggle = document.getElementById('langToggle');
+            const langOptions = document.getElementById('langOptions');
+            langToggle.addEventListener('click', () => {{
+                const isOpen = langOptions.classList.toggle('open');
+                langToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }});
+            langOptions.addEventListener('click', (event) => {{
+                if (event.target.matches('.lang-option')) {{
+                    langOptions.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                    changeLanguage(event.target.dataset.lang);
+                }}
+            }});
+            document.addEventListener('click', (event) => {{
+                if (!langOptions.contains(event.target) && event.target !== langToggle) {{
+                    langOptions.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                }}
+            }});
+
+            window.addEventListener('storage', (event) => {{
+                if (event.key === LANG_STORAGE_KEY && event.newValue && event.newValue !== currentLang) {{
+                    changeLanguage(event.newValue);
+                }}
+            }});
+
+            async function seedDemo() {{
+                try {{
+                    const res = await fetch('/api/demo/seed', {{ method: 'POST' }});
                     const data = await res.json();
-                    if (data.success) {
-                        alert('✅ Demo data cleared!');
-                    } else {
-                        alert('❌ Reset failed: ' + (data.error || 'Unknown error'));
-                    }
-                } catch (error) {
-                    alert('❌ Reset failed: ' + error.message);
-                }
-            }
+                    if (data.success) {{
+                        alert(ALERT_TEXT.importSuccess);
+                    }} else {{
+                        const detail = data.error || 'Unknown error';
+                        alert(ALERT_TEXT.importFailed.replace('{{error}}', detail));
+                    }}
+                }} catch (error) {{
+                    const detail = (error && error.message) ? error.message : 'Unknown error';
+                    alert(ALERT_TEXT.importFailed.replace('{{error}}', detail));
+                }}
+            }}
+
+            async function resetDemo() {{
+                if (!confirm('{data['alerts']['resetConfirm']}')) return;
+                try {{
+                    const res = await fetch('/api/demo/reset', {{ method: 'POST' }});
+                    const dataResp = await res.json();
+                    if (dataResp.success) {{
+                        alert(ALERT_TEXT.resetSuccess);
+                    }} else {{
+                        const detail = dataResp.error || 'Unknown error';
+                        alert(ALERT_TEXT.resetFailed.replace('{{error}}', detail));
+                    }}
+                }} catch (error) {{
+                    const detail = (error && error.message) ? error.message : 'Unknown error';
+                    alert(ALERT_TEXT.resetFailed.replace('{{error}}', detail));
+                }}
+            }}
+
+            window.seedDemo = seedDemo;
+            window.resetDemo = resetDemo;
         </script>
     </body>
     </html>
     """
 
+
+@app.get("/", response_class=HTMLResponse)
+async def landing(request: Request):
+    """双语营销首页"""
+    lang = _detect_language(request)
+    return HTMLResponse(_render_home(lang))
 
 
 @app.get("/console/events", response_class=HTMLResponse)

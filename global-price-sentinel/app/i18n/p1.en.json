@@ -1,0 +1,75 @@
+{
+  "page": {
+    "title": "Global Price Sentinel · Scheduler & Alerts",
+    "back": "← Back to portfolio portal",
+    "intro": "Configure schedule cadence, proxy pool and alert channels. All changes apply immediately; the scheduler must restart to adopt new cron plans.",
+    "status": {
+      "success": "Configuration saved successfully",
+      "error": "Operation failed: {error}",
+      "test": "Test request sent"
+    }
+  },
+  "scheduler": {
+    "title": "Scheduler Overview",
+    "subtitle": "Monitor latest executions and next planned run to debug quickly.",
+    "refresh": "Refresh Status",
+    "next": "Next run",
+    "last": "Last execution",
+    "recent": "Recent run history",
+    "empty": "No executions yet",
+    "table": {
+      "start": "Start",
+      "end": "End",
+      "duration": "Duration",
+      "status": "Status",
+      "message": "Message"
+    }
+  },
+  "forms": {
+    "scheduler": {
+      "legend": "Scheduler",
+      "mode": "Scheduler Mode",
+      "modeCron": "Use Cron expression (default every 12 hours)",
+      "modeInterval": "Custom interval (minutes)",
+      "cron": "Cron Expression",
+      "cronHelp": "5-field cron expression: minute hour day month weekday.",
+      "interval": "Interval (minutes)",
+      "intervalHelp": "Valid when interval mode is selected, range 5 – 1440 minutes."
+    },
+    "proxy": {
+      "legend": "Proxy Pool",
+      "toggle": "Enable proxy pool (for distributed scraping & anti-bot bypass)",
+      "server": "Proxy Server",
+      "username": "Username",
+      "password": "Password"
+    },
+    "alerts": {
+      "legend": "Alert Channels",
+      "description": "Enable any channel you need. All alerts are logged for auditing.",
+      "email": "Email Alert",
+      "emailPlaceholder": "Recipient emails, comma separated",
+      "emailTest": "Test Email",
+      "slack": "Slack Webhook",
+      "slackPlaceholder": "https://hooks.slack.com/...",
+      "slackTest": "Test Slack",
+      "webhook": "Custom Webhook",
+      "webhookPlaceholder": "https://example.com/alert",
+      "webhookTest": "Test Webhook"
+    },
+    "submit": "Save Configuration",
+    "submitHint": "Applies immediately for manual runs; scheduled jobs require restart.",
+    "validation": {
+      "cronRequired": "Cron expression cannot be empty",
+      "intervalInvalid": "Interval must be between 5 and 1440 minutes",
+      "emailInvalid": "Invalid email format",
+      "urlInvalid": "Invalid URL"
+    }
+  },
+  "toast": {
+    "loading": "Processing...",
+    "saved": "Configuration saved",
+    "tested": "Test request sent",
+    "failed": "Operation failed"
+  }
+}
+

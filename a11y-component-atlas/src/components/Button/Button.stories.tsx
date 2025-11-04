@@ -1,9 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/react'
+import type { ComponentProps } from 'react'
 import { Button } from './Button'
+import { useI18n } from '@/i18n'
 
-const meta: Meta<typeof Button> = {
+type ButtonProps = ComponentProps<typeof Button>
+
+interface TranslatedButtonProps extends Omit<ButtonProps, 'children'> {
+  labelKey: string
+}
+
+function TranslatedButton({ labelKey, ...rest }: TranslatedButtonProps) {
+  const { t } = useI18n()
+  return <Button {...rest}>{t(labelKey)}</Button>
+}
+
+const meta: Meta<typeof TranslatedButton> = {
   title: 'Components/Button',
-  component: Button,
+  component: TranslatedButton,
   tags: ['autodocs'],
   argTypes: {
     variant: {
@@ -14,57 +27,61 @@ const meta: Meta<typeof Button> = {
       control: 'select',
       options: ['sm', 'md', 'lg'],
     },
+    labelKey: {
+      control: false,
+      table: { disable: true },
+    },
   },
 }
 
 export default meta
-type Story = StoryObj<typeof Button>
+type Story = StoryObj<typeof TranslatedButton>
 
 export const Primary: Story = {
   args: {
-    children: 'Primary Button',
+    labelKey: 'button.labels.primary',
     variant: 'primary',
   },
 }
 
 export const Secondary: Story = {
   args: {
-    children: 'Secondary Button',
+    labelKey: 'button.labels.secondary',
     variant: 'secondary',
   },
 }
 
 export const Danger: Story = {
   args: {
-    children: 'Delete',
+    labelKey: 'button.labels.danger',
     variant: 'danger',
   },
 }
 
 export const Outline: Story = {
   args: {
-    children: 'Outline Button',
+    labelKey: 'button.labels.outline',
     variant: 'outline',
   },
 }
 
 export const Small: Story = {
   args: {
-    children: 'Small Button',
+    labelKey: 'button.labels.small',
     size: 'sm',
   },
 }
 
 export const Large: Story = {
   args: {
-    children: 'Large Button',
+    labelKey: 'button.labels.large',
     size: 'lg',
   },
 }
 
 export const Disabled: Story = {
   args: {
-    children: 'Disabled Button',
+    labelKey: 'button.labels.disabled',
     disabled: true,
   },
 }

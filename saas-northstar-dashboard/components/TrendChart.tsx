@@ -15,6 +15,7 @@ import {
   Filler,
 } from 'chart.js'
 import html2canvas from 'html2canvas'
+import { useTranslation } from '@/lib/i18n'
 
 ChartJS.register(
   CategoryScale,
@@ -53,6 +54,7 @@ const palette = {
 }
 
 export default function TrendChart({ title, data, height = 300 }: TrendChartProps) {
+  const { t, formatCurrency } = useTranslation()
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [exporting, setExporting] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
@@ -112,7 +114,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
             color: activePalette.text,
             callback: (value) => {
               const numeric = typeof value === 'string' ? Number(value) : value
-              return Number.isFinite(numeric) ? `$${Number(numeric).toLocaleString()}` : value
+              return Number.isFinite(numeric) ? formatCurrency(Number(numeric), 'USD') : value
             },
           },
         },
@@ -147,7 +149,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
       link.click()
     } catch (error) {
       console.error('Failed to export chart', error)
-      alert('Failed to export chart. Please try again.')
+      alert(t('export.failed', 'Export failed. Please try again.'))
     } finally {
       setExporting(false)
     }
@@ -164,7 +166,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
       const image = canvas.toDataURL('image/png')
       const printWindow = window.open('', '_blank', 'noopener')
       if (!printWindow) {
-        alert('请允许浏览器弹窗以导出 PDF。')
+        alert(t('export.popupBlocked', 'Please allow pop-ups to export PDF.'))
         return
       }
       // Basic printable HTML document
@@ -191,7 +193,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
       printWindow.document.close()
     } catch (error) {
       console.error('Failed to export chart PDF', error)
-      alert('导出 PDF 失败，请稍后重试。')
+      alert(t('export.failedPdf', 'Failed to export PDF. Please try again.'))
     } finally {
       setExportingPdf(false)
     }
@@ -211,7 +213,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
                 theme === 'light' ? 'bg-blue-600 text-white' : 'bg-transparent text-current'
               }`}
             >
-              Light
+              {t('theme.light', 'Light')}
             </button>
             <button
               type="button"
@@ -221,7 +223,7 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
                 theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-transparent text-current'
               }`}
             >
-              Dark
+              {t('theme.dark', 'Dark')}
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -229,27 +231,27 @@ export default function TrendChart({ title, data, height = 300 }: TrendChartProp
               type="button"
               onClick={handleExportPng}
               disabled={exporting}
-              aria-label="导出图表为 PNG"
+              aria-label={t('export.pngAria', 'Export chart as PNG')}
               className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ${
                 exporting
                   ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              {exporting ? '导出中…' : '导出 PNG'}
+              {exporting ? t('export.pngWorking', 'Exporting…') : t('export.png', 'Export PNG')}
             </button>
             <button
               type="button"
               onClick={handleExportPdf}
               disabled={exportingPdf}
-              aria-label="导出图表为 PDF"
+              aria-label={t('export.pdfAria', 'Export chart as PDF')}
               className={`px-3 py-2 rounded-lg text-sm font-medium border focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 ${
                 exportingPdf
                   ? 'border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              {exportingPdf ? '准备中…' : '导出 PDF'}
+              {exportingPdf ? t('export.pdfWorking', 'Generating…') : t('export.pdf', 'Export PDF')}
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import Papa from 'papaparse'
 import { useRouter } from 'next/navigation'
 import MetricCard from '@/components/MetricCard'
 import TrendChart from '@/components/TrendChart'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 import {
   AVAILABLE_TEMPLATES,
   useDashboardStore,
@@ -17,6 +18,7 @@ import {
   type TemplateMappings,
   type CalculationResult,
 } from '@/lib/kpiCalculator'
+import { useTranslation } from '@/lib/i18n'
 
 interface ParsedDataset {
   headers: string[]
@@ -36,28 +38,23 @@ const MAX_WARNING_DISPLAY = 20
 
 interface StepDefinition {
   id: string
-  title: string
-  description: string
+  titleKey: string
+  descriptionKey: string
 }
 
 const STEPS: StepDefinition[] = [
-  { id: 'template', title: '选择 KPI 模板', description: '根据业务类型选择预置指标组合' },
-  { id: 'upload', title: '上传 CSV 数据', description: '上传多个数据源，支持拖拽' },
-  { id: 'mapping', title: '字段映射与清洗', description: '将 CSV 列映射至模板字段，可自动推荐' },
-  { id: 'review', title: '预览并导入', description: '预览 KPI 与图表，确认后写入仪表盘' },
+  { id: 'template', titleKey: 'import.steps.template.title', descriptionKey: 'import.steps.template.description' },
+  { id: 'upload', titleKey: 'import.steps.upload.title', descriptionKey: 'import.steps.upload.description' },
+  { id: 'mapping', titleKey: 'import.steps.mapping.title', descriptionKey: 'import.steps.mapping.description' },
+  { id: 'review', titleKey: 'import.steps.review.title', descriptionKey: 'import.steps.review.description' },
 ]
-
-const DATASET_LABELS: Record<DatasetType, string> = {
-  subscriptions: '订阅 / Revenue',
-  churn: '流失 / Churn',
-  acquisition: '获客 / Acquisition',
-}
 
 const PAGE_SIZE = 5
 
 export default function ImportWizardPage() {
   const router = useRouter()
   const setFromCalculation = useDashboardStore((state) => state.setFromCalculation)
+  const { t, formatNumber } = useTranslation()
 
   const [stepIndex, setStepIndex] = useState(0)
   const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(DEFAULT_TEMPLATE_ID)
@@ -139,21 +136,21 @@ export default function ImportWizardPage() {
         },
         error: (error) => {
           console.error(error)
-          setParseError(`解析 ${file.name} 失败：${error.message}`)
+          setParseError(t('import.errors.parse', undefined, { name: file.name, message: error.message }))
         },
       })
     },
-    [],
+    [t],
   )
 
   const handleFileSelect = useCallback((datasetId: DatasetType, file: File) => {
     if (file.size > MAX_FILE_SIZE) {
-      setParseError(`文件 ${file.name} 超过 10MB 限制，请拆分后再试。`)
+      setParseError(t('import.errors.oversize', undefined, { name: file.name }))
       return
     }
     setParseError(null)
     handleFileParse(datasetId, file)
-  }, [handleFileParse])
+  }, [handleFileParse, t])
 
   const buildPayloadDatasets = useCallback(() => {
     const payload: TemplateDatasets = {}
@@ -265,7 +262,7 @@ export default function ImportWizardPage() {
       })
       const data = await response.json()
       if (!response.ok || !data.success) {
-        throw new Error(data.error ?? '导入失败，请稍后重试。')
+        throw new Error(data.error ?? t('import.errors.import'))
       }
       setServerWarnings(data.warnings ?? [])
       setCalculation(data.calculation)
@@ -273,7 +270,7 @@ export default function ImportWizardPage() {
       setImportSuccess(true)
     } catch (error) {
       setServerWarnings([])
-      setServerError(error instanceof Error ? error.message : '导入失败，请稍后重试。')
+      setServerError(error instanceof Error ? error.message : t('import.errors.import'))
     } finally {
       setSaving(false)
     }
@@ -286,7 +283,8 @@ export default function ImportWizardPage() {
     try {
       const response = await fetch(`/api/exports?format=${format}`)
       if (!response.ok) {
-        let message = `${format === 'csv' ? 'CSV' : 'Excel'} 导出失败，请稍后重试。`
+        const typeLabel = format === 'csv' ? 'CSV' : 'Excel'
+        let message = t('import.errors.export', undefined, { type: typeLabel })
         try {
           const data = await response.json()
           if (data?.error) message = data.error
@@ -312,13 +310,15 @@ export default function ImportWizardPage() {
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
-      setExportMessage(`${format === 'csv' ? 'CSV' : 'Excel'} 导出开始下载。`)
+      const typeLabel = format === 'csv' ? 'CSV' : 'Excel'
+      setExportMessage(t('import.review.downloadStarted', undefined, { type: typeLabel }))
     } catch (error) {
-      setExportError(error instanceof Error ? error.message : '导出失败，请稍后重试。')
+      const typeLabel = format === 'csv' ? 'CSV' : 'Excel'
+      setExportError(error instanceof Error ? error.message : t('import.errors.export', undefined, { type: typeLabel }))
     } finally {
       setExporting(null)
     }
-  }, [])
+  }, [t])
 
   const handleNavigateDashboard = useCallback(() => {
     router.push('/')
@@ -343,14 +343,15 @@ export default function ImportWizardPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-        <header className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">CSV 导入向导</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
-            支持多模板、多文件导入、字段映射与图表预览。数据仅保存在浏览器内存，确保安全。
-          </p>
+        <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">{t('import.title')}</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">{t('import.subtitle')}</p>
+          </div>
+          <LanguageSwitcher />
         </header>
 
-        <nav aria-label="导入步骤" className="mb-8">
+        <nav aria-label={t('import.title')} className="mb-8">
           <ol className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {STEPS.map((step, index) => {
               const isActive = index === stepIndex
@@ -368,9 +369,9 @@ export default function ImportWizardPage() {
                           : 'border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200'
                     }`}
                   >
-                    <span className="text-xs font-semibold uppercase tracking-wide">Step {index + 1}</span>
-                    <span className="mt-1 text-sm font-medium">{step.title}</span>
-                    <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">{step.description}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide">{t('import.stepLabel', undefined, { index: index + 1 })}</span>
+                    <span className="mt-1 text-sm font-medium">{t(step.titleKey)}</span>
+                    <span className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t(step.descriptionKey)}</span>
                   </button>
                 </li>
               )
@@ -379,55 +380,65 @@ export default function ImportWizardPage() {
         </nav>
 
         {stepIndex === 0 && (
-          <section className="grid gap-4 sm:grid-cols-2" aria-label="模板列表">
-            {AVAILABLE_TEMPLATES.map((tpl) => (
-              <label
-                key={tpl.id}
-                className={`flex flex-col rounded-xl border p-5 transition focus-within:ring-2 focus-within:ring-blue-500 ${
-                  tpl.id === selectedTemplateId
-                    ? 'border-blue-500 bg-blue-50/40 dark:border-blue-500 dark:bg-blue-900/40'
-                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">{tpl.category}</span>
-                    <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{tpl.name}</h2>
+          <section className="grid gap-4 sm:grid-cols-2" aria-label={t('import.steps.template.title')}>
+            {AVAILABLE_TEMPLATES.map((tpl) => {
+              const category = t(`templates.${tpl.id}.category`, tpl.category)
+              const name = t(`templates.${tpl.id}.name`, tpl.name)
+              const description = t(`templates.${tpl.id}.description`, tpl.description)
+              const recommended = t(`templates.${tpl.id}.recommendedFor`, tpl.recommendedFor)
+              return (
+                <label
+                  key={tpl.id}
+                  className={`flex flex-col rounded-xl border p-5 transition focus-within:ring-2 focus-within:ring-blue-500 ${
+                    tpl.id === selectedTemplateId
+                      ? 'border-blue-500 bg-blue-50/40 dark:border-blue-500 dark:bg-blue-900/40'
+                      : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-300">{category}</span>
+                      <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-slate-50">{name}</h2>
+                    </div>
+                    <input
+                      type="radio"
+                      name="template"
+                      value={tpl.id}
+                      checked={selectedTemplateId === tpl.id}
+                      onChange={handleTemplateSwitch}
+                      className="mt-1 h-4 w-4"
+                      aria-label={t('import.steps.template.title') + ' ' + name}
+                    />
                   </div>
-                  <input
-                    type="radio"
-                    name="template"
-                    value={tpl.id}
-                    checked={selectedTemplateId === tpl.id}
-                    onChange={handleTemplateSwitch}
-                    className="mt-1 h-4 w-4"
-                    aria-label={`选择模板 ${tpl.name}`}
-                  />
-                </div>
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{tpl.description}</p>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">适用：{tpl.recommendedFor}</p>
-                <ul className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  {tpl.datasets.map((dataset) => (
-                    <li key={`${tpl.id}-${dataset.id}`}>• {DATASET_LABELS[dataset.id]} {dataset.optional && '(可选)'}</li>
-                  ))}
-                </ul>
-              </label>
-            ))}
+                  <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">{description}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t('dashboard.template.sceneLabel')}{recommended}</p>
+                  <ul className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
+                    {tpl.datasets.map((dataset) => (
+                      <li key={`${tpl.id}-${dataset.id}`}>
+                        • {t(`templates.${tpl.id}.datasets.${dataset.id}.label`, t(`datasets.labels.${dataset.id}`, dataset.id))}
+                        {dataset.optional ? ` ${t('datasets.optional')}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                </label>
+              )
+            })}
           </section>
         )}
 
         {stepIndex === 1 && (
-          <section className="space-y-6" aria-label="上传 CSV">
+          <section className="space-y-6" aria-label={t('import.steps.upload.title')}>
             {template.datasets.map((dataset) => (
               <UploadField
                 key={dataset.id}
+                templateId={template.id as TemplateId}
                 dataset={dataset}
                 parsed={datasets[dataset.id]}
                 onFileChange={handleFileChange(dataset.id)}
               />
             ))}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-              <p>提示：CSV 必须包含表头；字段顺序不重要，可在下一步映射。</p>
+              <p>{t('import.dataset.hint')}</p>
               <button
                 type="button"
                 disabled={!canProceedUpload}
@@ -438,17 +449,18 @@ export default function ImportWizardPage() {
                     : 'bg-slate-200 text-slate-500'
                 }`}
               >
-                下一步：字段映射
+                {t('import.dataset.next')}
               </button>
             </div>
           </section>
         )}
 
         {stepIndex === 2 && (
-          <section className="space-y-6" aria-label="字段映射">
+          <section className="space-y-6" aria-label={t('import.steps.mapping.title')}>
             {template.datasets.map((dataset) => (
               <MappingCard
                 key={dataset.id}
+                templateId={template.id as TemplateId}
                 dataset={dataset}
                 parsed={datasets[dataset.id]}
                 mapping={mappings[dataset.id] ?? {}}
@@ -465,7 +477,7 @@ export default function ImportWizardPage() {
             ))}
 
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-              <p>系统会自动推荐同名字段，仍可手动调整。</p>
+              <p>{t('import.mapping.hint')}</p>
               <button
                 type="button"
                 disabled={!canProceedMapping || processing}
@@ -476,16 +488,16 @@ export default function ImportWizardPage() {
                     : 'bg-slate-200 text-slate-500'
                 }`}
               >
-                {processing ? '计算中…' : '预览 KPI'}
+                {processing ? t('import.mapping.previewWorking') : t('import.mapping.preview')}
               </button>
             </div>
           </section>
         )}
 
         {stepIndex === 3 && calculation && (
-          <section className="space-y-10" aria-label="导入预览">
+          <section className="space-y-10" aria-label={t('import.steps.review.title')}>
             <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950/50 dark:text-emerald-100">
-              数据已解析完成，可在确认无误后写入仪表盘并导出报表。
+              {t('import.review.intro')}
             </div>
 
             {serverError && (
@@ -502,7 +514,7 @@ export default function ImportWizardPage() {
                 role="status"
                 className="rounded-xl border border-emerald-300 bg-emerald-100/70 p-4 text-sm text-emerald-900 dark:border-emerald-400/40 dark:bg-emerald-950/40 dark:text-emerald-100"
               >
-                <p>✅ 数据已写入仪表盘，可返回首页查看最新 KPI。</p>
+                <p>{t('import.review.success')}</p>
                 {exportMessage && <p className="mt-1 text-xs text-emerald-700 dark:text-emerald-200">{exportMessage}</p>}
               </div>
             )}
@@ -518,24 +530,26 @@ export default function ImportWizardPage() {
 
             {serverWarnings.length > 0 && (
               <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-900 dark:border-amber-400/40 dark:bg-amber-950/40 dark:text-amber-100">
-                <p className="font-semibold">⚠️ 下列项已被跳过，不影响写入：</p>
+                <p className="font-semibold">{t('import.review.warningTitle')}</p>
                 <ul className="mt-2 space-y-1 text-xs">
                   {serverWarnings.slice(0, MAX_WARNING_DISPLAY).map((warning, index) => {
                     const datasetLabel = warning.dataset !== 'general'
-                      ? DATASET_LABELS[warning.dataset as DatasetType] ?? warning.dataset
+                      ? t(`datasets.labels.${warning.dataset as DatasetType}`, warning.dataset)
                       : null
+                    const rowLabel = warning.row ? t('import.review.warningRow', undefined, { row: warning.row }) : ''
+                    const fieldLabel = warning.field ? t('import.review.warningField', undefined, { field: warning.field }) : ''
                     return (
                       <li key={`${warning.dataset}-${warning.row ?? 'global'}-${index}`}>
-                        {datasetLabel ? `${datasetLabel}：` : ''}
-                        {warning.row ? `第 ${warning.row} 行` : ''}
-                        {warning.field ? `（${warning.field}）` : ''}
-                        {warning.row || warning.field ? ' · ' : ''}
+                        {datasetLabel ? `${datasetLabel}: ` : ''}
+                        {rowLabel}
+                        {fieldLabel ? ` ${fieldLabel}` : ''}
+                        {(rowLabel || fieldLabel) && ' · '}
                         {warning.message}
                       </li>
                     )
                   })}
                   {serverWarnings.length > MAX_WARNING_DISPLAY && (
-                    <li className="text-amber-700/80 dark:text-amber-200/70">… 仅展示前 {MAX_WARNING_DISPLAY} 条警告，详见导出结果。</li>
+                    <li className="text-amber-700/80 dark:text-amber-200/70">{t('import.review.warningOverflow', undefined, { count: MAX_WARNING_DISPLAY })}</li>
                   )}
                 </ul>
               </div>
@@ -545,8 +559,8 @@ export default function ImportWizardPage() {
               {calculation.metrics.map((metric) => (
                 <MetricCard
                   key={metric.id}
-                  title={metric.title}
-                  subtitle={metric.subtitle}
+                  title={t(`metrics.definitions.${metric.id}.title`, metric.title)}
+                  subtitle={t(`metrics.definitions.${metric.id}.subtitle`, metric.subtitle)}
                   value={metric.value}
                   change={metric.change}
                   currency={metric.currency}
@@ -557,17 +571,18 @@ export default function ImportWizardPage() {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {calculation.charts.map((chart) => (
-                <TrendChart key={chart.id} title={chart.title} data={chart.data} height={320} />
+                <TrendChart key={chart.id} title={t(`charts.${chart.id}`, chart.title)} data={chart.data} height={320} />
               ))}
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
               <div>
-                <p className="font-semibold">导入摘要</p>
+                <p className="font-semibold">{t('import.review.summaryTitle')}</p>
                 <ul className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                   {calculation.datasetSummary.map((summary) => (
                     <li key={summary.dataset}>
-                      {summary.dataset.toUpperCase()} · {summary.rows} 条记录{summary.lastDate ? ` · 最新月份 ${summary.lastDate}` : ''}
+                      {t(`datasets.labels.${summary.dataset}`, summary.dataset.toUpperCase())} · {t('dashboard.dataset.rows', undefined, { count: formatNumber(summary.rows) })}
+                      {summary.lastDate ? ` · ${t('dashboard.dataset.latestMonth', undefined, { value: summary.lastDate })}` : ''}
                     </li>
                   ))}
                 </ul>
@@ -578,7 +593,7 @@ export default function ImportWizardPage() {
                   onClick={() => goToStep(1)}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
-                  返回修改
+                  {t('import.review.back')}
                 </button>
                 <button
                   type="button"
@@ -589,7 +604,7 @@ export default function ImportWizardPage() {
                     saving ? 'bg-emerald-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700'
                   }`}
                 >
-                  {saving ? '写入中…' : importSuccess ? '重新写入' : '应用到仪表盘'}
+                  {saving ? t('import.review.applyWorking') : importSuccess ? t('import.review.redo') : t('import.review.apply')}
                 </button>
                 <button
                   type="button"
@@ -601,7 +616,7 @@ export default function ImportWizardPage() {
                       : 'border border-blue-500 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:bg-slate-900 dark:text-blue-200'
                   }`}
                 >
-                  {exporting === 'csv' ? '导出 CSV…' : '导出 CSV'}
+                  {exporting === 'csv' ? t('import.review.exportCsvWorking') : t('import.review.exportCsv')}
                 </button>
                 <button
                   type="button"
@@ -613,7 +628,7 @@ export default function ImportWizardPage() {
                       : 'border border-blue-500 bg-white text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:bg-slate-900 dark:text-blue-200'
                   }`}
                 >
-                  {exporting === 'excel' ? '导出 Excel…' : '导出 Excel'}
+                  {exporting === 'excel' ? t('import.review.exportExcelWorking') : t('import.review.exportExcel')}
                 </button>
                 {importSuccess && (
                   <button
@@ -621,7 +636,7 @@ export default function ImportWizardPage() {
                     onClick={handleNavigateDashboard}
                     className="rounded-lg border border-emerald-400 bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-200 dark:border-emerald-400/60 dark:bg-emerald-950/40 dark:text-emerald-200"
                   >
-                    查看仪表盘
+                    {t('import.review.viewDashboard')}
                   </button>
                 )}
               </div>
@@ -630,19 +645,20 @@ export default function ImportWizardPage() {
         )}
 
         {(stepIndex === 1 || stepIndex === 2) && (
-          <section className="mt-12 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900" aria-label="数据预览">
+          <section className="mt-12 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900" aria-label={t('import.preview.title')}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">数据预览</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">最多展示前 {PAGE_SIZE} 条数据，完整数据会参与计算。</p>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('import.preview.title')}</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{t('import.preview.subtitle', undefined, { count: PAGE_SIZE })}</p>
               </div>
               {parseError && <p className="text-xs text-red-500" role="alert">{parseError}</p>}
             </div>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2" role="tablist" aria-label="数据源切换">
+            <div className="mt-4 flex flex-wrap items-center gap-2" role="tablist" aria-label={t('import.preview.tabAria')}>
               {template.datasets.map((dataset) => {
                 const parsed = datasets[dataset.id]
                 const isActive = activeDataset === dataset.id
+                const label = t(`templates.${template.id}.datasets.${dataset.id}.label`, t(`datasets.labels.${dataset.id}`, dataset.id))
                 return (
                   <button
                     key={dataset.id}
@@ -664,8 +680,8 @@ export default function ImportWizardPage() {
                         : 'bg-slate-200 text-slate-400'
                     }`}
                   >
-                    {DATASET_LABELS[dataset.id]}
-                    {!parsed && <span className="ml-2 text-xs">(未上传)</span>}
+                    {label}
+                    {!parsed && <span className="ml-2 text-xs">{t('datasets.notUploaded')}</span>}
                   </button>
                 )
               })}
@@ -693,7 +709,11 @@ export default function ImportWizardPage() {
                 </table>
                 <footer className="flex items-center justify-between px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
                   <span>
-                    显示 {safePage * PAGE_SIZE + 1}-{Math.min((safePage + 1) * PAGE_SIZE, totalRows)} / {totalRows}
+                    {t('import.preview.range', undefined, {
+                      from: formatNumber(safePage * PAGE_SIZE + 1),
+                      to: formatNumber(Math.min((safePage + 1) * PAGE_SIZE, totalRows)),
+                      total: formatNumber(totalRows),
+                    })}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -702,22 +722,22 @@ export default function ImportWizardPage() {
                       disabled={safePage === 0}
                       className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:hover:bg-slate-800"
                     >
-                      Prev
+                      {t('import.preview.prev')}
                     </button>
-                    <span aria-live="polite">Page {safePage + 1} / {totalPages}</span>
+                    <span aria-live="polite">{t('import.preview.page', undefined, { current: safePage + 1, total: totalPages })}</span>
                     <button
                       type="button"
                       onClick={() => setPage(Math.min(safePage + 1, totalPages - 1))}
                       disabled={safePage >= totalPages - 1}
                       className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 dark:border-slate-600 dark:hover:bg-slate-800"
                     >
-                      Next
+                      {t('import.preview.next')}
                     </button>
                   </div>
                 </footer>
               </div>
             ) : (
-              <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">暂无可预览数据，请先上传 CSV。</p>
+              <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">{t('import.preview.empty')}</p>
             )}
           </section>
         )}
@@ -726,13 +746,17 @@ export default function ImportWizardPage() {
   )
 }
 
-function UploadField({ dataset, parsed, onFileChange }: { dataset: DatasetTemplate; parsed?: ParsedDataset; onFileChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
+function UploadField({ templateId, dataset, parsed, onFileChange }: { templateId: TemplateId; dataset: DatasetTemplate; parsed?: ParsedDataset; onFileChange: (event: ChangeEvent<HTMLInputElement>) => void }) {
+  const { t, formatNumber } = useTranslation()
+  const label = t(`templates.${templateId}.datasets.${dataset.id}.label`, t(`datasets.labels.${dataset.id}`, dataset.id))
+  const description = t(`templates.${templateId}.datasets.${dataset.id}.description`, dataset.description)
+  const optionalTag = dataset.optional ? `${t('datasets.optional')} · ` : ''
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <label className="block text-sm font-semibold text-slate-900 dark:text-slate-100">
-        {dataset.optional ? '可选 · ' : ''}{DATASET_LABELS[dataset.id]}
+        {optionalTag}{label}
       </label>
-      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{dataset.description}</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p>
       <input
         type="file"
         accept=".csv"
@@ -741,12 +765,12 @@ function UploadField({ dataset, parsed, onFileChange }: { dataset: DatasetTempla
       />
       {parsed && (
         <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-300" role="status">
-          已加载 {parsed.rows.length} 条记录 · {parsed.headers.length} 列
+          {t('import.dataset.loaded', undefined, { rows: formatNumber(parsed.rows.length), columns: formatNumber(parsed.headers.length) })}
         </p>
       )}
       {dataset.sample && (
         <details className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-          <summary className="cursor-pointer text-blue-600 underline dark:text-blue-300">查看示例</summary>
+          <summary className="cursor-pointer text-blue-600 underline dark:text-blue-300">{t('import.dataset.sampleToggle', 'View sample')}</summary>
           <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-slate-900/90 p-3 text-[11px] text-slate-100">
             {dataset.sample}
           </pre>
@@ -757,22 +781,26 @@ function UploadField({ dataset, parsed, onFileChange }: { dataset: DatasetTempla
 }
 
 function MappingCard({
+  templateId,
   dataset,
   parsed,
   mapping,
   onChange,
 }: {
+  templateId: TemplateId
   dataset: DatasetTemplate
   parsed?: ParsedDataset
   mapping: Record<string, string>
   onChange: (fieldId: string, column: string) => void
 }) {
+  const { t } = useTranslation()
   const hasData = Boolean(parsed)
+  const label = t(`templates.${templateId}.datasets.${dataset.id}.label`, t(`datasets.labels.${dataset.id}`, dataset.id))
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
       <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-        {DATASET_LABELS[dataset.id]}
-        {!hasData && <span className="ml-2 text-xs text-slate-500">(未上传)</span>}
+        {label}
+        {!hasData && <span className="ml-2 text-xs text-slate-500">{t('datasets.notUploaded')}</span>}
       </h3>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {dataset.fields.map((field) => (
@@ -800,18 +828,23 @@ function FieldMappingRow({
   value: string
   onChange: (column: string) => void
 }) {
+  const { t } = useTranslation()
   return (
     <label className="flex flex-col gap-1 text-sm text-slate-700 dark:text-slate-200">
       <span className="font-medium">
         {field.label}
-        {field.required !== false ? <span className="ml-1 text-red-500">*</span> : <span className="ml-1 text-xs text-slate-400">(可选)</span>}
+        {field.required !== false ? (
+          <span className="ml-1 text-red-500">*</span>
+        ) : (
+          <span className="ml-1 text-xs text-slate-400">({t('datasets.optional')})</span>
+        )}
       </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
       >
-        <option value="">选择 CSV 列</option>
+        <option value="">{t('import.mapping.selectColumn')}</option>
         {headers.map((header) => (
           <option key={header} value={header}>
             {header}

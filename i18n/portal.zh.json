@@ -1,0 +1,192 @@
+{
+  "hero": {
+    "title": "🚀 全栈开发作品集",
+    "subtitle": "6 套即交付作品 · 极速上线 · 里程碑清晰 · <1 小时响应 · 符合 WCAG 2.1 AA",
+    "description": "从价格监控、Webhook 事件中枢，到 SaaS 指标分析、知识库、无障碍组件与可视化报告，所有项目均包含在线演示、测试、API 文档与 Docker 部署，让你快速评估交付能力。",
+    "badges": {
+      "response": "⚡ 1 小时内响应",
+      "delivery": "✅ 准时交付保障",
+      "accessibility": "♿ 符合 WCAG 2.1 AA",
+      "playwright": "🎭 Playwright 自动化",
+      "stripe": "💳 Stripe 集成",
+      "github": "🐙 GitHub 协作"
+    },
+    "cta": {
+      "explore": {
+        "label": "浏览项目",
+        "aria": "跳转到项目总览"
+      },
+      "packages": {
+        "label": "交付套餐",
+        "aria": "查看交付套餐"
+      },
+      "workflow": {
+        "label": "协作流程",
+        "aria": "查看协作流程"
+      }
+    }
+  },
+  "nav": {
+    "p1": "P1 · 全球价格哨兵",
+    "p2": "P2 · 事件中继中枢",
+    "p3": "P3 · SaaS 北极星仪表盘",
+    "p4": "P4 · 文档知识熔炉",
+    "p5": "P5 · 无障碍组件库",
+    "p6": "P6 · 洞察可视化工作室"
+  },
+  "projects": {
+    "p1": {
+      "name": "Global Price Sentinel",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "电商卖家需要人工比价，耗时且易出错。",
+      "summary": "批量监控竞品价格，自动告警并生成报表的智能比价系统。",
+      "metrics": {
+        "delivery": { "label": "交付周期", "value": "3 周上线 MVP" },
+        "impact": { "label": "效率提升", "value": "人工成本降低 30%" },
+        "sla": { "label": "告警 SLA", "value": "\u003c200ms 告警响应" }
+      },
+      "highlights": [
+        "Playwright 多站点抓取，支持代理池与定时任务。",
+        "邮件/Webhook 告警 + HTML/PDF 对比报表。",
+        "自助配置后台，阈值管理、审计日志与重试机制。"
+      ],
+      "actions": {
+        "live": { "label": "实时演示", "aria": "打开 Global Price Sentinel 演示" },
+        "docs": { "label": "API 文档", "aria": "查看 API 文档" },
+        "import": { "label": "导入示例", "aria": "为 P1 导入示例数据" },
+        "reset": { "label": "重置示例", "aria": "重置 P1 示例数据" }
+      }
+    },
+    "p2": {
+      "name": "Event Relay Hub",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "SaaS 平台缺少统一的 Webhook 处理、重试与死信队列能力。",
+      "summary": "支持签名校验、重试、死信与可视化监控的 Webhook 事件中枢。",
+      "metrics": {
+        "delivery": { "label": "集成周期", "value": "1 周完成集成" },
+        "reliability": { "label": "稳定性", "value": "成功率 >99.9%" },
+        "latency": { "label": "路由延迟", "value": "\u003c300ms 事件路由" }
+      },
+      "highlights": [
+        "无缝接入 Stripe/GitHub/Slack 等来源，支持 HMAC 签名校验。",
+        "条件路由、重试、死信队列及可视化遥测仪表盘。",
+        "运维控制台可查看负载、重播事件并设置 SLA 告警。"
+      ],
+      "actions": {
+        "live": { "label": "实时演示", "aria": "打开 Event Relay Hub 演示" },
+        "docs": { "label": "API 文档", "aria": "查看 API 文档" },
+        "import": { "label": "导入示例", "aria": "为 P2 导入示例数据" },
+        "reset": { "label": "重置示例", "aria": "重置 P2 示例数据" }
+      }
+    },
+    "p3": {
+      "name": "SaaS Northstar Dashboard",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "初创团队需要监控 MRR/留存/NPS，但传统 BI 过于臃肿。",
+      "summary": "面向 SaaS 团队的北极星指标仪表盘，内置模板、自动化与投资人级可视化。",
+      "metrics": {
+        "delivery": { "label": "交付周期", "value": "3 天交付高管版看板" },
+        "insights": { "label": "指标范围", "value": "MRR · NRR · NPS" },
+        "export": { "label": "导出速度", "value": "\u003c1s 导出 PNG/PDF" }
+      },
+      "highlights": [
+        "B2B/B2C/Ecom 模板库，一键生成 KPI 框架。",
+        "CSV 导入，支持 cohort、留存、流失预测。",
+        "仪表盘分享、嵌入式图表与 Slack/邮件播报。"
+      ],
+      "actions": {
+        "live": { "label": "实时演示", "aria": "打开 SaaS Dashboard 演示" },
+        "import": { "label": "CSV 导入", "aria": "前往 CSV 导入向导" },
+        "seed": { "label": "导入示例", "aria": "为 P3 导入示例数据" },
+        "reset": { "label": "重置示例", "aria": "重置 P3 示例数据" }
+      }
+    },
+    "p4": {
+      "name": "Doc Knowledge Forge",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "企业累积大量 PDF/Word 文档，需要统一检索与知识沉淀。",
+      "summary": "文档智能管道，将 PDF 转换为可搜索、可摘要、可导出的知识库。",
+      "metrics": {
+        "delivery": { "label": "交付周期", "value": "2 周上线" },
+        "throughput": { "label": "解析吞吐", "value": ">100 页/分钟" },
+        "search": { "label": "检索能力", "value": "全文检索 + 语义标签" }
+      },
+      "highlights": [
+        "批量上传自动转 Markdown，生成摘要、关键词与预览。",
+        "SQLite FTS + 标签筛选，提供相关性评分与高亮片段。",
+        "知识运维面板：版本、保留策略、导出管理。"
+      ],
+      "actions": {
+        "live": { "label": "实时演示", "aria": "打开 Doc Knowledge Forge 演示" },
+        "docs": { "label": "API 文档", "aria": "查看 API 文档" },
+        "import": { "label": "导入示例", "aria": "为 P4 导入示例数据" },
+        "reset": { "label": "重置示例", "aria": "重置 P4 示例数据" }
+      }
+    },
+    "p5": {
+      "name": "A11y Component Atlas",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "需要符合 WCAG 2.1 AA 的组件库，从零开发成本高昂。",
+      "summary": "符合 WCAG 2.1 AA 的 React 组件体系，随时接入 Design System。",
+      "metrics": {
+        "delivery": { "label": "接入时间", "value": "1 天即可接入" },
+        "compliance": { "label": "无障碍等级", "value": "WCAG 2.1 AA" },
+        "testing": { "label": "测试保障", "value": "axe + Vitest" }
+      },
+      "highlights": [
+        "按钮、表单、模态、Tabs 均内建键盘与读屏支持。",
+        "Storybook 文档结合无障碍面板、主题与设计 Token。",
+        "axe、Vitest、视觉回归构成持续测试流水线。"
+      ],
+      "actions": {
+        "live": { "label": "Storybook", "aria": "打开 A11y Component Atlas Storybook" },
+        "docs": { "label": "GitHub", "aria": "查看 GitHub 仓库" }
+      }
+    },
+    "p6": {
+      "name": "Insight Viz Studio",
+      "status": "就绪",
+      "painTitle": "痛点洞察",
+      "pain": "业务团队缺乏代码能力，却需要快速输出图表报告。",
+      "summary": "将 CSV/JSON 快速转换为品牌化报表，支持主题、自定义与定时导出。",
+      "metrics": {
+        "time": { "label": "价值实现", "value": "5 分钟生成第一张图" },
+        "export": { "label": "导出速度", "value": "\u003c2s 导出 PDF/PNG" },
+        "templates": { "label": "模板", "value": "周报 & 月报" }
+      },
+      "highlights": [
+        "上传 CSV/JSON 后自动推荐折线、柱状、饼图等合适图表。",
+        "拖拽字段映射、主题配色与批注层一应俱全。",
+        "导出品牌化 PNG/PDF，可配置周期性推送。"
+      ],
+      "actions": {
+        "live": { "label": "实时演示", "aria": "打开 Insight Viz Studio 演示" },
+        "docs": { "label": "API 文档", "aria": "查看 API 文档" },
+        "import": { "label": "导入示例", "aria": "为 P6 导入示例数据" },
+        "reset": { "label": "重置示例", "aria": "重置 P6 示例数据" }
+      }
+    }
+  },
+  "packages": {
+    "title": "🎯 交付套餐",
+    "description": "所有解决方案都提供 Basic / Standard / Premium 三档，涵盖范围、周期、迭代次数、测试与 SLA。你可以先通过导航浏览项目或进入 Demo，再挑选最契合目标的套餐。"
+  },
+  "contact": {
+    "title": "💼 准备好启动项目了吗？",
+    "description": "我专注于可上线交付、透明的里程碑与快速迭代。合作流程包含需求梳理、构建、测试、上线与知识交接，全程遵循 Material Design 3、Apple HIG、WCAG 2.1 AA 等最佳实践。",
+    "cta": {
+      "demos": { "label": "查看实时演示", "aria": "返回项目演示区域" },
+      "packages": { "label": "查看套餐", "aria": "查看交付套餐" },
+      "top": { "label": "返回顶部", "aria": "回到页面顶部" }
+    }
+  },
+  "footer": {
+    "line1": "Doc Knowledge Forge · 桌面优先 · 符合 WCAG 2.1 AA · Material Design 3 × Apple HIG",
+    "line2": "涵盖文档接入 API、搜索 API、Markdown 渲染、治理工具与导出流水线。"
+  }
+}

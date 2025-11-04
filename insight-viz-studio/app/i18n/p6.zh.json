@@ -1,0 +1,83 @@
+{
+  "lang": {
+    "toggle": "中文",
+    "options": {
+      "en": "English",
+      "zh": "中文"
+    }
+  },
+  "hero": {
+    "eyebrow": "SaaS 可视化工作室",
+    "title": "📈 Insight Viz Studio",
+    "subtitle": "几分钟内将 CSV / JSON / Excel 转为投资人级别仪表盘：智能选图、品牌主题、叙事布局与一键导出自动化。",
+    "points": [
+      "自动接入：上传 50MB+ CSV/JSON/Excel，智能识别字段、异常与数据质量。",
+      "智能推荐：依据度量/维度推荐折线/柱状/饼图/漏斗等图表，并预填 KPI。",
+      "编排交付：拖拽布局、主题、注释、PDF/PNG 导出与定时报表。"
+    ],
+    "cta": {
+      "upload": "上传数据",
+      "charts": "查看仪表盘",
+      "datasets": "数据集控制台"
+    }
+  },
+  "metrics": [
+    { "label": "图表模板", "value": "24+", "hint": "折线 · 柱状 · 面积 · 饼图 · 漏斗 · 组合" },
+    { "label": "导出格式", "value": "PNG / PDF", "hint": "品牌化字体 + 水印" },
+    { "label": "处理 SLA", "value": "< 5 分钟", "hint": "10 万行 CSV → 即可用图表" }
+  ],
+  "workflow": {
+    "title": "工作流 · 从数据上传到可交付报告",
+    "steps": [
+      "Profile：数据剖析、KPI 建议、异常提醒",
+      "Recommend：按维度/度量推荐合适图表",
+      "Compose：拖拽布局、主题、注释",
+      "Deliver：导出 PNG/PDF 或定时发布"
+    ]
+  },
+  "upload": {
+    "title": "📂 上传数据文件",
+    "description": "拖拽 CSV/JSON/Excel 即可，我们会剖析字段、识别指标并预装推荐图表。",
+    "supports": "支持 CSV · JSON · XLSX · XLS —— 单次最多 10 个文件。",
+    "choose": "选择文件",
+    "import": "导入示例",
+    "reset": "重置示例",
+    "docs": "📘 API 文档",
+    "datasets": "📁 查看数据集 JSON"
+  },
+  "charts": {
+    "title": "🧠 智能图表示例",
+    "description": "示例仪表盘来源于 Demo 数据，可直接作为截图素材。",
+    "primary": "营收增长与 Cohort 留存",
+    "secondary": "品类贡献与目标达成"
+  },
+  "datasets": {
+    "title": "📁 数据集控制台",
+    "description": "查看已上传文件、大小及时间，也可通过 /api/datasets 获取。",
+    "table": {
+      "filename": "文件名",
+      "size": "大小",
+      "uploaded": "上传时间"
+    },
+    "empty": "暂无数据集，导入示例或上传文件即可体验。"
+  },
+  "scenarios": {
+    "title": "使用场景"
+  },
+  "usecases": [
+    "高管 KPI 仪表盘：营收、ARR、流失、CAC 回收、Pipeline 汇总",
+    "营销活动分析：渠道归因、留存 Cohort、转化漏斗",
+    "产品指标：功能活跃、MAU/WAU、版本影响、NPS 分析",
+    "财务规划：计划 vs 实际、费用拆分、利润率分析"
+  ],
+  "alerts": {
+    "importSuccess": "✅ 示例数据已导入！访问 /api/datasets 查看样例文件。",
+    "importFailed": "❌ 导入失败：{error}",
+    "resetConfirm": "确定清空示例数据吗？",
+    "resetSuccess": "✅ 示例数据已清空！",
+    "resetFailed": "❌ 清空失败：{error}",
+    "uploadSuccess": "文件上传成功！行数：{rows}，列数：{columns}",
+    "uploadFailed": "上传失败：{error}"
+  }
+}
+

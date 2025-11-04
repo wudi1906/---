@@ -3,7 +3,7 @@ FastAPI 主应用
 """
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Depends, Query, Request
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -73,6 +73,12 @@ app.add_middleware(
 # 静态文件
 app.mount("/screenshots", StaticFiles(directory=str(settings.SCREENSHOTS_DIR)), name="screenshots")
 app.mount("/reports", StaticFiles(directory=str(settings.REPORTS_DIR)), name="reports")
+app.mount("/i18n", StaticFiles(directory=str(Path(__file__).resolve().parent / "i18n")), name="i18n")
+app.mount(
+    "/portal-i18n",
+    StaticFiles(directory=str(Path(__file__).resolve().parents[2] / "i18n")),
+    name="portal-i18n",
+)
 
 
 @app.on_event("startup")
@@ -84,9 +90,26 @@ async def startup_event():
     print(f"  - API文档: http://{settings.HOST}:{settings.PORT}/api/docs")
 
 
+def _detect_language(request: Request) -> str:
+    cookie_lang = request.cookies.get("portfolio_lang")
+    if cookie_lang and cookie_lang in {"en", "zh"}:
+        return cookie_lang
+    header_lang = (request.headers.get("Accept-Language") or "").lower()
+    if header_lang.startswith("zh"):
+        return "zh"
+    return "en"
+
+
+def _load_monitor_template() -> str:
+    template_path = Path(__file__).resolve().parent / "templates" / "monitor_settings.html"
+    if template_path.exists():
+        return template_path.read_text(encoding="utf-8")
+    return "<h1>Monitor settings UI 未找到</h1><p>请检查 templates/monitor_settings.html 是否存在。</p>"
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """根路径 - 显示统一门户"""
+    """根路径 - 返回统一门户"""
     portal_path = Path(__file__).resolve().parents[2] / "PORTAL_REDESIGN.html"
     if portal_path.exists():
         return portal_path.read_text(encoding="utf-8")
@@ -94,14 +117,11 @@ async def root():
 
 
 @app.get("/monitor/settings", response_class=HTMLResponse)
-async def monitor_settings_page():
-    template_path = Path(__file__).resolve().parent / "templates" / "monitor_settings.html"
-    if template_path.exists():
-        return template_path.read_text(encoding="utf-8")
-    return HTMLResponse(
-        "<h1>Monitor settings UI 未找到</h1><p>请检查 templates/monitor_settings.html 是否存在。</p>",
-        status_code=404,
-    )
+async def monitor_settings_page(request: Request):
+    lang = _detect_language(request)
+    template = _load_monitor_template()
+    html = template.replace('data-default-lang="en"', f'data-default-lang="{lang}"')
+    return HTMLResponse(html)
 
 
 @app.get("/api/config/monitor", response_model=MonitorConfigSchema)

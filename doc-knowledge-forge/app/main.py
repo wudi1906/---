@@ -48,13 +48,12 @@ app.add_middleware(
 # 静态文件
 app.mount("/uploads", StaticFiles(directory=str(settings.UPLOAD_DIR)), name="uploads")
 app.mount("/outputs", StaticFiles(directory=str(settings.OUTPUT_DIR)), name="outputs")
+app.mount(
+    "/i18n",
+    StaticFiles(directory=str(Path(__file__).resolve().parent / "i18n")),
+    name="i18n",
+)
 
-templates_dir = Path(__file__).resolve().parent / "templates"
-templates_dir.mkdir(exist_ok=True)
-templates = Jinja2Templates(directory=str(templates_dir))
-
-# 模板目录
-# 模板目录
 templates_dir = Path(__file__).resolve().parent / "templates"
 templates_dir.mkdir(exist_ok=True)
 templates = Jinja2Templates(directory=str(templates_dir))
@@ -71,7 +70,10 @@ async def startup_event():
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     """主页"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "version": settings.APP_VERSION},
+    )
 
 
 @app.post("/api/demo/seed")
@@ -159,7 +161,6 @@ async def health_check():
         "status": "healthy",
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "timestamp": datetime.utcnow().isoformat()
     }
 
 

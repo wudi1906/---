@@ -23,12 +23,9 @@ if not exist ".venv\Scripts\python.exe" (
     echo [OK] Virtual environment created
 )
 
-if not exist ".venv\Lib\site-packages\fastapi" (
-    echo [*] Installing dependencies...
-    "%VENV_PY%" -m pip install --upgrade pip
-    "%VENV_PIP%" install -r requirements.txt
-    echo [OK] Dependencies installed
-)
+echo [*] Installing dependencies...
+"%VENV_PY%" -m pip install --upgrade pip >nul
+"%VENV_PIP%" install --disable-pip-version-check -r requirements.txt
 
 if not exist ".env" copy /Y env.example .env >nul
 

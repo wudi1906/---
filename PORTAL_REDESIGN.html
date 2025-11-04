@@ -42,6 +42,73 @@
             line-height: 1.6;
         }
         
+        .lang-switcher {
+            position: fixed;
+            top: clamp(16px, 4vw, 32px);
+            right: clamp(16px, 4vw, 32px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            z-index: 2000;
+            gap: 8px;
+        }
+
+        .lang-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(12px);
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-toggle:hover,
+        .lang-toggle:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.25);
+            outline: none;
+        }
+
+        .lang-options {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.35);
+            overflow: hidden;
+            display: none;
+        }
+
+        .lang-options.open {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lang-option {
+            padding: 10px 18px;
+            color: white;
+            background: transparent;
+            border: none;
+            text-align: left;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .lang-option:hover,
+        .lang-option:focus-visible,
+        .lang-option.active {
+            background: rgba(59, 130, 246, 0.25);
+            outline: none;
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -714,24 +781,33 @@
     </style>
 </head>
 <body>
+    <div class="lang-switcher" role="navigation" aria-label="Language selector">
+        <button id="langToggle" class="lang-toggle" type="button">
+            <span>🌐</span><span data-i18n="lang.toggle">English</span>
+        </button>
+        <div id="langOptions" class="lang-options" role="menu">
+            <button class="lang-option" role="menuitemradio" data-lang="en" aria-checked="true">English</button>
+            <button class="lang-option" role="menuitemradio" data-lang="zh" aria-checked="false">中文</button>
+        </div>
+    </div>
     <div class="container">
         <header id="hero" class="hero">
-            <h1>🚀 Full-Stack Developer Portfolio</h1>
-            <p class="hero-subtitle">
+            <h1 data-i18n="hero.title">🚀 Full-Stack Developer Portfolio</h1>
+            <p class="hero-subtitle" data-i18n="hero.subtitle">
                 6 Production-Ready Projects · Fast Delivery · Clear Milestones · &lt;1h Response · WCAG 2.1 AA Compliant
             </p>
-            <p class="hero-description">
+            <p class="hero-description" data-i18n="hero.description">
                 From price intelligence and webhook orchestration to SaaS analytics and accessibility, each project ships with live demos, tests, API docs, and Docker deployment so you can assess production readiness instantly.
             </p>
             
             <!-- Trust Badges -->
             <div class="trust-badges">
-                <span class="trust-badge">⚡ &lt;1 Hour Response</span>
-                <span class="trust-badge">✅ On-time Delivery</span>
-                <span class="trust-badge">♿ WCAG 2.1 AA</span>
-                <span class="trust-badge">🎭 Playwright</span>
-                <span class="trust-badge">💳 Stripe</span>
-                <span class="trust-badge">🐙 GitHub</span>
+                <span class="trust-badge" data-i18n="hero.badges.response">⚡ &lt;1 Hour Response</span>
+                <span class="trust-badge" data-i18n="hero.badges.delivery">✅ On-time Delivery</span>
+                <span class="trust-badge" data-i18n="hero.badges.accessibility">♿ WCAG 2.1 AA</span>
+                <span class="trust-badge" data-i18n="hero.badges.playwright">🎭 Playwright</span>
+                <span class="trust-badge" data-i18n="hero.badges.stripe">💳 Stripe</span>
+                <span class="trust-badge" data-i18n="hero.badges.github">🐙 GitHub</span>
             </div>
 
             <!-- Health Status -->
@@ -762,24 +838,24 @@
                 </div>
             </div>
 
-            <nav class="project-quick-nav" aria-label="快速跳转项目">
-                <a class="project-chip" href="#project-global-price-sentinel"><span>🔍</span>P1 · Global Price Sentinel</a>
-                <a class="project-chip" href="#project-event-relay-hub"><span>🔗</span>P2 · Event Relay Hub</a>
-                <a class="project-chip" href="#project-saas-northstar-dashboard"><span>📊</span>P3 · SaaS Northstar Dashboard</a>
-                <a class="project-chip" href="#project-doc-knowledge-forge"><span>📄</span>P4 · Doc Knowledge Forge</a>
-                <a class="project-chip" href="#project-a11y-component-atlas"><span>♿</span>P5 · A11y Component Atlas</a>
-                <a class="project-chip" href="#project-insight-viz-studio"><span>📈</span>P6 · Insight Viz Studio</a>
+        <nav class="project-quick-nav" aria-label="快速跳转项目">
+            <a class="project-chip" href="#project-global-price-sentinel"><span>🔍</span><span class="nav-label" data-i18n="nav.p1">P1 · Global Price Sentinel</span></a>
+            <a class="project-chip" href="#project-event-relay-hub"><span>🔗</span><span class="nav-label" data-i18n="nav.p2">P2 · Event Relay Hub</span></a>
+            <a class="project-chip" href="#project-saas-northstar-dashboard"><span>📊</span><span class="nav-label" data-i18n="nav.p3">P3 · SaaS Northstar Dashboard</span></a>
+            <a class="project-chip" href="#project-doc-knowledge-forge"><span>📄</span><span class="nav-label" data-i18n="nav.p4">P4 · Doc Knowledge Forge</span></a>
+            <a class="project-chip" href="#project-a11y-component-atlas"><span>♿</span><span class="nav-label" data-i18n="nav.p5">P5 · A11y Component Atlas</span></a>
+            <a class="project-chip" href="#project-insight-viz-studio"><span>📈</span><span class="nav-label" data-i18n="nav.p6">P6 · Insight Viz Studio</span></a>
             </nav>
             
             <div class="hero-cta">
-                <a href="#projects" class="btn btn-primary" aria-label="Scroll to project showcases">
-                    <span>🧭</span> Explore Projects
+                <a href="#projects" class="btn btn-primary" data-i18n-attr="aria-label" data-i18n-attr-key="hero.cta.explore.aria">
+                    <span>🧭</span><span data-i18n="hero.cta.explore.label">Explore Projects</span>
                 </a>
-                <a href="#packages" class="btn btn-outline" aria-label="Review delivery packages">
-                    <span>📦</span> Delivery Packages
+                <a href="#packages" class="btn btn-outline" data-i18n-attr="aria-label" data-i18n-attr-key="hero.cta.packages.aria">
+                    <span>📦</span><span data-i18n="hero.cta.packages.label">Delivery Packages</span>
                 </a>
-                <a href="#contact" class="btn btn-outline" aria-label="See collaboration process">
-                    <span>🛠️</span> Collaboration Workflow
+                <a href="#contact" class="btn btn-outline" data-i18n-attr="aria-label" data-i18n-attr-key="hero.cta.workflow.aria">
+                    <span>🛠️</span><span data-i18n="hero.cta.workflow.label">Collaboration Workflow</span>
                 </a>
             </div>
         </header>
@@ -792,7 +868,7 @@
                     <div class="project-info">
                         <h2>Global Price Sentinel</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -845,16 +921,16 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8101" class="action-btn action-primary" target="_blank" aria-label="Open Global Price Sentinel demo">
-                        <span>🚀</span> Live Demo
+                        <span>🚀</span><span class="action-label">Live Demo</span>
                     </a>
                     <a href="http://localhost:8101/api/docs" class="action-btn action-secondary" target="_blank" aria-label="View API documentation">
-                        <span>📘</span> API Docs
+                        <span>📘</span><span class="action-label">API Docs</span>
                     </a>
                     <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8101/api/demo/seed', this)" aria-label="Import demo data for P1">
-                        <span>🧪</span> Import Demo
+                        <span>🧪</span><span class="action-label">Import Demo</span>
                     </button>
                     <button class="action-btn action-reset" onclick="resetDemo('http://localhost:8101/api/demo/reset', this)" aria-label="Reset demo data for P1">
-                        <span>🔄</span> Reset Demo
+                        <span>🔄</span><span class="action-label">Reset Demo</span>
                     </button>
                 </div>
             </article>
@@ -866,7 +942,7 @@
                     <div class="project-info">
                         <h2>Event Relay Hub</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -919,16 +995,16 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8202" class="action-btn action-primary" target="_blank" aria-label="Open Event Relay Hub demo">
-                        <span>🚀</span> Live Demo
+                        <span>🚀</span><span class="action-label">Live Demo</span>
                     </a>
                     <a href="http://localhost:8202/api/docs" class="action-btn action-secondary" target="_blank" aria-label="View API documentation">
-                        <span>📘</span> API Docs
+                        <span>📘</span><span class="action-label">API Docs</span>
                     </a>
                     <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8202/api/demo/seed', this)" aria-label="Import demo data for P2">
-                        <span>🧪</span> Import Demo
+                        <span>🧪</span><span class="action-label">Import Demo</span>
                     </button>
                     <button class="action-btn action-reset" onclick="resetDemo('http://localhost:8202/api/demo/reset', this)" aria-label="Reset demo data for P2">
-                        <span>🔄</span> Reset Demo
+                        <span>🔄</span><span class="action-label">Reset Demo</span>
                     </button>
                 </div>
             </article>
@@ -940,7 +1016,7 @@
                     <div class="project-info">
                         <h2>SaaS Northstar Dashboard</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -993,16 +1069,16 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8303" class="action-btn action-primary" target="_blank" aria-label="Open SaaS Dashboard demo">
-                        <span>🚀</span> Live Demo
+                        <span>🚀</span><span class="action-label">Live Demo</span>
                     </a>
                     <a href="http://localhost:8303/import" class="action-btn action-secondary" target="_blank" aria-label="Navigate to CSV import">
-                        <span>📥</span> CSV Import
+                        <span>📥</span><span class="action-label">CSV Import</span>
                     </a>
                     <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8303/api/demo/seed', this)" aria-label="Import demo data for P3">
-                        <span>🧪</span> Import Demo
+                        <span>🧪</span><span class="action-label">Import Demo</span>
                     </button>
                     <button class="action-btn action-reset" onclick="resetDemo('http://localhost:8303/api/demo/reset', this)" aria-label="Reset demo data for P3">
-                        <span>🔄</span> Reset Demo
+                        <span>🔄</span><span class="action-label">Reset Demo</span>
                     </button>
                 </div>
             </article>
@@ -1014,7 +1090,7 @@
                     <div class="project-info">
                         <h2>Doc Knowledge Forge</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -1067,16 +1143,16 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8404" class="action-btn action-primary" target="_blank" aria-label="Open Doc Knowledge Forge demo">
-                        <span>🚀</span> Live Demo
+                        <span>🚀</span><span class="action-label">Live Demo</span>
                     </a>
                     <a href="http://localhost:8404/api/docs" class="action-btn action-secondary" target="_blank" aria-label="View API documentation">
-                        <span>📘</span> API Docs
+                        <span>📘</span><span class="action-label">API Docs</span>
                     </a>
                     <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8404/api/demo/seed', this)" aria-label="Import demo data for P4">
-                        <span>🧪</span> Import Demo
+                        <span>🧪</span><span class="action-label">Import Demo</span>
                     </button>
                     <button class="action-btn action-reset" onclick="resetDemo('http://localhost:8404/api/demo/reset', this)" aria-label="Reset demo data for P4">
-                        <span>🔄</span> Reset Demo
+                        <span>🔄</span><span class="action-label">Reset Demo</span>
                     </button>
                 </div>
             </article>
@@ -1088,7 +1164,7 @@
                     <div class="project-info">
                         <h2>A11y Component Atlas</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -1141,10 +1217,10 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8505" class="action-btn action-primary" target="_blank" aria-label="Open A11y Component Atlas Storybook">
-                        <span>🚀</span> Storybook
+                        <span>🚀</span><span class="action-label">Storybook</span>
                     </a>
                     <a href="https://github.com/your-repo/a11y-atlas" class="action-btn action-secondary" target="_blank" aria-label="View repository on GitHub">
-                        <span>💻</span> GitHub
+                        <span>💻</span><span class="action-label">GitHub</span>
                     </a>
                 </div>
             </article>
@@ -1156,7 +1232,7 @@
                     <div class="project-info">
                         <h2>Insight Viz Studio</h2>
                         <span class="status-badge">
-                            <span>⚡</span> Ready
+                            <span>⚡</span><span class="status-text">Ready</span>
                         </span>
                     </div>
                 </div>
@@ -1209,16 +1285,16 @@
                 </div>
                 <div class="project-actions">
                     <a href="http://localhost:8606" class="action-btn action-primary" target="_blank" aria-label="Open Insight Viz Studio demo">
-                        <span>🚀</span> Live Demo
+                        <span>🚀</span><span class="action-label">Live Demo</span>
                     </a>
                     <a href="http://localhost:8606/api/docs" class="action-btn action-secondary" target="_blank" aria-label="View API documentation">
-                        <span>📘</span> API Docs
+                        <span>📘</span><span class="action-label">API Docs</span>
                     </a>
                     <button class="action-btn action-demo" onclick="seedDemo('http://localhost:8606/api/demo/seed', this)" aria-label="Import demo data for P6">
-                        <span>🧪</span> Import Demo
+                        <span>🧪</span><span class="action-label">Import Demo</span>
                     </button>
                     <button class="action-btn action-reset" onclick="resetDemo('http://localhost:8606/api/demo/reset', this)" aria-label="Reset demo data for P6">
-                        <span>🔄</span> Reset Demo
+                        <span>🔄</span><span class="action-label">Reset Demo</span>
                     </button>
                 </div>
             </article>
@@ -1238,128 +1314,484 @@
             </p>
             <div class="contact-options">
                 <a href="#projects" class="btn btn-primary" aria-label="Return to project gallery">
-                    <span>🚀</span> View Live Demos
+                    <span>🚀</span><span class="action-label">View Live Demos</span>
                 </a>
                 <a href="#packages" class="btn btn-outline" aria-label="Review delivery tiers">
-                    <span>📄</span> Review Packages
+                    <span>📄</span><span class="action-label">Review Packages</span>
                 </a>
                 <a href="#hero" class="btn btn-outline" aria-label="Scroll to top">
-                    <span>⬆️</span> Back to Top
+                    <span>⬆️</span><span class="action-label">Back to Top</span>
                 </a>
             </div>
         </section>
     </div>
 
     <script>
-        // Health check for all services
-        const healthEndpoints = [
-            { port: 8101, id: 'health-8101', url: 'http://localhost:8101/api/health' },
-            { port: 8202, id: 'health-8202', url: 'http://localhost:8202/api/health' },
-            { port: 8303, id: 'health-8303', url: 'http://localhost:8303/api/health' },
-            { port: 8404, id: 'health-8404', url: 'http://localhost:8404/api/health' },
-            { port: 8505, id: 'health-8505', url: 'http://localhost:8505/' },
-            { port: 8606, id: 'health-8606', url: 'http://localhost:8606/api/health' }
-        ];
+        (function () {
+            const LANG_STORAGE_KEY = 'portfolio-lang';
+            const LANG_COOKIE_KEY = 'portfolio_lang';
+            const SUPPORTED_LANGS = ['en', 'zh'];
+            const DEFAULT_LANG = 'en';
+            const PORTAL_I18N_BASE = '/portal-i18n';
+            const HEALTH_TIMEOUT_MS = 4000;
+            const translationCache = new Map();
+            let translations = {};
+            let currentLang = DEFAULT_LANG;
 
-        async function checkHealth() {
-            for (const endpoint of healthEndpoints) {
-                const dot = document.getElementById(endpoint.id);
-                if (!dot) continue;
+            const langSwitcherEl = document.querySelector('.lang-switcher');
+            const langToggle = document.getElementById('langToggle');
+            const langOptionsEl = document.getElementById('langOptions');
+            const langOptionButtons = langOptionsEl.querySelectorAll('.lang-option');
 
+            const healthEndpoints = [
+                { port: 8101, id: 'health-8101', url: 'http://localhost:8101/api/health', mode: 'same-origin' },
+                { port: 8202, id: 'health-8202', url: 'http://localhost:8202/api/health', mode: 'cors' },
+                { port: 8303, id: 'health-8303', url: 'http://localhost:8303/api/health', mode: 'cors' },
+                { port: 8404, id: 'health-8404', url: 'http://localhost:8404/api/health', mode: 'cors' },
+                { port: 8505, id: 'health-8505', url: 'http://localhost:8505/', mode: 'no-cors' },
+                { port: 8606, id: 'health-8606', url: 'http://localhost:8606/api/health', mode: 'cors' }
+            ];
+
+            const projectConfigs = {
+                p1: {
+                    selector: '#project-global-price-sentinel',
+                    highlights: 3,
+                    metrics: ['delivery', 'impact', 'sla'],
+                    actions: ['live', 'docs', 'import', 'reset']
+                },
+                p2: {
+                    selector: '#project-event-relay-hub',
+                    highlights: 3,
+                    metrics: ['delivery', 'reliability', 'latency'],
+                    actions: ['live', 'docs', 'import', 'reset']
+                },
+                p3: {
+                    selector: '#project-saas-northstar-dashboard',
+                    highlights: 3,
+                    metrics: ['delivery', 'insights', 'export'],
+                    actions: ['live', 'import', 'seed', 'reset']
+                },
+                p4: {
+                    selector: '#project-doc-knowledge-forge',
+                    highlights: 3,
+                    metrics: ['delivery', 'throughput', 'search'],
+                    actions: ['live', 'docs', 'import', 'reset']
+                },
+                p5: {
+                    selector: '#project-a11y-component-atlas',
+                    highlights: 3,
+                    metrics: ['delivery', 'compliance', 'testing'],
+                    actions: ['live', 'docs']
+                },
+                p6: {
+                    selector: '#project-insight-viz-studio',
+                    highlights: 3,
+                    metrics: ['time', 'export', 'templates'],
+                    actions: ['live', 'docs', 'import', 'reset']
+                }
+            };
+
+            function getNested(obj, path) {
+                return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
+            }
+
+            function t(path, params = {}) {
+                const value = getNested(translations, path);
+                if (typeof value === 'string') {
+                    return value.replace(/\{(\w+)\}/g, (_, token) => params[token] ?? '');
+                }
+                return value;
+            }
+
+            async function fetchJson(url) {
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) {
+                    throw new Error(`Failed to load ${url}`);
+                }
+                return res.json();
+            }
+
+            async function loadLanguage(lang) {
+                if (translationCache.has(lang)) {
+                    translations = translationCache.get(lang);
+                    currentLang = lang;
+                    return;
+                }
+                const [shared, portal] = await Promise.all([
+                    fetchJson(`${PORTAL_I18N_BASE}/shared.${lang}.json`),
+                    fetchJson(`${PORTAL_I18N_BASE}/portal.${lang}.json`)
+                ]);
+                const merged = { ...shared, ...portal };
+                translationCache.set(lang, merged);
+                translations = merged;
+                currentLang = lang;
+            }
+
+            async function fetchWithTimeout(url, options = {}, timeout = HEALTH_TIMEOUT_MS) {
+                if (typeof AbortController === 'undefined') {
+                    return fetch(url, options);
+                }
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeout);
                 try {
-                    const res = await fetch(endpoint.url, { 
-                        method: 'GET',
-                        signal: AbortSignal.timeout(3000)
+                    return await fetch(url, { ...options, signal: controller.signal });
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            function setCookie(name, value, days = 365) {
+                const date = new Date();
+                date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+                document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+            }
+
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
+
+            function detectInitialLanguage() {
+                try {
+                    const url = new URL(window.location.href);
+                    const paramLang = url.searchParams.get('lang');
+                    if (paramLang && SUPPORTED_LANGS.includes(paramLang)) {
+                        url.searchParams.delete('lang');
+                        history.replaceState({}, '', url.toString());
+                        return { lang: paramLang, persist: true };
+                    }
+                } catch (_) {}
+
+                const stored = localStorage.getItem(LANG_STORAGE_KEY);
+                if (stored && SUPPORTED_LANGS.includes(stored)) {
+                    return { lang: stored, persist: false };
+                }
+
+                const cookie = getCookie(LANG_COOKIE_KEY);
+                if (cookie && SUPPORTED_LANGS.includes(cookie)) {
+                    return { lang: cookie, persist: false };
+                }
+
+                const navLang = (navigator.language || navigator.languages?.[0] || DEFAULT_LANG).toLowerCase();
+                const fallback = navLang.startsWith('zh') ? 'zh' : 'en';
+                return { lang: fallback, persist: false };
+            }
+
+            async function changeLanguage(lang, persist = true) {
+                const targetLang = SUPPORTED_LANGS.includes(lang) ? lang : DEFAULT_LANG;
+                try {
+                    await loadLanguage(targetLang);
+                    applyTranslations();
+                    if (persist) {
+                        localStorage.setItem(LANG_STORAGE_KEY, targetLang);
+                        setCookie(LANG_COOKIE_KEY, targetLang);
+                    }
+                    currentLang = targetLang;
+                    document.documentElement.lang = targetLang === 'zh' ? 'zh-CN' : 'en';
+                    updateLangToggleUI();
+                } catch (error) {
+                    console.error('[i18n] Failed to switch language', error);
+                }
+            }
+
+            function updateLangToggleUI() {
+                const toggleLabel = langToggle.querySelector('[data-i18n="lang.toggle"]');
+                if (toggleLabel) toggleLabel.textContent = t('lang.toggle') || 'Language';
+                langToggle.setAttribute('aria-label', t('lang.aria') || 'Switch language');
+                langToggle.setAttribute('aria-expanded', langOptionsEl.classList.contains('open') ? 'true' : 'false');
+                langOptionButtons.forEach(btn => {
+                    const code = btn.dataset.lang;
+                    const label = t(`lang.options.${code}`) || code;
+                    btn.textContent = label;
+                    const isActive = code === currentLang;
+                    btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                    btn.classList.toggle('active', isActive);
+                });
+            }
+
+            function setText(selector, key) {
+                const el = document.querySelector(selector);
+                const value = t(key);
+                if (el && value !== undefined) {
+                    el.textContent = value;
+                }
+            }
+
+            function applyContactTranslations() {
+                setText('#packages h2', 'packages.title');
+                setText('#packages p', 'packages.description');
+                setText('#contact h2', 'contact.title');
+                setText('#contact p', 'contact.description');
+
+                const contactButtons = [
+                    { selector: '#contact .contact-options .btn:nth-child(1)', key: 'contact.cta.demos' },
+                    { selector: '#contact .contact-options .btn:nth-child(2)', key: 'contact.cta.packages' },
+                    { selector: '#contact .contact-options .btn:nth-child(3)', key: 'contact.cta.top' }
+                ];
+
+                contactButtons.forEach(({ selector, key }) => {
+                    const btn = document.querySelector(selector);
+                    if (!btn) return;
+                    const label = t(`${key}.label`);
+                    const aria = t(`${key}.aria`);
+                    const labelSpan = btn.querySelector('.action-label');
+                    if (labelSpan && label) labelSpan.textContent = label;
+                    if (aria) btn.setAttribute('aria-label', aria);
+                });
+            }
+
+            function applyProjects() {
+                Object.entries(projectConfigs).forEach(([projectKey, config]) => {
+                    const root = document.querySelector(config.selector);
+                    const data = getNested(translations, `projects.${projectKey}`);
+                    if (!root || !data) return;
+
+                    const nameEl = root.querySelector('.project-info h2');
+                    if (nameEl && data.name) nameEl.textContent = data.name;
+
+                    const statusText = data.status || t('shared.status.ready');
+                    const statusEl = root.querySelector('.status-text');
+                    if (statusEl && statusText) statusEl.textContent = statusText;
+
+                    const painTitleEl = root.querySelector('.pain-point-title');
+                    if (painTitleEl) painTitleEl.textContent = data.painTitle || t('shared.labels.pain');
+
+                    const painTextEl = root.querySelector('.pain-point-text');
+                    if (painTextEl && data.pain) painTextEl.textContent = data.pain;
+
+                    const summaryLabelEl = root.querySelector('.summary-label');
+                    if (summaryLabelEl) summaryLabelEl.textContent = t('shared.labels.usp') || 'USP';
+
+                    const summaryTextEl = root.querySelector('.summary-text');
+                    if (summaryTextEl && data.summary) summaryTextEl.textContent = data.summary;
+
+                    config.metrics.forEach((metricKey, index) => {
+                        const card = root.querySelector(`.project-metrics .metric-card:nth-child(${index + 1})`);
+                        const metric = data.metrics?.[metricKey];
+                        if (!card || !metric) return;
+                        const labelEl = card.querySelector('.metric-title');
+                        const valueEl = card.querySelector('.metric-value');
+                        if (labelEl && metric.label) labelEl.textContent = metric.label;
+                        if (valueEl && metric.value) valueEl.textContent = metric.value;
                     });
-                    if (res.ok) {
-                        dot.className = 'health-dot running';
-                        dot.setAttribute('aria-label', `Port ${endpoint.port} running`);
+
+                    for (let i = 0; i < config.highlights; i++) {
+                        const li = root.querySelector(`.project-highlights li:nth-child(${i + 1})`);
+                        const text = data.highlights?.[i];
+                        if (li && text) li.textContent = text;
+                    }
+
+                    config.actions.forEach((actionKey, index) => {
+                        const actionEl = root.querySelector(`.project-actions .action-btn:nth-child(${index + 1})`);
+                        if (!actionEl) return;
+                        const actionData = data.actions?.[actionKey];
+                        if (actionData?.label) {
+                            const labelSpan = actionEl.querySelector('.action-label');
+                            if (labelSpan) labelSpan.textContent = actionData.label;
+                        }
+                        if (actionData?.aria) {
+                            actionEl.setAttribute('aria-label', actionData.aria);
+                        }
+                        const iconSpan = actionEl.querySelector('span:first-child');
+                        if (iconSpan && !actionEl.dataset.actionIcon) {
+                            actionEl.dataset.actionIcon = iconSpan.textContent.trim();
+                        }
+                        actionEl.dataset.actionKey = `projects.${projectKey}.actions.${actionKey}`;
+                        actionEl.dataset.actionRole = actionKey;
+                    });
+                });
+            }
+
+            function applyTranslations() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    const value = t(key);
+                    if (value !== undefined) {
+                        el.textContent = value;
+                    }
+                });
+
+                document.querySelectorAll('[data-i18n-attr]').forEach(el => {
+                    const attr = el.getAttribute('data-i18n-attr');
+                    const key = el.getAttribute('data-i18n-attr-key') || el.getAttribute('data-i18n');
+                    const value = t(key);
+                    if (value !== undefined) {
+                        el.setAttribute(attr, value);
+                    }
+                });
+
+                applyProjects();
+                applyContactTranslations();
+                updateLangToggleUI();
+            }
+
+            function setActionState(btn, state) {
+                const role = btn.dataset.actionRole || 'import';
+                if (!btn.dataset.actionIcon) {
+                    const iconSpan = btn.querySelector('span:first-child');
+                    btn.dataset.actionIcon = iconSpan ? iconSpan.textContent.trim() : '';
+                }
+                const iconDefault = btn.dataset.actionIcon || '';
+                const actionKey = btn.dataset.actionKey;
+
+                let icon = iconDefault;
+                let label = t(`${actionKey}.label`) || btn.querySelector('.action-label')?.textContent || '';
+
+                switch (state) {
+                    case 'loading':
+                        icon = '⏳';
+                        label = t('buttons.loading') || 'Loading...';
+                        break;
+                    case 'success':
+                        icon = '✅';
+                        label = role === 'reset' ? (t('buttons.cleared') || 'Cleared') : (t('buttons.imported') || 'Imported');
+                        break;
+                    case 'error':
+                        icon = '❌';
+                        label = t('buttons.failed') || 'Failed';
+                        break;
+                    case 'resetting':
+                        icon = '⏳';
+                        label = t('buttons.resetting') || 'Resetting...';
+                        break;
+                    default:
+                        icon = iconDefault;
+                        label = t(`${actionKey}.label`) || label;
+                }
+
+                btn.innerHTML = `<span>${icon}</span><span class="action-label">${label}</span>`;
+            }
+
+            async function seedDemo(url, btn) {
+                if (!btn) return;
+                btn.disabled = true;
+                setActionState(btn, 'loading');
+                try {
+                    const res = await fetch(url, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        setActionState(btn, 'success');
+                        setTimeout(() => {
+                            setActionState(btn, 'default');
+                            btn.disabled = false;
+                        }, 2000);
+                        alert(t('alerts.demoImported') || 'Demo data imported.');
                     } else {
-                        dot.className = 'health-dot down';
-                        dot.setAttribute('aria-label', `Port ${endpoint.port} down`);
+                        throw new Error(data.error || 'Import failed');
                     }
                 } catch (error) {
-                    dot.className = 'health-dot unknown';
-                    dot.setAttribute('aria-label', `Port ${endpoint.port} unknown`);
-                }
-            }
-        }
-
-        // Run health check on load and every 5 seconds
-        checkHealth();
-        setInterval(checkHealth, 5000);
-
-        // Seed demo data
-        async function seedDemo(url, btn) {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span>⏳</span> Loading...';
-            btn.disabled = true;
-            
-            try {
-                const res = await fetch(url, { method: 'POST' });
-                const data = await res.json();
-                
-                if (data.success) {
-                    btn.innerHTML = '<span>✅</span> Imported';
-                    btn.style.background = 'rgba(16, 185, 129, 0.2)';
-                    btn.style.color = '#10b981';
-                    btn.style.borderColor = '#10b981';
-                    
+                    setActionState(btn, 'error');
                     setTimeout(() => {
-                        btn.innerHTML = originalText;
+                        setActionState(btn, 'default');
                         btn.disabled = false;
-                        btn.style = '';
                     }, 2000);
-                    
-                    alert('✅ Demo data imported! Click "Live Demo" to see the results.');
-                } else {
-                    throw new Error(data.error || 'Import failed');
+                    alert(t('alerts.importFailed', { error: error.message }) || `Import failed: ${error.message}`);
                 }
-            } catch (error) {
-                btn.innerHTML = '<span>❌</span> Failed';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 2000);
-                alert('❌ Import failed: ' + error.message + '\n\nPlease ensure the service is running.');
             }
-        }
 
-        // Reset demo data
-        async function resetDemo(url, btn) {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<span>⏳</span> Resetting...';
-            btn.disabled = true;
-            
-            try {
-                const res = await fetch(url, { method: 'POST' });
-                const data = await res.json();
-                
-                if (data.success) {
-                    btn.innerHTML = '<span>✅</span> Cleared';
-                    btn.style.background = 'rgba(107, 114, 128, 0.2)';
-                    btn.style.color = '#6b7280';
-                    btn.style.borderColor = '#6b7280';
-                    
-                    setTimeout(() => {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                        btn.style = '';
-                    }, 2000);
-                    
-                    alert('✅ Demo data cleared! You can import fresh data anytime.');
-                } else {
-                    throw new Error(data.error || 'Reset failed');
+            async function resetDemo(url, btn) {
+                if (!btn) return;
+                const confirmText = t('confirm.reset') || 'Clear all current data? This action cannot be undone.';
+                if (!window.confirm(confirmText)) {
+                    setActionState(btn, 'default');
+                    return;
                 }
-            } catch (error) {
-                btn.innerHTML = '<span>❌</span> Failed';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }, 2000);
-                alert('❌ Reset failed: ' + error.message + '\n\nPlease ensure the service is running.');
+                btn.disabled = true;
+                setActionState(btn, 'resetting');
+                try {
+                    const res = await fetch(url, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        setActionState(btn, 'success');
+                        setTimeout(() => {
+                            setActionState(btn, 'default');
+                            btn.disabled = false;
+                        }, 2000);
+                        alert(t('alerts.resetSuccess') || 'Data reset complete.');
+                    } else {
+                        throw new Error(data.error || 'Reset failed');
+                    }
+                } catch (error) {
+                    setActionState(btn, 'error');
+                    setTimeout(() => {
+                        setActionState(btn, 'default');
+                        btn.disabled = false;
+                    }, 2000);
+                    alert(t('alerts.resetFailed', { error: error.message }) || `Reset failed: ${error.message}`);
+                }
             }
-        }
+
+            async function checkHealth() {
+                for (const endpoint of healthEndpoints) {
+                    const dot = document.getElementById(endpoint.id);
+                    if (!dot) continue;
+                    try {
+                        const response = await fetchWithTimeout(
+                            endpoint.url,
+                            {
+                                method: 'GET',
+                                mode: endpoint.mode || 'cors',
+                                cache: 'no-store',
+                                credentials: endpoint.mode === 'same-origin' ? 'include' : 'omit',
+                            },
+                            endpoint.timeout || HEALTH_TIMEOUT_MS
+                        );
+
+                        if (response && (response.ok || response.type === 'opaque')) {
+                            dot.className = 'health-dot running';
+                            dot.dataset.status = 'running';
+                            dot.setAttribute('aria-label', t('health.running', { port: endpoint.port }) || `Port ${endpoint.port} running`);
+                        } else {
+                            dot.className = 'health-dot down';
+                            dot.dataset.status = 'down';
+                            dot.setAttribute('aria-label', t('health.down', { port: endpoint.port }) || `Port ${endpoint.port} down`);
+                        }
+                    } catch (error) {
+                        console.warn(`[health] ${endpoint.url} unreachable`, error);
+                        dot.className = 'health-dot unknown';
+                        dot.dataset.status = 'unknown';
+                        dot.setAttribute('aria-label', t('health.unknown', { port: endpoint.port }) || `Port ${endpoint.port} unknown`);
+                    }
+                }
+            }
+
+            langToggle.addEventListener('click', () => {
+                const isOpen = langOptionsEl.classList.toggle('open');
+                langToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            langOptionButtons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const lang = btn.dataset.lang;
+                    langOptionsEl.classList.remove('open');
+                    await changeLanguage(lang, true);
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!langSwitcherEl) return;
+                if (!langSwitcherEl.contains(event.target)) {
+                    langOptionsEl.classList.remove('open');
+                    langToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            window.addEventListener('storage', async (event) => {
+                if (event.key === LANG_STORAGE_KEY && event.newValue && event.newValue !== currentLang) {
+                    await changeLanguage(event.newValue, false);
+                }
+            });
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                const { lang, persist } = detectInitialLanguage();
+                await changeLanguage(lang, persist);
+                checkHealth();
+                setInterval(checkHealth, 5000);
+            });
+
+            window.seedDemo = seedDemo;
+            window.resetDemo = resetDemo;
+        })();
     </script>
 </body>
 </html>

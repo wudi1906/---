@@ -1,0 +1,192 @@
+{
+  "hero": {
+    "title": "🚀 Full-Stack Developer Portfolio",
+    "subtitle": "6 Production-Ready Projects · Fast Delivery · Clear Milestones · <1h Response · WCAG 2.1 AA Compliant",
+    "description": "From price intelligence and webhook orchestration to SaaS analytics and accessibility, each project ships with live demos, tests, API docs, and Docker deployment so you can assess production readiness instantly.",
+    "badges": {
+      "response": "⚡ <1 Hour Response",
+      "delivery": "✅ On-time Delivery",
+      "accessibility": "♿ WCAG 2.1 AA",
+      "playwright": "🎭 Playwright",
+      "stripe": "💳 Stripe",
+      "github": "🐙 GitHub"
+    },
+    "cta": {
+      "explore": {
+        "label": "Explore Projects",
+        "aria": "Scroll to project showcases"
+      },
+      "packages": {
+        "label": "Delivery Packages",
+        "aria": "Review delivery packages"
+      },
+      "workflow": {
+        "label": "Collaboration Workflow",
+        "aria": "See collaboration process"
+      }
+    }
+  },
+  "nav": {
+    "p1": "P1 · Global Price Sentinel",
+    "p2": "P2 · Event Relay Hub",
+    "p3": "P3 · SaaS Northstar Dashboard",
+    "p4": "P4 · Doc Knowledge Forge",
+    "p5": "P5 · A11y Component Atlas",
+    "p6": "P6 · Insight Viz Studio"
+  },
+  "projects": {
+    "p1": {
+      "name": "Global Price Sentinel",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "E-commerce sellers manually track competitor prices — time-consuming and error-prone.",
+      "summary": "Automated competitor price intelligence with proactive alerting & reporting.",
+      "metrics": {
+        "delivery": { "label": "Delivery", "value": "3-week MVP" },
+        "impact": { "label": "Impact", "value": "-30% manual effort" },
+        "sla": { "label": "SLA", "value": "\u003c200ms alerting" }
+      },
+      "highlights": [
+        "Playwright multi-site scraping with proxy rotation and cron scheduler.",
+        "Email & webhook alerts plus HTML/PDF comparison dashboards.",
+        "Self-serve admin console for thresholds, audit logs, and retry."
+      ],
+      "actions": {
+        "live": { "label": "Live Demo", "aria": "Open Global Price Sentinel demo" },
+        "docs": { "label": "API Docs", "aria": "View API documentation" },
+        "import": { "label": "Import Demo", "aria": "Import demo data for P1" },
+        "reset": { "label": "Reset Demo", "aria": "Reset demo data for P1" }
+      }
+    },
+    "p2": {
+      "name": "Event Relay Hub",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "SaaS platforms need unified webhook management with retry & dead-letter queue.",
+      "summary": "Unified webhook router with signature verification, retries, and DLQ observability.",
+      "metrics": {
+        "delivery": { "label": "Delivery", "value": "1-week integration" },
+        "reliability": { "label": "Reliability", "value": ">99.9% success" },
+        "latency": { "label": "Latency", "value": "\u003c300ms routing" }
+      },
+      "highlights": [
+        "Connect Stripe, GitHub, Slack, or custom providers with secure HMAC checks.",
+        "Conditional routing, retries, and dead-letter queue dashboards with telemetry.",
+        "Ops console to inspect payloads, replay events, and enforce SLA alerts."
+      ],
+      "actions": {
+        "live": { "label": "Live Demo", "aria": "Open Event Relay Hub demo" },
+        "docs": { "label": "API Docs", "aria": "View API documentation" },
+        "import": { "label": "Import Demo", "aria": "Import demo data for P2" },
+        "reset": { "label": "Reset Demo", "aria": "Reset demo data for P2" }
+      }
+    },
+    "p3": {
+      "name": "SaaS Northstar Dashboard",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "Startups need to track MRR/retention/NPS, but BI tools are too heavy.",
+      "summary": "Northstar metrics dashboard for SaaS teams with templates, automation, and investor-ready visuals.",
+      "metrics": {
+        "delivery": { "label": "Delivery", "value": "3-day exec dashboard" },
+        "insights": { "label": "Insights", "value": "MRR · NRR · NPS" },
+        "export": { "label": "Export", "value": "\u003c1s PNG/PDF" }
+      },
+      "highlights": [
+        "Template library for B2B, B2C, and e-commerce SaaS with instant KPI scaffolding.",
+        "CSV import with cohort, retention, and churn forecasting calculators.",
+        "Shareable dashboards, embeddable charts, and Slack/email digests."
+      ],
+      "actions": {
+        "live": { "label": "Live Demo", "aria": "Open SaaS Dashboard demo" },
+        "import": { "label": "CSV Import", "aria": "Navigate to CSV import" },
+        "seed": { "label": "Import Demo", "aria": "Import demo data for P3" },
+        "reset": { "label": "Reset Demo", "aria": "Reset demo data for P3" }
+      }
+    },
+    "p4": {
+      "name": "Doc Knowledge Forge",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "Enterprises have massive PDF/Word docs and need unified search & knowledge retention.",
+      "summary": "Document intelligence pipeline turning PDFs into a searchable, summarized knowledge base.",
+      "metrics": {
+        "delivery": { "label": "Delivery", "value": "2-week go-live" },
+        "throughput": { "label": "Throughput", "value": ">100 pages/min" },
+        "search": { "label": "Search", "value": "FTS + semantic tags" }
+      },
+      "highlights": [
+        "Batch uploads auto-convert to Markdown with summaries, keywords, and previews.",
+        "SQLite FTS search with tag filters, relevance scoring, and snippet highlights.",
+        "Knowledge ops dashboard for versioning, retention policies, and exports."
+      ],
+      "actions": {
+        "live": { "label": "Live Demo", "aria": "Open Doc Knowledge Forge demo" },
+        "docs": { "label": "API Docs", "aria": "View API documentation" },
+        "import": { "label": "Import Demo", "aria": "Import demo data for P4" },
+        "reset": { "label": "Reset Demo", "aria": "Reset demo data for P4" }
+      }
+    },
+    "p5": {
+      "name": "A11y Component Atlas",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "Dev teams need WCAG 2.1 AA components — building from scratch is costly.",
+      "summary": "WCAG 2.1 AA compliant React component system ready for design system rollouts.",
+      "metrics": {
+        "delivery": { "label": "Integration", "value": "1-day handoff" },
+        "compliance": { "label": "Compliance", "value": "WCAG 2.1 AA" },
+        "testing": { "label": "Testing", "value": "axe + Vitest" }
+      },
+      "highlights": [
+        "Keyboard and screen-reader support baked into buttons, forms, modals, and tabs.",
+        "Storybook documentation with accessibility add-ons, theming, and tokens.",
+        "Continuous testing pipelines using axe, Vitest, and visual regression hooks."
+      ],
+      "actions": {
+        "live": { "label": "Storybook", "aria": "Open A11y Component Atlas Storybook" },
+        "docs": { "label": "GitHub", "aria": "View repository on GitHub" }
+      }
+    },
+    "p6": {
+      "name": "Insight Viz Studio",
+      "status": "Ready",
+      "painTitle": "Pain Insight",
+      "pain": "Business users need quick chart reports but lack coding skills.",
+      "summary": "No-code visualization studio that turns spreadsheets into branded reports within minutes.",
+      "metrics": {
+        "time": { "label": "Time-to-Value", "value": "5-min first chart" },
+        "export": { "label": "Export", "value": "\u003c2s PDF/PNG" },
+        "templates": { "label": "Templates", "value": "Weekly & Monthly" }
+      },
+      "highlights": [
+        "Upload CSV or JSON and get chart recommendations with smart defaults.",
+        "Drag-and-drop field mapping, theme controls, and annotation overlays.",
+        "Export branded PNG/PDF reports or schedule recurring deliveries."
+      ],
+      "actions": {
+        "live": { "label": "Live Demo", "aria": "Open Insight Viz Studio demo" },
+        "docs": { "label": "API Docs", "aria": "View API documentation" },
+        "import": { "label": "Import Demo", "aria": "Import demo data for P6" },
+        "reset": { "label": "Reset Demo", "aria": "Reset demo data for P6" }
+      }
+    }
+  },
+  "packages": {
+    "title": "🎯 Delivery Packages",
+    "description": "Each solution ships with Basic / Standard / Premium tiers covering scope, timeline, revisions, testing, and SLA. Use the quick navigation above to compare projects or dive into the live demos before choosing the tier that matches your roadmap."
+  },
+  "contact": {
+    "title": "💼 Ready to Start Your Project?",
+    "description": "I focus on production-ready delivery, transparent milestones, and rapid iteration. Every engagement includes discovery, build, QA, launch, and knowledge transfer—aligned with Material Design 3, Apple HIG, and WCAG 2.1 AA best practices.",
+    "cta": {
+      "demos": { "label": "View Live Demos", "aria": "Return to project gallery" },
+      "packages": { "label": "Review Packages", "aria": "Review delivery tiers" },
+      "top": { "label": "Back to Top", "aria": "Scroll to top" }
+    }
+  },
+  "footer": {
+    "line1": "Doc Knowledge Forge · Desktop-first · WCAG 2.1 AA · Material Design 3 × Apple HIG",
+    "line2": "Includes ingestion API, search API, Markdown renderer, governance tooling, and export pipelines."
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "button": {
+    "labels": {
+      "primary": "主要按钮",
+      "secondary": "次要按钮",
+      "danger": "删除",
+      "outline": "描边按钮",
+      "small": "小号按钮",
+      "large": "大号按钮",
+      "disabled": "禁用状态"
+    }
+  },
+  "menu": {
+    "trigger": "菜单",
+    "items": {
+      "new": "新建文件",
+      "open": "打开…",
+      "save": "保存",
+      "export": "导出"
+    },
+    "selectedCount": "已选择次数：{{count}}"
+  },
+  "modal": {
+    "trigger": "打开弹窗",
+    "common": {
+      "cancel": "取消",
+      "accept": "接受",
+      "decline": "拒绝",
+      "close": "关闭",
+      "sendInvite": "发送邀请"
+    },
+    "invite": {
+      "title": "邀请团队成员",
+      "description": "与同事共享分析仪表盘权限。",
+      "body": "添加队友以共同管理看板。受邀者会收到一封包含访问说明的邮件。",
+      "emailLabel": "邮箱",
+      "emailPlaceholder": "name@example.com",
+      "roleLabel": "角色",
+      "roles": {
+        "viewer": "查看者",
+        "editor": "编辑者",
+        "admin": "管理员"
+      }
+    },
+    "terms": {
+      "title": "服务条款",
+      "description": "查看并确认最新政策。",
+      "paragraphs": [
+        "新版政策阐述了数据处理方式、我们保持的安全防护措施，以及工作区管理员需要履行的责任。",
+        "请花一些时间仔细阅读条款。确认后即可解锁本季度即将推出的协作能力。",
+        "若对合规或隐私有疑问，请在提交前联系支持团队，确保与内部政策保持一致。"
+      ]
+    },
+    "sizes": {
+      "title": "弹窗（{{size}}）",
+      "description": "不同尺寸仅调整最大宽度，保留内边距与排版一致性。",
+      "openButton": "打开 {{size}} 弹窗",
+      "sizes": {
+        "sm": "小号",
+        "md": "中号",
+        "lg": "大号"
+      },
+      "body": "根据内容密度选择合适的尺寸。较小的弹窗可聚焦操作，较大的弹窗适合表单或列表。"
+    }
+  },
+  "tabs": {
+    "basic": {
+      "overview": {
+        "label": "概览",
+        "heading": "概览",
+        "body": "简要介绍功能或产品亮点，保持内容清晰可执行。"
+      },
+      "plan": {
+        "label": "定价方案",
+        "heading": "定价",
+        "items": [
+          "入门版 — $29/月",
+          "成长版 — $79/月",
+          "企业版 — 联系我们"
+        ]
+      },
+      "usage": {
+        "label": "使用情况",
+        "heading": "使用情况",
+        "body": "在此展示分析与留存指标。使用标签页可以区分不同的数据版块。"
+      }
+    },
+    "default": {
+      "dashboard": {
+        "label": "仪表盘",
+        "body": "当月核心指标一目了然。"
+      },
+      "reports": {
+        "label": "报告",
+        "body": "生成每周、每月 PDF 报告。"
+      },
+      "notifications": {
+        "label": "通知",
+        "body": "管理邮件与站内通知偏好。"
+      }
+    },
+    "disabled": {
+      "details": {
+        "label": "详情",
+        "body": "展示当前记录的基础信息。"
+      },
+      "insights": {
+        "label": "洞察",
+        "body": "提供衍生洞察与推荐行动。"
+      },
+      "history": {
+        "label": "历史",
+        "body": "审计日志即将上线。",
+        "suffix": "（即将推出）"
+      }
+    }
+  }
+}
+

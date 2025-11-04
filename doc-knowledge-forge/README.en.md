@@ -1,107 +1,60 @@
-# Doc Knowledge Forge — Document to Knowledge Base One-Stop Solution
+# Doc Knowledge Forge | 文档知识锻炉
 
-> **Target Audience**: Consulting/law firms/manufacturing/education teams with massive PDF, Word, manual materials
->
-> **Core Value**: Batch conversion → auto-tagging → full-text search → online highlight viewing → batch export, delivered in as fast as 3 days
+## Pain | 客户痛点
+- Documents scattered across cloud drives/email/local folders; searching is slow and incomplete.  /  文档分散在网盘、邮箱、本地，检索缓慢且不完整。
+- Knowledge relies on tribal memory; no unified tagging, versioning, or audit trail.  /  知识积累依赖个人经验，缺少统一标签、版本与审计体系。
+- Project delivery and retrospectives require manual compilation, consuming hours and risking omissions.  /  项目交付与复盘需人工整理材料，耗时且容易遗漏。
 
-[中文版本 Chinese Version](./README.md)
+## Solution | 解决方案
+- Batch ingest PDF/DOCX/TXT/Markdown, auto-convert to structured Markdown, generate cover metadata.  /  支持批量上传 PDF/DOCX/TXT/Markdown 并自动转为结构化 Markdown。
+- Auto-extract chapters, keywords, tags, and build table-of-contents + full-text search (SQLite FTS5).  /  自动抽取章节、关键词与标签，生成目录树与全文检索。
+- Inline preview with highlighted matches, bulk ZIP export for delivery, optional vector search & summarization.  /  在线高亮预览、批量 ZIP 导出，可选向量检索与摘要增强。
 
----
+## Deliverables | 交付清单
+- **Live Demo | 在线演示**: `http://localhost:8404`（含示例文档，一键导入/重置）。
+- **Pipeline | 处理流程**: FastAPI + parsing/chunking/vectorization，支持 RAG 扩展。
+- **Docs & APIs | 文档与接口**: Swagger (`/api/docs`)、Postman 集合、标签配置指南、权限与日志手册。
+- **Export & Extensions | 导出与扩展**: Markdown/ZIP 批量导出模板，向量检索、OCR、AI 摘要配置指南。
 
-## 1. Pain Points
-
-- Files scattered across cloud storage/email/local drives, search is time-consuming and incomplete
-- Knowledge depends on personal experience, lacks unified archiving, tagging, and version management
-- Project delivery/retrospective requires manual document compilation — low efficiency and easy to miss items
-
-## 2. Solution & Value
-
-- Batch upload PDF / DOCX / TXT / Markdown, auto-convert to structured Markdown
-- Auto-extract chapters, keywords, tags, generate table of contents tree + full-text search
-- Online highlight viewing, one-click batch export ZIP, convenient for external delivery or internal archiving
-- Optional vector search, AI summarization, OCR extensions, support advanced knowledge management scenarios
-
-## 3. Deliverables
-
-- 🖥️ **Live Demo**: `http://localhost:8404` (with sample documents, one-click import)
-- 📦 **Source Code & Scripts**: FastAPI backend, parsing/chunking/vectorization pipeline, Tailwind frontend, Docker Compose
-- 🧠 **RAG Pipeline**: Sentence-Transformers + optional FAISS, supports vector search, snippet highlighting, chunk visualization
-- 📕 **Documentation Suite**: Deployment guide, tag config instructions, permissions/logging manual, FAQ
-- 🧪 **API / Postman**: `http://localhost:8404/api/docs` and updated Postman collection (includes `/api/docs/upload`, `/api/chunks/{id}`)
-- 📑 **Export Templates**: Markdown/ZIP batch export config, vector search and OCR extension guide
-
-## 4. Timeline & Process
-
-1. **Requirements Clarification (Day 0)**: Confirm document formats/quantities, tagging strategy, deployment/security requirements
-2. **PoC Demo (Day 3-5)**: Deliver demo (sample documents), validate parsing, search, export experience
-3. **Feature Completion (Day 6-12)**: Connect real document library, deploy test/production, complete permissions and extensions
-4. **Acceptance & Handover (Day 12+)**: Deliver source code, scripts, training materials, complete acceptance checklist and rollback plan
-
-## 5. SLA & Quality Assurance
-
-- **Response Commitment**: <1 hour reply, 7~30 days support based on package tier, English/Chinese communication
-- **Accessibility**: Frontend complies with WCAG 2.1 AA, supports keyboard navigation, dark mode, RTL layout
-- **Performance**: Structured logging, full-text search metrics, slow query monitoring; OCR/vector extensions provide performance benchmarks
-- **Security**: Default local/private cloud deployment, credentials in `.env`, can enable encryption/audit/access control (Premium)
-
-## 6. KPI & Outcomes
-
-- Deliver usable knowledge base demo in 3 days, conversion accuracy ≥98%
-- Document search time reduced from minutes to seconds, delivery preparation efficiency improved 2×
-- Project retrospective/delivery material compilation time reduced by 60%, knowledge reuse rate significantly improved
-
-## 7. FAQ
-
-**Q1: Support scanned PDFs?**  
-A: Premium integrates OCR (Tesseract/third-party API), supports multilingual text extraction.
-
-**Q2: Can tags and table of contents be customized?**  
-A: Supports keyword mapping, chapter templates, internal dictionary integration, visual config interface.
-
-**Q3: How to ensure data security?**  
-A: Default deployment on intranet/private cloud, sensitive data doesn't leave enterprise network, can enable login audit, permission control, data encryption.
-
-## 8. Why Choose Me?
-
-✅ **Fast Response**: <1 hour reply, clear milestones, transparent progress  
-✅ **Platform Protection**: Fiverr/Upwork transaction guarantee, escrow payment  
-✅ **Best Practices**: RAG pipeline, Sentence-Transformers, WCAG 2.1 AA compliance  
-✅ **Proven Delivery**: Complete test suite, Docker-ready, production-grade code
-
-## 9. Next Steps
-
-- 🔵 [Upwork — Hire Me](https://www.upwork.com/fl/yourname)
-- 🟢 [Fiverr — View Packages](https://www.fiverr.com/yourname)
-- 📧 [Email — Book Demo](mailto:you@example.com?subject=Doc%20Knowledge%20Forge%20Consultation)
-- 🚀 [Local Demo — Try Now](http://localhost:8404)
-
-> "Turn scattered documents into a knowledge base in seconds — invest time in creating value."
-
----
-
-## Quick Start
-
+**Quick Start | 快速开始**
 ```bash
 cd doc-knowledge-forge
-.\start.bat    # Windows
+./start.bat        # Windows
 # or
 python -m uvicorn app.main:app --reload --port 8404
 ```
+首次启动会下载嵌入模型 (~200MB)，请保持网络；缓存位于 `app/.cache`、`uploads/`、SQLite 数据库，可按需清理。
 
-Visit `http://localhost:8404` after 10 seconds.
+## Timeline | 交付周期
+1. **Discovery (Day 0)** — Confirm formats, volume, tagging strategy, security requirements.  /  确认文档格式/规模、标签策略与安全诉求。
+2. **PoC Demo (Day 3-5)** — Present sample parsing/search/export flows.  /  演示示例文档的解析、检索与导出。
+3. **Hardening (Day 6-12)** — Connect production library, enable permissions/OCR/vector extensions.  /  接入真实文档库，启用权限、OCR、向量等扩展。
+4. **Launch & Training (Day 12+)** — Deliver源码、运维脚本、培训材料、回滚预案。  /  提交源码、脚本与培训资料，提供回滚方案。
 
-**Note**: First launch will download embedding model (~200MB), please stay connected; models and uploaded files are cached to `app/.cache`, `uploads/` and SQLite database, can be cleaned as needed.
+## SLA | 服务保障
+- <1 hour response, bilingual communication, 7/14/30 day warranty by package.  /  首次响应 <1 小时，提供中英文支持，按套餐提供 7/14/30 天质保。
+- WCAG 2.1 AA frontend, keyboard + dark mode + RTL.  /  前端符合 WCAG 2.1 AA，支持键盘、暗色、RTL。
+- Structured logging, full-text metrics, slow query tracing; OCR/vector add-ons含性能基准。  /  结构化日志、全文检索指标、慢查询监控；OCR/向量模块提供性能基线。
+- Default private deployment, credentials in `.env`, optional encryption/audit/role-based access.  /  默认内网部署，凭据集中 `.env`，可选加密、审计、角色控制。
 
-## Tech Stack
+## KPI | 成功指标
+- Deliver usable knowledge base demo in 3 days, conversion accuracy ≥98%.  /  3 天交付可用演示，转换准确率 ≥98%。
+- Search time reduced from minutes to seconds, delivery prep efficiency doubled.  /  检索耗时由分钟降至秒级，交付材料准备效率翻倍。
+- Retro/hand-off compilation time reduced by 60%, knowledge reuse significantly improved.  /  复盘/交接整理时间减少 60%，知识复用显著提升。
 
-- **Backend**: Python 3.10+, FastAPI
-- **Document Parsing**: pymupdf (PDF), python-docx (Word)
-- **Search**: SQLite FTS5, Sentence-Transformers
-- **Vector Store**: In-memory numpy (FAISS ready)
-- **Frontend**: Vanilla JavaScript, Tailwind CSS
-- **Deployment**: Docker, uvicorn
+## FAQ | 常见问题
+- **Support scanned PDFs? / 支持扫描 PDF 吗？**  \
+  Premium integrates OCR (Tesseract/3rd-party API) with multilingual extraction.  /  Premium 集成 OCR（Tesseract/第三方 API），支持多语言识别。
+- **Custom tags & TOC? / 能否自定义标签与目录？**  \
+  Yes—keyword mapping, chapter templates, dictionary import, visual config UI.  /  支持关键词映射、章节模板、词典导入与可视化配置。
+- **Data security? / 数据安全如何保障？**  \
+  Deploy in intranet/private cloud, sensitive data stays on-prem, optional login audit + encryption.  /  默认内网/私有云部署，敏感数据不出企业，可启用登录审计与加密。
 
----
+## CTA | 立即行动
+- 📧 [Book a Demo](mailto:you@example.com?subject=Doc%20Knowledge%20Forge%20Consultation) / 邮件预约演示
+- 🗂 [Portal Overview](http://localhost:8101) / 门户导航与实时状态
+- 📑 [Test Playbook](../PORTFOLIO_TEST_GUIDE.zh.md) / 验证剧本（中英对照）
+- 🚀 [Local Demo](http://localhost:8404) / 本地体验入口
 
-**Last Updated**: 2025-11-03
+**Last Updated | 最近更新**：2025-11-03
 
