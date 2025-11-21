@@ -46,6 +46,15 @@ app.mount("/reports", StaticFiles(directory=str(settings.REPORTS_DIR)), name="re
 async def startup_event():
     """启动时初始化数据库"""
     init_db()
+    # 确保报告目录存在并有最新报告，避免门户“View Report”404
+    settings.REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    latest_report = settings.REPORTS_DIR / "latest.html"
+    if not latest_report.exists():
+        try:
+            ReportGenerator.generate_html_report()
+            print("  - 已自动生成初始 HTML 报告")
+        except Exception as exc:  # pragma: no cover - 仅日志
+            print(f"  - 初始报告生成失败: {exc}")
     print(f"✓ {settings.APP_NAME} v{settings.APP_VERSION} 启动成功")
     print(f"  - 监听地址: http://{settings.HOST}:{settings.PORT}")
     print(f"  - API文档: http://{settings.HOST}:{settings.PORT}/api/docs")
@@ -60,342 +69,590 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Developer Portfolio - Upwork/Fiverr Projects</title>
+        <title>Developer Portfolio - Professional Solutions</title>
         <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+            
+            :root {
+                --primary-blue: #3b5bdb;
+                --primary-light: #5c7cfa;
+                --bg-main: #ffffff;
+                --bg-section: #f8f9fa;
+                --text-dark: #212529;
+                --text-gray: #495057;
+                --text-light: #868e96;
+                --border-color: #dee2e6;
+                --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+                --card-shadow-hover: 0 8px 24px rgba(59, 91, 219, 0.15);
+            }
+            
             * { margin: 0; padding: 0; box-sizing: border-box; }
+            
             body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: var(--bg-main);
                 min-height: 100vh;
-                padding: 40px 20px;
+                color: var(--text-dark);
+                line-height: 1.6;
             }
-            .container {
-                max-width: 1400px;
+            
+            /* Decorative Shapes */
+            .decoration {
+                position: fixed;
+                border-radius: 50%;
+                opacity: 0.4;
+                z-index: 0;
+            }
+            .decoration.circle-1 {
+                width: 300px;
+                height: 300px;
+                background: linear-gradient(135deg, #a5d8ff 0%, #74c0fc 100%);
+                top: 10%;
+                right: 5%;
+            }
+            .decoration.circle-2 {
+                width: 250px;
+                height: 250px;
+                background: linear-gradient(135deg, #b2f2bb 0%, #8ce99a 100%);
+                bottom: 15%;
+                left: 8%;
+            }
+            .decoration.square-1 {
+                width: 200px;
+                height: 200px;
+                background: linear-gradient(135deg, #ffd43b 0%, #fcc419 100%);
+                border-radius: 20px;
+                bottom: 25%;
+                right: 10%;
+                opacity: 0.3;
+            }
+            .decoration.square-2 {
+                width: 180px;
+                height: 180px;
+                background: linear-gradient(135deg, #e599f7 0%, #cc5de8 100%);
+                border-radius: 20px;
+                top: 40%;
+                left: 5%;
+                opacity: 0.3;
+            }
+            
+            .container { 
+                max-width: 1400px; 
                 margin: 0 auto;
+                position: relative;
+                z-index: 1;
+                padding: 80px 32px;
             }
-            .header {
-                text-align: center;
-                color: white;
-                margin-bottom: 60px;
+            
+            header { 
+                text-align: center; 
+                margin-bottom: 72px;
             }
-            .header h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            
+            header h1 { 
+                font-size: clamp(2.5rem, 5vw, 3.75rem);
+                font-weight: 800;
+                margin-bottom: 20px;
+                color: var(--primary-blue);
+                letter-spacing: -0.02em;
             }
-            .header p {
+            
+            header p { 
+                color: var(--text-gray); 
                 font-size: 1.25rem;
-                opacity: 0.95;
+                font-weight: 400;
+                max-width: 700px;
+                margin: 0 auto 12px;
             }
+            
+            header .subtitle {
+                color: var(--text-light);
+                font-size: 1rem;
+                font-weight: 500;
+            }
+            
             .projects-grid {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-                gap: 30px;
-                margin-bottom: 40px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 28px;
+                max-width: 1300px;
+                margin: 0 auto;
+            }
+            
+            @media (max-width: 1200px) {
+                .projects-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .projects-grid {
+                    grid-template-columns: 1fr;
+                }
+                .container {
+                    padding: 40px 20px;
+                }
             }
             .project-card {
                 background: white;
+                border: 2px solid var(--border-color);
                 border-radius: 16px;
-                padding: 30px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                transition: transform 0.3s, box-shadow 0.3s;
+                padding: 32px;
                 position: relative;
-                overflow: hidden;
+                overflow: visible;
+                box-shadow: var(--card-shadow);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .project-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+                box-shadow: var(--card-shadow-hover);
+                transform: translateY(-4px);
+                border-color: var(--primary-light);
             }
-            .project-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(90deg, #667eea, #764ba2);
+            .project-content { 
+                display: flex; 
+                flex-direction: column; 
+                gap: 20px; 
+                height: 100%;
             }
-            .project-header {
-                display: flex;
-                align-items: center;
-                margin-bottom: 15px;
+            .project-header { 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: flex-start;
+                margin-bottom: 8px;
             }
-            .project-icon {
-                font-size: 2.5rem;
-                margin-right: 15px;
+            .project-meta { 
+                display: flex; 
+                gap: 16px; 
+                align-items: flex-start; 
+                flex: 1;
             }
-            .project-info h2 {
-                font-size: 1.5rem;
-                color: #1e293b;
-                margin-bottom: 5px;
+            .project-icon { 
+                font-size: 3rem; 
+                line-height: 1;
+                flex-shrink: 0;
             }
-            .project-info .status {
-                display: inline-block;
-                padding: 3px 10px;
-                background: #10b981;
-                color: white;
-                border-radius: 12px;
+            .project-info {
+                flex: 1;
+            }
+            .project-title { 
+                font-size: 1.5rem; 
+                font-weight: 700;
+                color: var(--text-dark);
+                margin-bottom: 4px;
+                line-height: 1.3;
+            }
+            .project-subtitle {
+                font-size: 0.9rem;
+                color: var(--text-light);
+                font-weight: 500;
+            }
+            .status-chip {
+                padding: 6px 14px;
+                border-radius: 20px;
                 font-size: 0.75rem;
                 font-weight: 600;
+                background: #e7f5ff;
+                color: var(--primary-blue);
+                white-space: nowrap;
             }
-            .project-info .status.pending {
-                background: #f59e0b;
+            .description { 
+                line-height: 1.7; 
+                font-size: 0.95rem; 
+                color: var(--text-gray);
+                flex-grow: 1;
             }
-            .project-description {
-                color: #64748b;
-                line-height: 1.6;
-                margin-bottom: 20px;
+            .features-list {
+                list-style: none;
+                padding: 0;
+                margin: 12px 0;
             }
-            .project-tech {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-bottom: 20px;
+            .features-list li {
+                padding: 6px 0 6px 20px;
+                position: relative;
+                font-size: 0.9rem;
+                color: var(--text-gray);
             }
-            .tech-tag {
-                padding: 4px 12px;
-                background: #f1f5f9;
-                color: #475569;
+            .features-list li::before {
+                content: '✓';
+                position: absolute;
+                left: 0;
+                color: var(--primary-blue);
+                font-weight: bold;
+            }
+            .tech-stack { 
+                display: flex; 
+                flex-wrap: wrap; 
+                gap: 8px; 
+                margin-top: 4px;
+            }
+            .tag {
+                padding: 5px 12px;
                 border-radius: 6px;
-                font-size: 0.85rem;
+                background: var(--bg-section);
+                color: var(--text-gray);
+                font-size: 0.8rem;
+                font-weight: 500;
+                border: 1px solid var(--border-color);
             }
-            .project-links {
-                display: flex;
-                gap: 10px;
+            .actions { 
+                display: flex; 
+                gap: 12px; 
+                margin-top: auto;
+                padding-top: 12px;
             }
             .btn {
                 flex: 1;
                 padding: 12px 20px;
-                text-align: center;
-                text-decoration: none;
                 border-radius: 8px;
+                border: 2px solid transparent;
                 font-weight: 600;
-                transition: all 0.2s;
-                border: none;
+                font-size: 0.9rem;
                 cursor: pointer;
-            }
-            .btn-primary {
-                background: #2563eb;
-                color: white;
-            }
-            .btn-primary:hover {
-                background: #1d4ed8;
-            }
-            .btn-secondary {
-                background: #f1f5f9;
-                color: #475569;
-            }
-            .btn-secondary:hover {
-                background: #e2e8f0;
-            }
-            .btn-disabled {
-                background: #e2e8f0;
-                color: #94a3b8;
-                cursor: not-allowed;
-            }
-            .footer {
-                text-align: center;
-                color: white;
-                padding: 40px 20px;
-            }
-            .footer h3 {
-                font-size: 1.5rem;
-                margin-bottom: 15px;
-            }
-            .footer p {
-                opacity: 0.9;
-                margin-bottom: 10px;
-            }
-            .quick-links {
-                display: flex;
-                justify-content: center;
-                gap: 20px;
-                margin-top: 30px;
-            }
-            .quick-link {
-                display: inline-block;
-                padding: 12px 30px;
-                background: rgba(255,255,255,0.2);
-                color: white;
+                transition: all 0.2s ease;
                 text-decoration: none;
-                border-radius: 8px;
-                backdrop-filter: blur(10px);
-                font-weight: 600;
+                display: inline-block;
+                text-align: center;
+            }
+            .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+            .btn-primary { 
+                background: var(--primary-blue); 
+                color: white;
+                border-color: var(--primary-blue);
+            }
+            .btn-primary:hover:not(:disabled) { 
+                background: var(--primary-light);
+                border-color: var(--primary-light);
+            }
+            .btn-secondary { 
+                background: white; 
+                color: var(--primary-blue);
+                border-color: var(--primary-blue);
+            }
+            .btn-secondary:hover:not(:disabled) { 
+                background: var(--primary-blue);
+                color: white;
+            }
+            
+            footer { 
+                margin-top: 80px; 
+                padding-top: 40px;
+                border-top: 2px solid var(--border-color);
+                text-align: center; 
+                color: var(--text-light); 
+            }
+            footer p {
+                margin-bottom: 16px;
+                font-size: 0.95rem;
+            }
+            footer .link-row { 
+                display: flex; 
+                flex-wrap: wrap; 
+                justify-content: center; 
+                gap: 12px; 
+                margin-top: 16px; 
+            }
+            footer a { 
+                text-decoration: none; 
+                padding: 10px 20px; 
+                border-radius: 8px; 
+                background: var(--bg-section); 
+                color: var(--primary-blue); 
+                font-weight: 600; 
                 transition: all 0.2s;
+                border: 1px solid var(--border-color);
             }
-            .quick-link:hover {
-                background: rgba(255,255,255,0.3);
-                transform: translateY(-2px);
+            footer a:hover { 
+                background: var(--primary-blue);
+                color: white;
+                border-color: var(--primary-blue);
             }
+            .toast {
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                padding: 14px 18px;
+                border-radius: 14px;
+                background: #0f172a;
+                color: white;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+                font-size: 0.95rem;
+            }
+            .toast.show { opacity: 1; transform: translateY(0); }
         </style>
     </head>
     <body>
+        <!-- Decorative Shapes -->
+        <div class="decoration circle-1"></div>
+        <div class="decoration circle-2"></div>
+        <div class="decoration square-1"></div>
+        <div class="decoration square-2"></div>
+        
         <div class="container">
-            <div class="header">
-                <h1>🚀 Developer Portfolio</h1>
-                <p>6个高质量作品集项目 - Upwork & Fiverr 高需求方向</p>
-            </div>
+            <header>
+                <h1>Professional Solutions Portfolio</h1>
+                <p>Six Production-Ready Projects for Upwork & Fiverr Success</p>
+                <div class="subtitle">Web Scraping · Event Systems · SaaS Dashboards · AI Document Processing · Accessibility · Data Visualization</div>
+            </header>
 
             <div class="projects-grid">
-                <!-- Project 1 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">🔍</div>
-                        <div class="project-info">
-                            <h2>Global Price Sentinel</h2>
-                            <span class="status">Running</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">🔍</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">Global Price Sentinel</h2>
+                                    <div class="project-subtitle">E-commerce Price Monitoring System</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Running</span>
+                        </div>
+                        <p class="description">
+                            Professional web scraping solution for e-commerce price tracking. Automated data collection with Playwright, 
+                            generates beautiful HTML/Excel reports, and supports webhook notifications for price changes.
+                        </p>
+                        <ul class="features-list">
+                            <li>Automated price monitoring across multiple platforms</li>
+                            <li>Visual trend reports with historical data analysis</li>
+                            <li>RESTful API with comprehensive documentation</li>
+                            <li>Webhook integration for real-time alerts</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">Python</span>
+                            <span class="tag">Playwright</span>
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">SQLite</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="/api/docs" target="_blank" rel="noreferrer">API Documentation</a>
+                            <button class="btn btn-secondary" data-generate-report>Generate Report</button>
                         </div>
                     </div>
-                    <p class="project-description">
-                        跨境电商价格监控系统。使用 Playwright 自动抓取商品价格，生成趋势报告，支持 Webhook 告警。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">Python</span>
-                        <span class="tech-tag">Playwright</span>
-                        <span class="tech-tag">FastAPI</span>
-                        <span class="tech-tag">SQLite</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="/api/docs" class="btn btn-primary">API Docs</a>
-                        <a href="/reports/latest.html" class="btn btn-secondary">View Report</a>
-                    </div>
-                </div>
+                </article>
 
-                <!-- Project 2 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">📡</div>
-                        <div class="project-info">
-                            <h2>Event Relay Hub</h2>
-                            <span class="status">Ready</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">📡</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">Event Relay Hub</h2>
+                                    <div class="project-subtitle">Webhook Testing & Event Simulation</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Ready</span>
+                        </div>
+                        <p class="description">
+                            Developer-friendly webhook debugger for payment systems. Simulate Stripe, GitHub, and custom events 
+                            with signature validation, rate limiting, and complete event timeline tracking.
+                        </p>
+                        <ul class="features-list">
+                            <li>One-click event simulation for major platforms</li>
+                            <li>Signature verification and request forwarding</li>
+                            <li>Built-in rate limiting and retry mechanisms</li>
+                            <li>Real-time event timeline visualization</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">Python</span>
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">Redis</span>
+                            <span class="tag">PostgreSQL</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="http://localhost:8202" target="_blank" rel="noreferrer">Launch Project</a>
+                            <a class="btn btn-secondary" href="http://localhost:8202/api/docs" target="_blank" rel="noreferrer">API Documentation</a>
                         </div>
                     </div>
-                    <p class="project-description">
-                        Webhook 事件汇聚中台。支持 GitHub/Stripe 等第三方事件接入、签名验证、存储与转发。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">Python</span>
-                        <span class="tech-tag">FastAPI</span>
-                        <span class="tech-tag">PostgreSQL</span>
-                        <span class="tech-tag">Redis</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="http://localhost:8202" class="btn btn-primary" target="_blank">Open Project</a>
-                        <a href="http://localhost:8202/api/docs" class="btn btn-secondary" target="_blank">API Docs</a>
-                    </div>
-                </div>
+                </article>
 
-                <!-- Project 3 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">📊</div>
-                        <div class="project-info">
-                            <h2>SaaS Northstar Dashboard</h2>
-                            <span class="status">Ready</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">📊</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">SaaS Northstar Dashboard</h2>
+                                    <div class="project-subtitle">Business Metrics & Analytics Platform</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Ready</span>
+                        </div>
+                        <p class="description">
+                            Enterprise-grade SaaS metrics dashboard built with Next.js and Tailwind CSS. Track MRR, ARR, churn rate, 
+                            and customer lifetime value with interactive charts and CSV data import capabilities.
+                        </p>
+                        <ul class="features-list">
+                            <li>Real-time KPI cards with trend indicators</li>
+                            <li>Interactive Chart.js visualizations</li>
+                            <li>Flexible CSV data import workflow</li>
+                            <li>Responsive design for all devices</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">Next.js</span>
+                            <span class="tag">React</span>
+                            <span class="tag">Tailwind CSS</span>
+                            <span class="tag">Chart.js</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="http://localhost:8303" target="_blank" rel="noreferrer">Launch Dashboard</a>
+                            <a class="btn btn-secondary" href="http://localhost:8303/showcase" target="_blank" rel="noreferrer">View Showcase</a>
                         </div>
                     </div>
-                    <p class="project-description">
-                        SaaS 关键指标看板。展示 MRR、ARR、Churn、LTV 等核心业务指标，支持 CSV 数据导入。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">Next.js</span>
-                        <span class="tech-tag">React</span>
-                        <span class="tech-tag">Tailwind</span>
-                        <span class="tech-tag">Chart.js</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="http://localhost:8303" class="btn btn-primary" target="_blank">Open Project</a>
-                        <a href="#" class="btn btn-secondary">View Demo</a>
-                    </div>
-                </div>
+                </article>
 
-                <!-- Project 4 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">📄</div>
-                        <div class="project-info">
-                            <h2>Doc Knowledge Forge</h2>
-                            <span class="status">Ready</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">📄</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">Doc Knowledge Forge</h2>
+                                    <div class="project-subtitle">AI-Powered Document Management</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Ready</span>
+                        </div>
+                        <p class="description">
+                            Intelligent document processing pipeline that converts PDF and DOCX files into searchable Markdown knowledge base. 
+                            Features AI-powered summaries, tag management, full-text search, and multi-format export.
+                        </p>
+                        <ul class="features-list">
+                            <li>Automated PDF/DOCX to Markdown conversion</li>
+                            <li>AI-generated document summaries</li>
+                            <li>Full-text search with tag filtering</li>
+                            <li>Export to multiple formats (HTML, PDF, Markdown)</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">PyMuPDF</span>
+                            <span class="tag">OpenAI</span>
+                            <span class="tag">Tailwind CSS</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="http://localhost:8404" target="_blank" rel="noreferrer">Launch Platform</a>
+                            <a class="btn btn-secondary" href="http://localhost:8404/api/docs" target="_blank" rel="noreferrer">API Documentation</a>
                         </div>
                     </div>
-                    <p class="project-description">
-                        文档转知识库系统。支持 PDF/DOCX 转 Markdown，全文检索，标签管理，批量导出。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">Python</span>
-                        <span class="tech-tag">FastAPI</span>
-                        <span class="tech-tag">pymupdf</span>
-                        <span class="tech-tag">SQLite FTS</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="http://localhost:8404" class="btn btn-primary" target="_blank">Open Project</a>
-                        <a href="http://localhost:8404/api/docs" class="btn btn-secondary" target="_blank">API Docs</a>
-                    </div>
-                </div>
+                </article>
 
-                <!-- Project 5 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">♿</div>
-                        <div class="project-info">
-                            <h2>A11y Component Atlas</h2>
-                            <span class="status">Ready</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">♿</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">A11y Component Atlas</h2>
+                                    <div class="project-subtitle">Accessible React Component Library</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Ready</span>
+                        </div>
+                        <p class="description">
+                            WCAG 2.1 AA compliant React component library with comprehensive accessibility testing. 
+                            Includes Storybook documentation, audit score cards, and best practice guidelines for inclusive design.
+                        </p>
+                        <ul class="features-list">
+                            <li>Fully accessible components with ARIA support</li>
+                            <li>Built-in accessibility audit scoring</li>
+                            <li>Keyboard navigation and screen reader tested</li>
+                            <li>Interactive Storybook documentation</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">React</span>
+                            <span class="tag">Storybook</span>
+                            <span class="tag">TypeScript</span>
+                            <span class="tag">Vitest</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="http://localhost:8505" target="_blank" rel="noreferrer">Open Storybook</a>
+                            <a class="btn btn-secondary" href="http://localhost:8505" target="_blank" rel="noreferrer">View Components</a>
                         </div>
                     </div>
-                    <p class="project-description">
-                        可访问性组件库。符合 WCAG 2.1 AA 标准的 React 组件集合，包含完整的 Storybook 文档。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">React</span>
-                        <span class="tech-tag">Radix UI</span>
-                        <span class="tech-tag">Storybook</span>
-                        <span class="tech-tag">Vitest</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="http://localhost:8505" class="btn btn-primary" target="_blank">Open Storybook</a>
-                        <a href="http://localhost:8505" class="btn btn-secondary" target="_blank">View Components</a>
-                    </div>
-                </div>
+                </article>
 
-                <!-- Project 6 -->
-                <div class="project-card">
-                    <div class="project-header">
-                        <div class="project-icon">📈</div>
-                        <div class="project-info">
-                            <h2>Insight Viz Studio</h2>
-                            <span class="status">Ready</span>
+                <article class="project-card">
+                    <div class="project-content">
+                        <div class="project-header">
+                            <div class="project-meta">
+                                <span class="project-icon">📈</span>
+                                <div class="project-info">
+                                    <h2 class="project-title">Insight Viz Studio</h2>
+                                    <div class="project-subtitle">Interactive Data Visualization Platform</div>
+                                </div>
+                            </div>
+                            <span class="status-chip">● Ready</span>
+                        </div>
+                        <p class="description">
+                            Transform raw CSV/Excel data into stunning interactive visualizations. Create geographic maps with marker clustering, 
+                            advanced ECharts analytics, and export publication-ready graphics in PNG/PDF formats.
+                        </p>
+                        <ul class="features-list">
+                            <li>Drag-and-drop CSV/Excel file upload</li>
+                            <li>Interactive Folium maps with clustering</li>
+                            <li>Advanced ECharts visualizations</li>
+                            <li>High-quality PNG/PDF export options</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tag">FastAPI</span>
+                            <span class="tag">Folium</span>
+                            <span class="tag">ECharts</span>
+                            <span class="tag">Pandas</span>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-primary" href="http://localhost:8606" target="_blank" rel="noreferrer">Launch Studio</a>
+                            <a class="btn btn-secondary" href="http://localhost:8606/api/docs" target="_blank" rel="noreferrer">API Documentation</a>
                         </div>
                     </div>
-                    <p class="project-description">
-                        数据可视化工具。上传 CSV/JSON 数据，自动生成交互式图表，支持 PNG/PDF 导出。
-                    </p>
-                    <div class="project-tech">
-                        <span class="tech-tag">Python</span>
-                        <span class="tech-tag">FastAPI</span>
-                        <span class="tech-tag">ECharts</span>
-                        <span class="tech-tag">Pandas</span>
-                    </div>
-                    <div class="project-links">
-                        <a href="http://localhost:8606" class="btn btn-primary" target="_blank">Open Project</a>
-                        <a href="http://localhost:8606/api/docs" class="btn btn-secondary" target="_blank">API Docs</a>
-                    </div>
-                </div>
+                </article>
             </div>
 
-            <div class="footer">
-                <h3>Quick Links</h3>
-                <p>快速访问所有项目的文档和资源</p>
-                <div class="quick-links">
-                    <a href="/api/docs" class="quick-link">📘 API Documentation</a>
-                    <a href="/api/records" class="quick-link">📝 Monitor Records</a>
-                    <a href="/api/summary" class="quick-link">📊 Summary Stats</a>
-                    <a href="/api/health" class="quick-link">💚 Health Check</a>
+            <footer>
+                <p><strong>Main Portal</strong> hosted on Global Price Sentinel · Port 8101</p>
+                <div class="link-row">
+                    <a href="/api/health" target="_blank">System Health</a>
+                    <a href="/api/summary" target="_blank">Price Summary</a>
+                    <a href="/api/records" target="_blank">Data Records</a>
                 </div>
-                <p style="margin-top: 30px; opacity: 0.7;">
-                    Developer Portfolio v1.0.0 | Built for Upwork & Fiverr
-                </p>
-            </div>
+                <small style="display:block;margin-top:20px;color:#868e96;">Professional Portfolio v1.0.0 · Built for Upwork & Fiverr Excellence</small>
+            </footer>
         </div>
+        <div class="toast" id="toast"></div>
+        <script>
+            const toast = document.getElementById('toast');
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3200);
+            }
+
+            async function ensureReport() {
+                const btn = document.querySelector('[data-generate-report]');
+                if (!btn) return;
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    btn.textContent = '生成中…';
+                    try {
+                        const res = await fetch('/api/report/generate?format=html', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.report_url) {
+                            window.open(data.report_url, '_blank');
+                            showToast('最新报告已生成');
+                        } else {
+                            window.open('/reports/latest.html', '_blank');
+                        }
+                    } catch (err) {
+                        showToast('生成失败，请稍后再试');
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'View Report';
+                    }
+                });
+            }
+
+            ensureReport();
+        </script>
     </body>
     </html>
     """
@@ -456,12 +713,14 @@ async def trigger_monitor(targets: List[TargetConfig]):
 @app.get("/api/report/generate")
 async def generate_report(
     days: int = Query(7, ge=1, le=90, description="报告天数"),
-    format: str = Query("html", regex="^(html|csv)$", description="报告格式")
+    format: str = Query("html", regex="^(html|csv|xlsx)$", description="报告格式")
 ):
     """生成报告"""
     try:
         if format == "html":
             report_path = ReportGenerator.generate_html_report(days=days)
+        elif format == "xlsx":
+            report_path = ReportGenerator.generate_excel_report(days=days)
         else:
             report_path = ReportGenerator.generate_csv_report(days=days)
         

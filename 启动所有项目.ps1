@@ -9,6 +9,22 @@ Write-Host "  Developer Portfolio - Master Launcher" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Resolve Python command (prefer Python 3.11 to ensure wheel availability for dependencies like PyMuPDF)
+function Get-PythonCmd {
+    # Prefer Homebrew Python 3.11 on macOS Apple Silicon
+    $brewPy311 = "/opt/homebrew/opt/python@3.11/bin/python3.11"
+    if (Test-Path $brewPy311) { return $brewPy311 }
+    
+    # Fallbacks
+    foreach ($cmd in @("python3.11", "python3", "python")) {
+        try {
+            $found = Get-Command $cmd -ErrorAction SilentlyContinue
+            if ($found) { return $cmd }
+        } catch {}
+    }
+    throw "Python is not installed or not in PATH. Please install Python 3.11 (e.g. brew install python@3.11)."
+}
+
 # Project definitions
 $projects = @(
     @{
@@ -30,6 +46,29 @@ $projects = @(
         Path = "saas-northstar-dashboard"
         Port = 8303
         Type = "Node"
+        NpmScript = "dev"
+        Status = "Ready"
+    },
+    @{
+        Name = "Doc Knowledge Forge"
+        Path = "doc-knowledge-forge"
+        Port = 8404
+        Type = "Python"
+        Status = "Ready"
+    },
+    @{
+        Name = "A11y Component Atlas"
+        Path = "a11y-component-atlas"
+        Port = 8505
+        Type = "Node"
+        NpmScript = "storybook"
+        Status = "Ready"
+    },
+    @{
+        Name = "Insight Viz Studio"
+        Path = "insight-viz-studio"
+        Port = 8606
+        Type = "Python"
         Status = "Ready"
     }
 )
@@ -44,63 +83,53 @@ function Setup-PythonProject {
     Push-Location $fullPath
     
     try {
-        # Create venv if not exists
+        $pyCmd = Get-PythonCmd
+        # If venv exists, verify interpreter version; if mismatched, recreate
+        if (Test-Path ".venv") {
+            if ($IsWindows) { $venvPyCheck = ".\.venv\Scripts\python.exe" } else { $venvPyCheck = "./.venv/bin/python" }
+            $currentVer = try { & $venvPyCheck -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')" 2>$null } catch { '' }
+            $targetVer = try { & $pyCmd -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')" 2>$null } catch { '' }
+            if (-not $currentVer -or -not $targetVer -or $currentVer -ne $targetVer) {
+                Write-Host "  [*] Recreating virtual environment using Python $targetVer (previous: $currentVer)" -ForegroundColor Yellow
+                Remove-Item -Recurse -Force ".venv" -ErrorAction SilentlyContinue
+            }
+        }
         if (-not (Test-Path ".venv")) {
             Write-Host "  [*] Creating virtual environment..." -ForegroundColor Yellow
-            python -m venv .venv
+            & $pyCmd -m venv .venv
             Start-Sleep -Seconds 2
         }
-        
-        # Activate and check if dependencies installed
-        $needInstall = $false
-        if (-not (Test-Path ".\.venv\Lib\site-packages\fastapi")) {
-            $needInstall = $true
+        if ($IsWindows) {
+            $venvPython = ".\.venv\Scripts\python.exe"
+            $venvPip = ".\.venv\Scripts\pip.exe"
+            $venvPlaywright = ".\.venv\Scripts\playwright.exe"
+        } else {
+            $venvPython = "./.venv/bin/python"
+            $venvPip = "./.venv/bin/pip"
+            $venvPlaywright = "./.venv/bin/playwright"
         }
-        
-        if ($needInstall) {
-            Write-Host "  [*] Installing dependencies (this may take a few minutes)..." -ForegroundColor Yellow
-            
-            # Upgrade pip first
-            & ".\.venv\Scripts\python.exe" -m pip install --upgrade pip --quiet
-            
-            # Install requirements
-            & ".\.venv\Scripts\pip.exe" install -r requirements.txt --quiet
-            
-            # Install Playwright for project 1
-            if ($ProjectName -eq "Global Price Sentinel") {
-                Write-Host "  [*] Installing Playwright browser..." -ForegroundColor Yellow
-                & ".\.venv\Scripts\playwright.exe" install chromium --quiet
-            }
+        Write-Host "  [*] Installing dependencies (this may take a few minutes)..." -ForegroundColor Yellow
+        & $venvPython -m pip install --upgrade pip --quiet
+        if (Test-Path "requirements.txt") { & $venvPip install -r requirements.txt --quiet }
+        if ($ProjectName -eq "Global Price Sentinel") {
+            Write-Host "  [*] Installing Playwright browser..." -ForegroundColor Yellow
+            & $venvPlaywright install chromium --quiet
         }
-        
-        # Copy config files
         if (-not (Test-Path ".env")) {
-            if (Test-Path "env.example") {
-                Copy-Item "env.example" ".env"
-            }
+            if (Test-Path ".env.example") { Copy-Item ".env.example" ".env" }
+            elseif (Test-Path "env.example") { Copy-Item "env.example" ".env" }
         }
-        
-        # Create necessary directories
-        if (-not (Test-Path "reports")) {
-            New-Item -ItemType Directory -Path "reports" -Force | Out-Null
-        }
-        if (-not (Test-Path "screenshots")) {
-            New-Item -ItemType Directory -Path "screenshots" -Force | Out-Null
-        }
-        
-        # Init database with better error handling
+        if (-not (Test-Path "reports")) { New-Item -ItemType Directory -Path "reports" -Force | Out-Null }
+        if (-not (Test-Path "screenshots")) { New-Item -ItemType Directory -Path "screenshots" -Force | Out-Null }
         Write-Host "  [*] Initializing database..." -ForegroundColor Yellow
-        $initResult = & ".\.venv\Scripts\python.exe" -c "try:`n    from app.models import init_db`n    init_db()`n    print('OK')`nexcept Exception as e:`n    print(f'ERROR: {e}')" 2>&1
-        
+        $initResult = & $venvPython -c "try:`n    from app.models import init_db`n    init_db()`n    print('OK')`nexcept Exception as e:`n    print(f'ERROR: {e}')" 2>&1
         if ($initResult -like "*OK*") {
             Write-Host "  [OK] Database initialized" -ForegroundColor Green
         } else {
             Write-Host "  [WARN] Database init had warnings (might be OK): $initResult" -ForegroundColor Yellow
         }
-        
         Write-Host "  [OK] Setup complete" -ForegroundColor Green
         return $true
-        
     } catch {
         Write-Host "  [ERROR] Setup failed: $($_.Exception.Message)" -ForegroundColor Red
         return $false
@@ -180,18 +209,19 @@ foreach ($project in $projects) {
         try {
             # Start process in background
             if ($project.Type -eq "Python") {
-                $venvPython = Join-Path $projectPath ".venv\Scripts\python.exe"
-                $process = Start-Process -FilePath $venvPython `
-                    -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $project.Port `
-                    -WorkingDirectory $projectPath `
-                    -WindowStyle Hidden `
-                    -PassThru
+                if ($IsWindows) { $venvPython = Join-Path $projectPath ".venv\Scripts\python.exe" } else { $venvPython = Join-Path $projectPath ".venv/bin/python" }
+                if ($IsWindows) {
+                    $process = Start-Process -FilePath $venvPython -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $project.Port -WorkingDirectory $projectPath -WindowStyle Hidden -PassThru
+                } else {
+                    $process = Start-Process -FilePath $venvPython -ArgumentList "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", $project.Port -WorkingDirectory $projectPath -PassThru
+                }
             } elseif ($project.Type -eq "Node") {
-                $process = Start-Process -FilePath "npm" `
-                    -ArgumentList "run", "dev" `
-                    -WorkingDirectory $projectPath `
-                    -WindowStyle Hidden `
-                    -PassThru
+                $npmScript = if ($project.NpmScript) { $project.NpmScript } else { "dev" }
+                if ($IsWindows) {
+                    $process = Start-Process -FilePath "npm" -ArgumentList "run", $npmScript -WorkingDirectory $projectPath -WindowStyle Hidden -PassThru
+                } else {
+                    $process = Start-Process -FilePath "npm" -ArgumentList "run", $npmScript -WorkingDirectory $projectPath -PassThru
+                }
             }
             
             $startedProjects += @{

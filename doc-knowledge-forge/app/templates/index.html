@@ -106,7 +106,16 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: var(--text-primary);
+            color: #0f172a;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .section-title {
+                color: #f1f5f9;
+            }
+            .section-subtitle {
+                color: #cbd5e1 !important;
+            }
         }
 
         .section-title span.icon {
@@ -232,6 +241,104 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+        }
+
+        /* AI Analysis Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 600px;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-backdrop.visible .modal-content {
+            transform: translateY(0);
+        }
+
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .analysis-section {
+            margin-bottom: 20px;
+        }
+
+        .analysis-section h4 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .analysis-list li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .analysis-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .modal-content {
+                background: #1e293b;
+            }
+            .analysis-list li {
+                color: #94a3b8;
+            }
         }
 
         .document-card {
@@ -538,6 +645,9 @@
                             <p style="color:#64748b; font-size:0.9rem;">${new Date(doc.created_at).toLocaleString()} · ${formatBytes(doc.file_size || 0)}</p>
                         </div>
                         <div class="button-group">
+                            <button class="primary" onclick="analyzeDocument(${doc.id}, '${doc.title || doc.original_name}')" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);">
+                                <span>✨</span> AI Analyze
+                            </button>
                             <a class="action-btn secondary" href="/api/documents/${doc.id}/markdown" target="_blank" rel="noopener">
                                 <span>📝</span> 查看 Markdown
                             </a>

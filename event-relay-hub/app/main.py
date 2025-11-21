@@ -3,9 +3,13 @@ Event Relay Hub 主应用
 """
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import FastAPI, Request, Depends, Query, HTTPException
+import json
+import uuid
+import random
+from fastapi import FastAPI, Request, Depends, Query, HTTPException, Body
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
@@ -20,13 +24,13 @@ from app.forwarder import EventForwarder
 from app.rate_limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-
+from pathlib import Path
 
 # 创建应用
 app = FastAPI(
-    title=settings.APP_NAME,
+    title="Payment Webhook Debugger",
     version=settings.APP_VERSION,
-    description="通用 Webhook 事件汇聚与转发中台",
+    description="Stripe Payment & GitHub Webhook Relay/Debugger",
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
@@ -44,11 +48,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 静态文件
+# 静态文件与模板
 try:
     app.mount("/static", StaticFiles(directory="frontend"), name="static")
 except:
-    pass  # frontend 目录可能不存在
+    pass
+
+templates_dir = Path(__file__).resolve().parent / "templates"
+templates = Jinja2Templates(directory=str(templates_dir))
 
 
 @app.on_event("startup")
@@ -70,86 +77,79 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    """根路径 - 显示欢迎页"""
-    return """
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Event Relay Hub</title>
-        <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                padding: 20px;
-            }
-            .container { text-align: center; max-width: 600px; }
-            h1 { font-size: 3rem; margin-bottom: 1rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-            p { font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.95; }
-            .links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-            .btn {
-                padding: 12px 32px;
-                background: white;
-                color: #667eea;
-                text-decoration: none;
-                border-radius: 8px;
-                font-weight: 600;
-                transition: all 0.2s;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-            .endpoints {
-                margin-top: 3rem;
-                background: rgba(255,255,255,0.1);
-                padding: 24px;
-                border-radius: 12px;
-                backdrop-filter: blur(10px);
-                text-align: left;
-            }
-            .endpoints h3 { margin-bottom: 12px; }
-            .endpoints code {
-                display: block;
-                background: rgba(0,0,0,0.2);
-                padding: 8px 12px;
-                border-radius: 4px;
-                margin: 8px 0;
-                font-family: 'Courier New', monospace;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>📡 Event Relay Hub</h1>
-            <p>Webhook 事件汇聚与转发中台</p>
-            
-            <div class="links">
-                <a href="/api/docs" class="btn">📘 API 文档</a>
-                <a href="/api/events?limit=10" class="btn">📝 事件列表</a>
-                <a href="/api/stats" class="btn">📊 统计信息</a>
-            </div>
-            
-            <div class="endpoints">
-                <h3>Webhook 端点</h3>
-                <code>POST /webhook/github</code>
-                <code>POST /webhook/stripe</code>
-                <code>POST /webhook/custom</code>
-            </div>
-        </div>
-    </body>
-    </html>
+async def root(request: Request):
+    """根路径 - 显示仪表盘"""
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/api/simulate/stripe")
+async def simulate_stripe_event(
+    payload: dict = Body(..., example={"type": "payment_intent.succeeded"}),
+    db: Session = Depends(get_db)
+):
     """
+    [New Feature] Simulate a Stripe Event
+    Generates a mock Stripe payload and injects it into the system.
+    """
+    event_type = payload.get("type", "payment_intent.succeeded")
+    
+    # Construct mock payload based on type
+    mock_id = f"evt_sim_{uuid.uuid4().hex[:16]}"
+    timestamp = int(datetime.utcnow().timestamp())
+    
+    mock_data = {
+        "id": mock_id,
+        "object": "event",
+        "api_version": "2023-10-16",
+        "created": timestamp,
+        "type": event_type,
+        "data": {
+            "object": {
+                "id": f"pi_{uuid.uuid4().hex[:14]}",
+                "object": "payment_intent",
+                "amount": random.randint(1000, 50000),
+                "currency": "usd",
+                "status": "succeeded" if "succeeded" in event_type else "requires_payment_method",
+                "payment_method": f"pm_{uuid.uuid4().hex[:14]}"
+            }
+        },
+        "livemode": False,
+        "pending_webhooks": 1,
+        "request": {
+            "id": f"req_{uuid.uuid4().hex[:14]}",
+            "idempotency_key": f"idem_{uuid.uuid4().hex[:14]}"
+        }
+    }
+
+    # Inject into DB
+    event = Event(
+        source="stripe (simulated)",
+        event_type=event_type,
+        payload=json.dumps(mock_data, indent=2),
+        headers=json.dumps({
+            "User-Agent": "Stripe/1.0 (+https://stripe.com/docs/webhooks)",
+            "Stripe-Signature": "t=1234567890,v1=simulated_signature",
+            "Content-Type": "application/json"
+        }),
+        signature_valid=True # Simulated events are always valid
+    )
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    
+    # Trigger forwarding if enabled
+    # (Optional: In a real debugger, you might NOT want to forward simulations, 
+    # but here we do to show the full flow)
+    if settings.FORWARD_ENABLED and settings.FORWARD_URL:
+        forwarder = EventForwarder()
+        await forwarder.forward_event(event, settings.FORWARD_URL)
+
+    return {"success": True, "event_id": event.id, "type": event_type}
 
 
 @app.get("/api/health")
 async def health_check():
+
     """健康检查"""
     return {
         "status": "healthy",

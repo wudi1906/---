@@ -7,12 +7,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Query, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
+import asyncio
+import random
 
 from app.settings import settings
 from app.models import (
@@ -21,6 +23,31 @@ from app.models import (
 )
 from app.parser import parse_document, DocumentParser
 
+# Simulated AI Service (For Demo/Portfolio purposes)
+async def mock_ai_summarize(text: str, title: str) -> dict:
+    """
+    Simulates an AI analysis of the document.
+    In a real production env, this would call OpenAI GPT-4.
+    """
+    await asyncio.sleep(1.5) # Simulate API latency
+    
+    # Generate a plausible summary based on keywords (simple extraction)
+    words = text.split()
+    word_count = len(words)
+    preview = " ".join(words[:50]) + "..."
+    
+    return {
+        "summary": f"This document ('{title}') appears to be a technical or informational text containing approximately {word_count} words. The content discusses key themes related to the extracted keywords. It begins with: '{preview}'",
+        "key_points": [
+            f"Analysis of {title} reveals core concepts.",
+            "The document structure suggests a formal report or guide.",
+            "Key topics include implementation details and specifications.",
+            "Actionable insights can be derived from the provided data."
+        ],
+        "sentiment": "Neutral/Professional",
+        "category": "Technical Documentation" if "code" in text or "api" in text.lower() else "General Business",
+        "ai_model": "GPT-4-Turbo (Simulated)"
+    }
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -180,6 +207,26 @@ async def get_document_markdown(doc_id: int, db: Session = Depends(get_db)):
         filename=f"{Path(doc.original_name).stem}.md",
         media_type="text/markdown"
     )
+
+
+@app.post("/api/documents/{doc_id}/analyze")
+async def analyze_document(doc_id: int, db: Session = Depends(get_db)):
+    """
+    [New Feature] AI Document Analysis
+    Generates a summary, key points, and sentiment analysis.
+    """
+    doc = db.query(Document).filter(Document.id == doc_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # In a real app, we would check for OpenAI API Key here
+    # if not settings.OPENAI_API_KEY:
+    #     return JSONResponse(status_code=503, content={"error": "OpenAI Key not configured"})
+        
+    analysis = await mock_ai_summarize(doc.content or "", doc.title or "Untitled")
+    
+    return analysis
+
 
 
 @app.get("/api/search")

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Webhook Debugger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .gradient-bg { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+        .event-card { transition: all 0.2s; }
+        .event-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        pre { background: #1e293b; color: #e2e8f0; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="gradient-bg text-white py-6 shadow-lg">
+            <div class="container mx-auto px-6">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">📡</span>
+                        <div>
+                            <h1 class="text-2xl font-bold">Payment Webhook Debugger</h1>
+                            <p class="text-indigo-100 text-sm opacity-90">Stripe & GitHub Event Relay</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="/api/docs" class="bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">API Docs</a>
+                        <a href="/api/stats" class="bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">Stats</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-6 py-8 flex-grow">
+            
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Simulator Card -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 col-span-2">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="text-indigo-500">⚡</span> Payment Simulator
+                    </h2>
+                    <p class="text-slate-500 text-sm mb-6">Generate mock Stripe webhook events to test your integration without real payments.</p>
+                    
+                    <div class="flex gap-3 flex-wrap">
+                        <button onclick="simulateEvent('payment_intent.succeeded')" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-100 transition flex items-center gap-2">
+                            ✅ Payment Success
+                        </button>
+                        <button onclick="simulateEvent('payment_intent.payment_failed')" class="bg-rose-50 text-rose-700 border border-rose-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-rose-100 transition flex items-center gap-2">
+                            ❌ Payment Failed
+                        </button>
+                        <button onclick="simulateEvent('charge.refunded')" class="bg-amber-50 text-amber-700 border border-amber-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-100 transition flex items-center gap-2">
+                            ↩️ Refund
+                        </button>
+                         <button onclick="simulateEvent('customer.subscription.created')" class="bg-blue-50 text-blue-700 border border-blue-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-100 transition flex items-center gap-2">
+                            📅 New Subscription
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Endpoint Info -->
+                <div class="bg-slate-900 text-slate-300 rounded-xl p-6 shadow-sm">
+                    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="text-purple-400">🔗</span> Webhook Endpoints
+                    </h2>
+                    <div class="space-y-3 text-xs font-mono">
+                        <div class="flex justify-between items-center group cursor-pointer" onclick="copyToClipboard(this, '/webhook/stripe')">
+                            <span class="text-emerald-400">POST</span>
+                            <span class="truncate ml-2 opacity-80 group-hover:opacity-100">/webhook/stripe</span>
+                            <span class="text-slate-500 ml-auto">📋</span>
+                        </div>
+                        <div class="flex justify-between items-center group cursor-pointer" onclick="copyToClipboard(this, '/webhook/github')">
+                            <span class="text-emerald-400">POST</span>
+                            <span class="truncate ml-2 opacity-80 group-hover:opacity-100">/webhook/github</span>
+                            <span class="text-slate-500 ml-auto">📋</span>
+                        </div>
+                        <div class="flex justify-between items-center group cursor-pointer" onclick="copyToClipboard(this, '/webhook/custom')">
+                            <span class="text-emerald-400">POST</span>
+                            <span class="truncate ml-2 opacity-80 group-hover:opacity-100">/webhook/custom</span>
+                            <span class="text-slate-500 ml-auto">📋</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Events -->
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-slate-800">Recent Events</h2>
+                    <button onclick="loadEvents()" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Refresh List ↻</button>
+                </div>
+
+                <div id="eventsList" class="space-y-4">
+                    <!-- Loading State -->
+                    <div class="text-center py-12 text-slate-400">
+                        Loading events...
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-xl transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        Action completed
+    </div>
+
+    <script>
+        const API_BASE = '';
+
+        // Load events on startup
+        document.addEventListener('DOMContentLoaded', loadEvents);
+
+        async function loadEvents() {
+            const container = document.getElementById('eventsList');
+            try {
+                const res = await fetch(`${API_BASE}/api/events?limit=10`);
+                const events = await res.json();
+                
+                if (events.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
+                            <div class="text-4xl mb-3">📭</div>
+                            <p class="text-slate-500">No events received yet.</p>
+                            <p class="text-sm text-slate-400 mt-1">Try the Simulator buttons above!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = events.map(event => {
+                    const isStripe = event.source.includes('stripe');
+                    const isGithub = event.source.includes('github');
+                    const icon = isStripe ? '💳' : (isGithub ? '🐙' : '🔌');
+                    const statusColor = event.signature_valid ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                    
+                    return `
+                        <div class="event-card bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 md:items-center">
+                            <div class="flex-shrink-0 w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-2xl">
+                                ${icon}
+                            </div>
+                            <div class="flex-grow">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-bold text-slate-700 capitalize">${event.source}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">${event.event_type}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-full ${statusColor} border border-transparent opacity-80">
+                                        ${event.signature_valid ? 'Valid Sig' : 'Invalid Sig'}
+                                    </span>
+                                </div>
+                                <div class="text-xs text-slate-400 font-mono truncate max-w-lg">
+                                    ID: ${event.id} • ${new Date(event.created_at).toLocaleString()}
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 flex gap-2">
+                                <button onclick="viewPayload('${event.id}')" class="text-sm px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg font-medium transition border border-slate-200">
+                                    View Payload
+                                </button>
+                                <button onclick="replayEvent('${event.id}')" class="text-sm px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg font-medium transition border border-indigo-200">
+                                    Replay
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div class="text-center text-red-500 py-8">Failed to load events</div>';
+            }
+        }
+
+        async function simulateEvent(type) {
+            showToast(`Simulating ${type}...`);
+            try {
+                const res = await fetch(`${API_BASE}/api/simulate/stripe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                if (res.ok) {
+                    showToast('Event Simulated Successfully!', 'success');
+                    setTimeout(loadEvents, 500);
+                } else {
+                    throw new Error('Failed');
+                }
+            } catch (err) {
+                showToast('Simulation Failed', 'error');
+            }
+        }
+
+        async function replayEvent(id) {
+            if(!confirm('Replay this event to the configured Forward URL?')) return;
+            showToast('Replaying event...');
+            try {
+                const res = await fetch(`${API_BASE}/api/events/${id}/replay`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Replay Successful!', 'success');
+                } else {
+                    showToast('Replay Failed', 'error');
+                }
+            } catch (err) {
+                showToast('Replay Error', 'error');
+            }
+        }
+
+        function viewPayload(id) {
+            // For MVP, just alert, or ideally open a modal (omitted for brevity in single file)
+            window.open(`${API_BASE}/api/events/${id}`, '_blank');
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `fixed bottom-6 right-6 px-6 py-3 rounded-lg shadow-xl transform transition-all duration-300 z-50 ${
+                type === 'success' ? 'bg-emerald-600 text-white' : 
+                type === 'error' ? 'bg-rose-600 text-white' : 
+                'bg-slate-800 text-white'
+            }`;
+            
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        function copyToClipboard(el, text) {
+            const fullUrl = window.location.origin + text;
+            navigator.clipboard.writeText(fullUrl);
+            showToast('Endpoint URL copied!');
+            el.classList.add('bg-slate-800');
+            setTimeout(() => el.classList.remove('bg-slate-800'), 200);
+        }
+    </script>
+</body>
+</html>

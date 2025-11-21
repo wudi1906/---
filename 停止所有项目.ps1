@@ -8,36 +8,38 @@ Write-Host ""
 $ports = @(8101, 8202, 8303, 8404, 8505, 8606)
 
 foreach ($port in $ports) {
-    $connections = netstat -ano | Select-String ":$port " | Select-String "LISTENING"
-    
-    foreach ($connection in $connections) {
-        $parts = $connection -split '\s+' | Where-Object { $_ -ne '' }
-        $pid = $parts[-1]
-        
-        if ($pid -and $pid -match '^\d+$') {
-            try {
-                $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
-                if ($process) {
-                    Write-Host "Stopping process on port $port (PID: $pid)" -ForegroundColor Yellow
-                    Stop-Process -Id $pid -Force
-                    Write-Host "  [OK] Stopped" -ForegroundColor Green
+    try {
+        if ($IsWindows) {
+            $connections = netstat -ano | Select-String ":$port " | Select-String "LISTENING"
+            $pids = @()
+            foreach ($connection in $connections) {
+                $parts = $connection -split '\s+' | Where-Object { $_ -ne '' }
+                if ($parts.Count -gt 0) {
+                    $pid = $parts[-1]
+                    if ($pid -and $pid -match '^\d+$') { $pids += [int]$pid }
                 }
+            }
+        } else {
+            # lsof -t prints only PIDs
+            $pids = & lsof -nP -iTCP:$port -sTCP:LISTEN -t 2>$null | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ }
+        }
+
+        if (-not $pids -or $pids.Count -eq 0) {
+            Write-Host "No listener found on port $port" -ForegroundColor DarkGray
+            continue
+        }
+
+        foreach ($pid in $pids) {
+            try {
+                Write-Host "Stopping PID $pid on port $($port)" -ForegroundColor Yellow
+                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+                Write-Host "  [OK] Stopped" -ForegroundColor Green
             } catch {
                 Write-Host "  [WARN] Could not stop process $pid" -ForegroundColor Yellow
             }
         }
-    }
-}
-
-# Kill any remaining Python/Node processes for the projects
-$processNames = @("python", "node", "npm")
-foreach ($name in $processNames) {
-    $processes = Get-Process -Name $name -ErrorAction SilentlyContinue | 
-        Where-Object { $_.Path -like "*作品集*" }
-    
-    foreach ($proc in $processes) {
-        Write-Host "Stopping $($proc.ProcessName) (PID: $($proc.Id))" -ForegroundColor Yellow
-        Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+    } catch {
+        Write-Host "  [WARN] Failed to query port $($port): $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
 

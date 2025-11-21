@@ -7,10 +7,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
+import folium
+from folium.plugins import HeatMap, MarkerCluster
 
 from app.settings import settings
 
@@ -18,7 +20,7 @@ from app.settings import settings
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="数据可视化工具 - CSV/JSON 上传 → ECharts 图表 → 导出",
+    description="数据可视化工具 - CSV/JSON 上传 → ECharts 图表/地图 → 导出",
     docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
@@ -53,107 +55,179 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Insight Viz Studio</title>
+        <title>Insight Viz Studio - Data Visualization</title>
         <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                min-height: 100vh;
-                padding: 40px 20px;
-            }
-            .container { max-width: 1200px; margin: 0 auto; }
-            .header {
-                text-align: center;
-                color: white;
-                margin-bottom: 60px;
-            }
-            .header h1 {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-            }
-            .card {
-                background: white;
-                border-radius: 16px;
-                padding: 40px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            }
-            .upload-area {
-                border: 2px dashed #cbd5e1;
-                border-radius: 12px;
-                padding: 60px 20px;
-                text-align: center;
-                margin-bottom: 30px;
-            }
-            .btn {
-                display: inline-block;
-                padding: 12px 32px;
-                background: #2563eb;
-                color: white;
-                text-decoration: none;
-                border: none;
-                border-radius: 8px;
-                font-weight: 600;
-                cursor: pointer;
-                margin: 10px;
-            }
-            .btn:hover {
-                background: #1d4ed8;
-            }
-            #chart { width: 100%; height: 500px; margin-top: 30px; }
+            body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+            .brand-gradient { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+            #map-frame { width: 100%; height: 500px; border: none; border-radius: 12px; }
         </style>
     </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>📈 Insight Viz Studio</h1>
-                <p style="font-size: 1.25rem; opacity: 0.95;">数据可视化工具</p>
-            </div>
-
-            <div class="card">
-                <h2 style="margin-bottom: 20px;">上传数据文件</h2>
-                <div class="upload-area">
-                    <div style="font-size: 3rem; margin-bottom: 20px;">📊</div>
-                    <p style="color: #64748b; margin-bottom: 20px;">
-                        上传 CSV、JSON 或 Excel 文件<br/>
-                        自动生成交互式图表
-                    </p>
-                    <input type="file" id="fileInput" accept=".csv,.json,.xlsx,.xls">
-                    <button onclick="document.getElementById('fileInput').click()" class="btn">
-                        选择文件
-                    </button>
+    <body class="bg-slate-50 text-slate-800">
+        
+        <!-- Header -->
+        <header class="brand-gradient text-white py-6 shadow-lg mb-8">
+            <div class="container mx-auto px-6 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-3xl">📈</span>
+                    <div>
+                        <h1 class="text-2xl font-bold">Insight Viz Studio</h1>
+                        <p class="text-blue-100 text-sm opacity-90">Turn CSVs into Interactive Charts & Maps</p>
+                    </div>
                 </div>
+                <div>
+                    <a href="/api/docs" class="bg-white/20 hover:bg-white/30 transition px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">API Docs</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-6">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <div id="chart"></div>
-                
-                <div style="text-align: center; margin-top: 30px;">
-                    <a href="/api/docs" class="btn">📘 API 文档</a>
-                    <a href="/api/datasets" class="btn">📁 数据集列表</a>
+                <!-- Left Panel: Controls -->
+                <div class="lg:col-span-1 space-y-6">
+                    
+                    <!-- Upload Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-600 p-1.5 rounded">1</span> Upload Data
+                        </h2>
+                        
+                        <div class="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:bg-slate-50 transition cursor-pointer" onclick="document.getElementById('fileInput').click()">
+                            <div class="text-4xl mb-2">📄</div>
+                            <p class="text-slate-500 text-sm mb-2">Click to upload CSV/Excel</p>
+                            <p class="text-xs text-slate-400">Supports .csv, .xlsx (Max 10MB)</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".csv,.json,.xlsx,.xls" class="hidden">
+                        
+                        <div id="fileInfo" class="hidden mt-4 p-3 bg-green-50 border border-green-100 rounded-lg flex items-center gap-3">
+                            <div class="text-green-600">✅</div>
+                            <div class="text-sm overflow-hidden">
+                                <div id="fileName" class="font-medium text-green-900 truncate">data.csv</div>
+                                <div id="fileStats" class="text-green-700 text-xs">100 rows • 5 cols</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Card -->
+                    <div id="configCard" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 opacity-50 pointer-events-none transition-opacity">
+                        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span class="bg-blue-100 text-blue-600 p-1.5 rounded">2</span> Configure
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Viz Type</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="setVizType('chart')" id="btn-chart" class="viz-type-btn px-3 py-2 rounded-lg border text-sm font-medium bg-blue-50 border-blue-200 text-blue-700">Chart</button>
+                                    <button onclick="setVizType('map')" id="btn-map" class="viz-type-btn px-3 py-2 rounded-lg border text-sm font-medium border-slate-200 text-slate-600 hover:bg-slate-50">Map</button>
+                                </div>
+                            </div>
+
+                            <!-- Chart Config -->
+                            <div id="chartConfig" class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Chart Type</label>
+                                    <select id="chartType" class="w-full rounded-lg border-slate-300 text-sm">
+                                        <option value="bar">Bar Chart</option>
+                                        <option value="line">Line Chart</option>
+                                        <option value="pie">Pie Chart</option>
+                                        <option value="scatter">Scatter Plot</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">X Axis (Category)</label>
+                                    <select id="xAxis" class="w-full rounded-lg border-slate-300 text-sm"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Y Axis (Value)</label>
+                                    <select id="yAxis" class="w-full rounded-lg border-slate-300 text-sm"></select>
+                                </div>
+                            </div>
+
+                            <!-- Map Config -->
+                            <div id="mapConfig" class="space-y-3 hidden">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Map Style</label>
+                                    <select id="mapType" class="w-full rounded-lg border-slate-300 text-sm">
+                                        <option value="heatmap">Heatmap (Density)</option>
+                                        <option value="markers">Markers (Locations)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Latitude Column</label>
+                                    <select id="latCol" class="w-full rounded-lg border-slate-300 text-sm"></select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">Longitude Column</label>
+                                    <select id="lonCol" class="w-full rounded-lg border-slate-300 text-sm"></select>
+                                </div>
+                            </div>
+                            
+                            <button onclick="generateViz()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all">
+                                ✨ Generate Visualization
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Visualization -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 min-h-[600px] flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-bold text-slate-800">Preview</h2>
+                            <div class="flex gap-2">
+                                <button class="text-sm text-slate-500 hover:text-blue-600">Download PNG</button>
+                                <button class="text-sm text-slate-500 hover:text-blue-600">Export JSON</button>
+                            </div>
+                        </div>
+                        
+                        <div id="vizContainer" class="flex-grow bg-slate-50 rounded-lg border border-slate-100 relative flex items-center justify-center overflow-hidden">
+                            <div id="placeholder" class="text-center text-slate-400">
+                                <div class="text-5xl mb-3">📊</div>
+                                <p>Upload data and configure settings<br>to see visualization</p>
+                            </div>
+                            
+                            <!-- Chart Container -->
+                            <div id="chart" class="w-full h-full hidden p-4"></div>
+                            
+                            <!-- Map Container (Iframe) -->
+                            <iframe id="mapFrame" class="w-full h-full hidden border-0"></iframe>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
-            const chart = echarts.init(document.getElementById('chart'));
-            
-            // 示例图表
-            const option = {
-                title: { text: '示例数据可视化', left: 'center' },
-                tooltip: { trigger: 'axis' },
-                xAxis: { type: 'category', data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] },
-                yAxis: { type: 'value' },
-                series: [{
-                    data: [820, 932, 901, 934, 1290, 1330, 1320],
-                    type: 'line',
-                    smooth: true,
-                    itemStyle: { color: '#2563eb' }
-                }]
-            };
-            chart.setOption(option);
-            
-            // 文件上传处理
+            let currentFile = null;
+            let currentColumns = [];
+            let chartInstance = null;
+
+            function setVizType(type) {
+                // UI Toggle
+                document.querySelectorAll('.viz-type-btn').forEach(b => {
+                    b.classList.remove('bg-blue-50', 'border-blue-200', 'text-blue-700');
+                    b.classList.add('border-slate-200', 'text-slate-600');
+                });
+                const activeBtn = document.getElementById(`btn-${type}`);
+                activeBtn.classList.add('bg-blue-50', 'border-blue-200', 'text-blue-700');
+                activeBtn.classList.remove('border-slate-200', 'text-slate-600');
+
+                // Config Toggle
+                if (type === 'chart') {
+                    document.getElementById('chartConfig').classList.remove('hidden');
+                    document.getElementById('mapConfig').classList.add('hidden');
+                } else {
+                    document.getElementById('chartConfig').classList.add('hidden');
+                    document.getElementById('mapConfig').classList.remove('hidden');
+                }
+            }
+
+            // File Upload
             document.getElementById('fileInput').addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
@@ -162,32 +236,80 @@ async def root():
                 formData.append('file', file);
                 
                 try {
-                    const response = await fetch('/api/upload', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    alert(`文件上传成功！行数: ${result.rows}, 列数: ${result.columns}`);
-                } catch (error) {
-                    alert('上传失败: ' + error.message);
+                    const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        currentFile = data.filename;
+                        currentColumns = data.column_names;
+                        
+                        // Update UI
+                        document.getElementById('fileName').textContent = data.filename;
+                        document.getElementById('fileStats').textContent = `${data.rows} rows • ${data.columns} cols`;
+                        document.getElementById('fileInfo').classList.remove('hidden');
+                        document.getElementById('configCard').classList.remove('opacity-50', 'pointer-events-none');
+                        
+                        // Populate Selects
+                        const selects = ['xAxis', 'yAxis', 'latCol', 'lonCol'];
+                        selects.forEach(id => {
+                            const sel = document.getElementById(id);
+                            sel.innerHTML = currentColumns.map(c => `<option value="${c}">${c}</option>`).join('');
+                        });
+
+                        // Auto-detect Lat/Lon
+                        const latMatch = currentColumns.find(c => c.toLowerCase().includes('lat'));
+                        const lonMatch = currentColumns.find(c => c.toLowerCase().includes('lon') || c.toLowerCase().includes('lng'));
+                        if (latMatch) document.getElementById('latCol').value = latMatch;
+                        if (lonMatch) document.getElementById('lonCol').value = lonMatch;
+                    }
+                } catch (err) {
+                    alert('Upload failed');
                 }
             });
+
+            async function generateViz() {
+                const isMap = !document.getElementById('mapConfig').classList.contains('hidden');
+                document.getElementById('placeholder').classList.add('hidden');
+                
+                if (isMap) {
+                    // Generate Map
+                    document.getElementById('chart').classList.add('hidden');
+                    const frame = document.getElementById('mapFrame');
+                    frame.classList.remove('hidden');
+                    
+                    const lat = document.getElementById('latCol').value;
+                    const lon = document.getElementById('lonCol').value;
+                    const type = document.getElementById('mapType').value;
+                    
+                    frame.src = `/api/map/generate?filename=${currentFile}&lat_col=${lat}&lon_col=${lon}&map_type=${type}`;
+                    
+                } else {
+                    // Generate Chart
+                    document.getElementById('mapFrame').classList.add('hidden');
+                    const div = document.getElementById('chart');
+                    div.classList.remove('hidden');
+                    
+                    if (chartInstance) chartInstance.dispose();
+                    chartInstance = echarts.init(div);
+                    
+                    const type = document.getElementById('chartType').value;
+                    const x = document.getElementById('xAxis').value;
+                    const y = document.getElementById('yAxis').value;
+                    
+                    const res = await fetch(`/api/chart?filename=${currentFile}&chart_type=${type}&x_column=${x}&y_column=${y}`);
+                    const option = await res.json();
+                    chartInstance.setOption(option);
+                    chartInstance.resize();
+                }
+            }
             
-            window.addEventListener('resize', () => chart.resize());
+            window.addEventListener('resize', () => {
+                if (chartInstance) chartInstance.resize();
+            });
         </script>
     </body>
     </html>
     """
-
-
-@app.get("/api/health")
-async def health_check():
-    """健康检查"""
-    return {
-        "status": "healthy",
-        "app": settings.APP_NAME,
-        "version": settings.APP_VERSION
-    }
 
 
 @app.post("/api/upload")
@@ -231,19 +353,71 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/datasets")
-async def list_datasets():
-    """列出所有数据集"""
-    files = []
-    for file_path in settings.UPLOAD_DIR.glob("*"):
-        if file_path.is_file():
-            files.append({
-                "filename": file_path.name,
-                "size": file_path.stat().st_size,
-                "created_at": datetime.fromtimestamp(file_path.stat().st_ctime).isoformat()
-            })
-    
-    return {"total": len(files), "files": files}
+@app.get("/api/map/generate")
+async def generate_map(
+    filename: str,
+    lat_col: str,
+    lon_col: str,
+    map_type: str = "heatmap"
+):
+    """生成交互式地图 HTML"""
+    file_path = settings.UPLOAD_DIR / filename
+    if not file_path.exists():
+        return HTMLResponse("<h3>File not found</h3>")
+
+    try:
+        # 读取数据
+        file_ext = file_path.suffix.lower()
+        if file_ext == '.csv':
+            df = pd.read_csv(file_path)
+        elif file_ext == '.json':
+            df = pd.read_json(file_path)
+        elif file_ext in ['.xlsx', '.xls']:
+            df = pd.read_excel(file_path)
+        else:
+            return HTMLResponse("<h3>Unsupported file format</h3>")
+
+        # 验证列
+        if lat_col not in df.columns or lon_col not in df.columns:
+            return HTMLResponse(f"<h3>Columns {lat_col}/{lon_col} not found</h3>")
+
+        # 清洗数据 (去除无效经纬度)
+        df = df.dropna(subset=[lat_col, lon_col])
+        # 简单的范围验证
+        df = df[
+            (df[lat_col] >= -90) & (df[lat_col] <= 90) &
+            (df[lon_col] >= -180) & (df[lon_col] <= 180)
+        ]
+        
+        if len(df) == 0:
+            return HTMLResponse("<h3>No valid location data found</h3>")
+
+        # 计算中心点
+        center_lat = df[lat_col].mean()
+        center_lon = df[lon_col].mean()
+
+        # 创建地图
+        m = folium.Map(location=[center_lat, center_lon], zoom_start=4, tiles="CartoDB positron")
+
+        if map_type == "heatmap":
+            # 热力图
+            data = df[[lat_col, lon_col]].values.tolist()
+            HeatMap(data, radius=15).add_to(m)
+        else:
+            # 标记聚合
+            marker_cluster = MarkerCluster().add_to(m)
+            # 限制最多显示 1000 个点以保证性能
+            for idx, row in df.head(1000).iterrows():
+                folium.Marker(
+                    location=[row[lat_col], row[lon_col]],
+                    popup=f"Row {idx}",
+                ).add_to(marker_cluster)
+
+        # 返回 HTML
+        return HTMLResponse(m.get_root().render())
+
+    except Exception as e:
+        return HTMLResponse(f"<h3>Error generating map: {str(e)}</h3>")
 
 
 @app.post("/api/chart")
@@ -276,8 +450,11 @@ async def generate_chart(
             "yAxis": {"type": "value"},
             "series": [{
                 "data": df[y_column].tolist() if y_column else [],
-                "type": chart_type
-            }]
+                "type": chart_type,
+                "itemStyle": {"color": "#3b82f6"},
+                "areaStyle": {"opacity": 0.1} if chart_type == 'line' else None
+            }],
+            "grid": {"left": "3%", "right": "4%", "bottom": "3%", "containLabel": True}
         }
     elif chart_type == 'pie':
         option = {
@@ -285,14 +462,29 @@ async def generate_chart(
             "tooltip": {"trigger": "item"},
             "series": [{
                 "type": "pie",
+                "radius": ['40%', '70%'],
                 "data": [{"name": str(row[x_column]), "value": row[y_column]} 
                          for _, row in df.head(10).iterrows()]
             }]
+        }
+    elif chart_type == 'scatter':
+        option = {
+             "title": {"text": "Scatter Plot"},
+             "tooltip": {"trigger": "item"},
+             "xAxis": {},
+             "yAxis": {},
+             "series": [{
+                 "symbolSize": 10,
+                 "data": df[[x_column, y_column]].values.tolist(),
+                 "type": "scatter",
+                 "itemStyle": {"color": "#ef4444"}
+             }]
         }
     else:
         option = {"title": {"text": "Chart"}}
     
     return option
+
 
 
 if __name__ == "__main__":
